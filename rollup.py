@@ -229,6 +229,11 @@ def infer_camping_type(r):
     if tc == 0 and org == 'BLM' and ftype == 'Facility':
         return ('DISPERSED', 'LOW')
 
+    # 10b. DEVELOPED: facility_type is 'Campground' but no campsite records
+    #      (common for NPS, FS, BLM, USACE — they don't always publish site data)
+    if tc == 0 and ftype == 'Campground':
+        return ('DEVELOPED', 'LOW')
+
     # 11. PRIMITIVE: description says primitive, no hookups
     if tc > 0 and d_primitive and not has_elec and not has_water:
         return ('PRIMITIVE', 'HIGH')

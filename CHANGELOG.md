@@ -2,6 +2,12 @@
 
 All notable changes to the RV Camping Finder project.
 
+## [0.8.1] — 2026-02-08
+
+### Fixed
+- 819 campgrounds (NPS, FS, BLM, USACE) missing from search results — facilities with `facility_type = 'Campground'` but zero campsite records in RIDB were misclassified as NON_CAMPING
+- Campable facility count: 5,521 → 6,356
+
 ## [0.8.0] — 2026-02-08
 
 ### Added
