@@ -24,6 +24,9 @@
     </div>
     <div class="header-links">
         <a href="https://www.recreation.gov/camping/campgrounds/{{ f.facility_id }}" role="button" class="outline" target="_blank">View on Recreation.gov</a>
+        {% if f.latitude and f.longitude and f.coords_valid %}
+        <a href="https://www.google.com/maps/search/?api=1&query={{ f.latitude }},{{ f.longitude }}" role="button" class="outline" target="_blank" id="maps-link">Google Maps</a>
+        {% endif %}
         {% if f.facility_reservation_url %}
         <a href="{{ f.facility_reservation_url }}" role="button" target="_blank">Reserve</a>
         {% endif %}
@@ -246,6 +249,17 @@
 {% endblock %}
 
 {% block scripts %}
+{% if f.latitude and f.longitude and f.coords_valid %}
+<script>
+(function() {
+    var link = document.getElementById('maps-link');
+    if (link && /iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent) && 'ontouchend' in document) {
+        link.href = 'https://maps.apple.com/?q={{ f.latitude }},{{ f.longitude }}';
+        link.textContent = 'Apple Maps';
+    }
+})();
+</script>
+{% endif %}
 {% if f.photos %}
 <script>
     lbPhotos = {{ f.photos | tojson }}.map(function(ph) {

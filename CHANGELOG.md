@@ -2,6 +2,14 @@
 
 All notable changes to the RV Camping Finder project.
 
+## [0.8.3] — 2026-02-08
+
+### Added
+- Google Maps / Apple Maps button on facility detail pages (auto-detects platform)
+
+### Changed
+- Renamed "Search" nav link to "Advanced Search"
+
 ## [0.8.2] — 2026-02-08
 
 ### Fixed
