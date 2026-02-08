@@ -14,6 +14,7 @@ Usage:
     python classify.py
 """
 
+import re
 import sqlite3
 import sys
 import time
@@ -31,7 +32,7 @@ CREATE TABLE IF NOT EXISTS n_facility_conditions (
 
     road_access             TEXT,       -- PAVED / GRAVEL / DIRT / HIGH_CLEARANCE / 4WD_REQUIRED / UNKNOWN
     driveway_surface        TEXT,       -- PAVED / GRAVEL / MIXED / UNKNOWN
-    seasonal_status         TEXT,       -- OPEN_YEAR_ROUND / SEASONAL_CLOSURE / WINTER_CLOSURE / UNKNOWN
+    seasonal_status         TEXT,       -- OPEN_YEAR_ROUND / SEASONAL_CLOSURE / WINTER_CLOSURE / TEMPORARILY_CLOSED / PERMANENTLY_CLOSED / UNKNOWN
     fire_status             TEXT,       -- CAMPFIRES_ALLOWED / RESTRICTIONS / NO_CAMPFIRES / UNKNOWN
     elevation_ft            INTEGER,
     boondock_accessibility  TEXT,       -- EASY / MODERATE / ROUGH / UNKNOWN
@@ -99,12 +100,47 @@ def classify_driveway_surface(r):
     return 'UNKNOWN'
 
 
-def classify_seasonal_status(r):
-    """Determine seasonal availability from description signals."""
+def classify_seasonal_status(r, desc_text=''):
+    """Determine seasonal availability from description signals and raw text."""
+    desc = (desc_text or '').lower()
+
+    # Permanently / temporarily closed (check first — overrides everything)
+    if any(p in desc for p in ('permanently closed', 'closed indefinitely',
+                                'closed until further notice')):
+        return 'PERMANENTLY_CLOSED'
+    if any(p in desc for p in ('temporarily closed', 'closed due to',
+                                'closed for construction', 'closed for renovation',
+                                'closed for repair')):
+        return 'TEMPORARILY_CLOSED'
+
+    # Winter closure signals
     if r['desc_winter_closure']:
         return 'WINTER_CLOSURE'
+    if any(p in desc for p in ('closed for the winter', 'closed during winter',
+                                'closed in winter', 'winter closure',
+                                'snow closes', 'snowfall closes',
+                                'closed due to snow', 'closed when snow')):
+        return 'WINTER_CLOSURE'
+
+    # Seasonal closure signals
     if r['desc_seasonal_closure']:
         return 'SEASONAL_CLOSURE'
+    if any(p in desc for p in ('open from', 'closed for the season',
+                                'seasonal campground', 'seasonally',
+                                'seasonal closure', 'seasonal road',
+                                'typically open', 'usually open',
+                                'open memorial')):
+        return 'SEASONAL_CLOSURE'
+    # "Open [month] through [month]" patterns
+    if re.search(r'open\s+(may|june|april|july)\s+through', desc):
+        return 'SEASONAL_CLOSURE'
+
+    # Explicit year-round in text
+    if any(p in desc for p in ('open year-round', 'open year round',
+                                'open all year', 'year-round camping',
+                                'year round camping')):
+        return 'OPEN_YEAR_ROUND'
+
     # If no closure signals and it's a developed campground, likely year-round
     if r['camping_type'] == 'DEVELOPED' and not r['desc_mentions_snow']:
         return 'OPEN_YEAR_ROUND'
@@ -277,6 +313,11 @@ def classify(conn):
     rows = c.fetchall()
     print(f"  Loaded {len(rows):,} facilities from rollup")
 
+    # Load facility descriptions for enhanced seasonal parsing
+    c.execute("SELECT facility_id, facility_description FROM facilities")
+    desc_map = {r[0]: (r[1] or '') for r in c.fetchall()}
+    print(f"  Loaded {len(desc_map):,} facility descriptions")
+
     now = datetime.now(timezone.utc).isoformat()
     cond_batch = []
     tag_batch = []
@@ -293,7 +334,7 @@ def classify(conn):
         # Classify conditions
         road = classify_road_access(r)
         surface = classify_driveway_surface(r)
-        season = classify_seasonal_status(r)
+        season = classify_seasonal_status(r, desc_map.get(fid, ''))
         fire = classify_fire_status(r)
         elev = r.get('desc_elevation_ft')
         boondock = classify_boondock(r) if r['camping_type'] in ('DISPERSED', 'PRIMITIVE') else None

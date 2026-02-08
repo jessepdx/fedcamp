@@ -50,9 +50,11 @@ ROAD_ACCESS_OPTIONS = [
 ]
 
 SEASONAL_OPTIONS = [
-    ("OPEN_YEAR_ROUND",   "Open Year-Round"),
-    ("SEASONAL_CLOSURE",  "Seasonal Closure"),
-    ("WINTER_CLOSURE",    "Winter Closure"),
+    ("OPEN_YEAR_ROUND",      "Open Year-Round"),
+    ("SEASONAL_CLOSURE",     "Seasonal Closure"),
+    ("WINTER_CLOSURE",       "Winter Closure"),
+    ("TEMPORARILY_CLOSED",   "Temporarily Closed"),
+    ("PERMANENTLY_CLOSED",   "Permanently Closed"),
 ]
 
 FIRE_OPTIONS = [
@@ -221,6 +223,7 @@ def api_pins():
                 "total_campsites": r.get("total_campsites", 0),
                 "road_access": r.get("road_access"),
                 "org_abbrev": r.get("org_abbrev"),
+                "seasonal_status": r.get("seasonal_status"),
             })
     return jsonify(pins)
 
@@ -246,6 +249,7 @@ def condition_color(value):
         # Seasonal
         'OPEN_YEAR_ROUND': '#2d7d46', 'SEASONAL_CLOSURE': '#c49f17',
         'WINTER_CLOSURE': '#d4782f',
+        'TEMPORARILY_CLOSED': '#c0392b', 'PERMANENTLY_CLOSED': '#7f1d1d',
         # Fire
         'CAMPFIRES_ALLOWED': '#2d7d46', 'RESTRICTIONS': '#c49f17',
         'NO_CAMPFIRES': '#c0392b',

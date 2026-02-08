@@ -33,6 +33,25 @@
     </div>
 </div>
 
+{# ---- Seasonal / Closure warning ---- #}
+{% if f.seasonal_status in ('PERMANENTLY_CLOSED', 'TEMPORARILY_CLOSED', 'WINTER_CLOSURE', 'SEASONAL_CLOSURE') %}
+<article class="closure-notice {% if f.seasonal_status in ('PERMANENTLY_CLOSED', 'TEMPORARILY_CLOSED') %}closure-notice-red{% endif %}">
+    <p>
+        {% if f.seasonal_status == 'PERMANENTLY_CLOSED' %}
+        <strong>Permanently closed.</strong> This campground is no longer operational.
+        {% elif f.seasonal_status == 'TEMPORARILY_CLOSED' %}
+        <strong>Temporarily closed.</strong> This campground is currently closed. Check
+        <a href="https://www.recreation.gov/camping/campgrounds/{{ f.facility_id }}" target="_blank">Recreation.gov</a> for updates.
+        {% elif f.seasonal_status == 'WINTER_CLOSURE' %}
+        <strong>Winter closure.</strong> This campground closes during winter months. Check current conditions before traveling.
+        {% elif f.seasonal_status == 'SEASONAL_CLOSURE' %}
+        <strong>Seasonal operation.</strong> This campground is not open year-round. Check
+        <a href="https://www.recreation.gov/camping/campgrounds/{{ f.facility_id }}" target="_blank">Recreation.gov</a> for current dates.
+        {% endif %}
+    </p>
+</article>
+{% endif %}
+
 {# ---- NPS limited data notice ---- #}
 {% if f.org_abbrev == 'NPS' and f.total_campsites == 0 %}
 <article class="nps-notice">
@@ -139,8 +158,8 @@
                 {% if f.max_amps %}<tr><td>Max Amps</td><td>{{ f.max_amps }}</td></tr>{% endif %}
                 {% if f.full_hookup_sites %}<tr><td>Full Hookup Sites</td><td>{{ f.full_hookup_sites }}</td></tr>{% endif %}
                 {% if f.electric_hookup_sites %}<tr><td>Electric Hookup Sites</td><td>{{ f.electric_hookup_sites }}</td></tr>{% endif %}
-                {% if f.pullthrough_sites %}<tr><td>Pull-Through Sites</td><td>{{ f.pullthrough_sites }}</td></tr>{% endif %}
-                {% if f.backin_sites %}<tr><td>Back-In Sites</td><td>{{ f.backin_sites }}</td></tr>{% endif %}
+                {% if f.pullthrough_sites and (f.rv_type_sites or f.sites_accepting_rv) %}<tr><td>Pull-Through Sites</td><td>{{ f.pullthrough_sites }}</td></tr>{% endif %}
+                {% if f.backin_sites and (f.rv_type_sites or f.sites_accepting_rv) %}<tr><td>Back-In Sites</td><td>{{ f.backin_sites }}</td></tr>{% endif %}
                 {% if f.surface_predominant %}<tr><td>Surface</td><td>{{ f.surface_predominant | title }}</td></tr>{% endif %}
             </table>
         </div>

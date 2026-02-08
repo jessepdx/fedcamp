@@ -2,6 +2,18 @@
 
 All notable changes to the RV Camping Finder project.
 
+## [0.8.4] — 2026-02-08
+
+### Added
+- Seasonal/closure warning banners on facility detail pages (Seasonal, Winter Closure, Temporarily Closed, Permanently Closed)
+- Two new seasonal statuses: `TEMPORARILY_CLOSED` and `PERMANENTLY_CLOSED`
+- Map pins turn orange for seasonal/winter closures, red for temporarily/permanently closed
+- Seasonal status shown in map pin tooltips
+
+### Changed
+- More aggressive seasonal classification from facility descriptions — reclassified 606 facilities from UNKNOWN (patterns: "open year-round", "open from [month]", "closed for the season", "permanently closed", "closed due to", winter/snow closures)
+- `classify.py` now reads raw facility descriptions for enhanced seasonal parsing (not just rollup boolean flags)
+
 ## [0.8.3] — 2026-02-08
 
 ### Added

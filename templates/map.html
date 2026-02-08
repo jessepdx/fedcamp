@@ -92,7 +92,12 @@
     var pinLayer = L.layerGroup().addTo(map);
     var loadedState = null;
 
-    function campingColor(type) {
+    function campingColor(type, seasonal) {
+        // Closed/seasonal campgrounds get red/orange pins
+        if (seasonal === 'PERMANENTLY_CLOSED' || seasonal === 'TEMPORARILY_CLOSED')
+            return '#c0392b';
+        if (seasonal === 'WINTER_CLOSURE' || seasonal === 'SEASONAL_CLOSURE')
+            return '#d4782f';
         var colors = { 'DEVELOPED': '#2d7d46', 'PRIMITIVE': '#c49f17', 'DISPERSED': '#6c5ce7' };
         return colors[type] || '#95a5a6';
     }
@@ -109,7 +114,7 @@
                 pins.forEach(function(p) {
                     var marker = L.circleMarker([p.latitude, p.longitude], {
                         radius: 7,
-                        fillColor: campingColor(p.camping_type),
+                        fillColor: campingColor(p.camping_type, p.seasonal_status),
                         color: '#fff',
                         weight: 2,
                         fillOpacity: 0.85
@@ -119,6 +124,10 @@
                     var tip = escapeHtml(p.facility_name);
                     if (p.total_campsites) tip += ' (' + p.total_campsites + ' sites)';
                     if (p.org_abbrev) tip += ' — ' + p.org_abbrev;
+                    if (p.seasonal_status === 'PERMANENTLY_CLOSED') tip += ' [CLOSED]';
+                    else if (p.seasonal_status === 'TEMPORARILY_CLOSED') tip += ' [TEMP CLOSED]';
+                    else if (p.seasonal_status === 'WINTER_CLOSURE') tip += ' [Winter Closure]';
+                    else if (p.seasonal_status === 'SEASONAL_CLOSURE') tip += ' [Seasonal]';
                     marker.bindTooltip(tip);
 
                     // Click opens facility in new tab

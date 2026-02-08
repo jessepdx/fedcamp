@@ -268,6 +268,24 @@ a.leaflet-control-zoom-out {
     font-size: 0.9rem;
 }
 
+/* Seasonal / closure warning notice */
+.closure-notice {
+    background: #fff8e1;
+    border-left: 4px solid #d4782f;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+}
+
+.closure-notice-red {
+    background: #fde8e8;
+    border-left-color: #c0392b;
+}
+
+.closure-notice p {
+    margin: 0;
+    font-size: 0.9rem;
+}
+
 /* Facility detail */
 .facility-header {
     display: flex;
