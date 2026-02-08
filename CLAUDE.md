@@ -9,6 +9,8 @@ Federal campground search tool built on RIDB (recreation.gov) data. Python + SQL
 ```
 Data Pipeline:  normalize.py → rollup.py → classify.py → prepare_db.py
 Web App:        app.py (Flask) + db.py (queries) + templates/ + static/
+Data Collection: scripts/ (pull_ridb_data.py, pull_campsites_bulk.py, etc.)
+Reference Docs: docs/ (PLAN.md, TODO.md, DB_ANALYSIS.md, etl_update_plan.md)
 Database:       ridb.db (SQLite, 370MB, gitignored)
 ```
 

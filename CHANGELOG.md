@@ -2,6 +2,17 @@
 
 All notable changes to the RV Camping Finder project.
 
+## [0.7.2] — 2026-02-07
+
+### Changed
+- Moved data collection scripts (`pull_ridb_data.py`, `pull_campsites_bulk.py`, `pull_extras.py`, `pull_remaining.py`) to `scripts/`
+- Moved reference docs (`PLAN.md`, `TODO.md`, `DB_ANALYSIS.md`, `etl_update_plan.md`) to `docs/`
+
+### Removed
+- Deleted scratch/analysis files (`analyze.py`, `deep_analysis.py`, `analysis_part*`, `_p3*.py`)
+- Deleted one-off API exploration scripts (`fetch_ridb.py`, `explore_api.py`, `test_auth.py`, `test_auth2.py`)
+- Deleted log files (`pull_log.txt`, `pull_extras_log.txt`, `pull_remaining_log.txt`)
+
 ## [0.7.1] — 2026-02-07
 
 ### Added

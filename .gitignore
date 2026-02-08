@@ -6,3 +6,5 @@ ridb.db
 *.db-journal
 *.db-shm
 *.db-wal
+*.log
+*_log.txt

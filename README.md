@@ -48,7 +48,7 @@ Run in order — each phase is idempotent (safe to re-run):
 
 ### Data Collection Scripts
 
-The `fetch_ridb.py`, `pull_ridb_data.py`, `pull_campsites_bulk.py`, `pull_extras.py`, and `pull_remaining.py` scripts pull data from the RIDB API. They require an API key set as the `RIDB_API_KEY` environment variable. Get a free key at [ridb.recreation.gov](https://ridb.recreation.gov/).
+The scripts in `scripts/` pull data from the RIDB API. They require an API key set as the `RIDB_API_KEY` environment variable. Get a free key at [ridb.recreation.gov](https://ridb.recreation.gov/).
 
 ## Setup
 
@@ -81,10 +81,10 @@ To build the database from scratch, get a free RIDB API key from [ridb.recreatio
 
 ```bash
 export RIDB_API_KEY="your-key-here"
-python pull_ridb_data.py        # Facilities, rec areas, orgs
-python pull_campsites_bulk.py   # Campsites with attributes & equipment
-python pull_extras.py           # Links, activities, permit entrances
-python pull_remaining.py        # Media, tours, events
+python scripts/pull_ridb_data.py        # Facilities, rec areas, orgs
+python scripts/pull_campsites_bulk.py   # Campsites with attributes & equipment
+python scripts/pull_extras.py           # Links, activities, permit entrances
+python scripts/pull_remaining.py        # Media, tours, events
 ```
 
 This takes several hours due to API rate limits (50 req/min).
