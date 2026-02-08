@@ -20,10 +20,10 @@ def set_security_headers(response):
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     response.headers["Content-Security-Policy"] = (
         "default-src 'self'; "
-        "script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net; "
+        "script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net https://connect.facebook.net; "
         "style-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net; "
-        "img-src 'self' https://*.tile.openstreetmap.org https://ridb-img.s3.us-west-2.amazonaws.com data:; "
-        "connect-src 'self' https://raw.githubusercontent.com; "
+        "img-src 'self' https://*.tile.openstreetmap.org https://ridb-img.s3.us-west-2.amazonaws.com https://www.facebook.com data:; "
+        "connect-src 'self' https://raw.githubusercontent.com https://www.facebook.com; "
         "font-src 'self'"
     )
     return response

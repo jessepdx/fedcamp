@@ -9,6 +9,7 @@ All notable changes to the RV Camping Finder project.
 - Added security headers: CSP, X-Content-Type-Options, X-Frame-Options, Referrer-Policy
 - Added SRI integrity hashes to all CDN resources (Pico CSS, Leaflet, htmx)
 - Removed `| safe` from `street1` and `facility_use_fee` fields (not HTML)
+- CSP allows Facebook in-app browser scripts (links shared on Facebook failed to load)
 
 ## [0.8.1] — 2026-02-08
 
