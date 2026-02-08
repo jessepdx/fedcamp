@@ -30,6 +30,17 @@
     </div>
 </div>
 
+{# ---- NPS limited data notice ---- #}
+{% if f.org_abbrev == 'NPS' and f.total_campsites == 0 %}
+<article class="nps-notice">
+    <p>
+        <strong>Limited data.</strong> The National Park Service manages campground details separately from RIDB.
+        For site counts, availability, and reservations visit
+        <a href="https://www.recreation.gov/camping/campgrounds/{{ f.facility_id }}" target="_blank">this campground on Recreation.gov</a>.
+    </p>
+</article>
+{% endif %}
+
 {# ---- Conditions Panel ---- #}
 <article>
     <header><strong>Conditions</strong></header>
