@@ -3,6 +3,7 @@ __pycache__/
 *.pyc
 .env
 ridb.db
+ridb_full.db
 *.db-journal
 *.db-shm
 *.db-wal

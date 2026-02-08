@@ -2,6 +2,18 @@
 
 All notable changes to the RV Camping Finder project.
 
+## [0.7.3] — 2026-02-07
+
+### Changed
+- Purged 13 raw/intermediate tables from ridb.db (361MB → 72MB, 80% reduction)
+- Archived full database as ridb_full.db for pipeline re-runs
+- App database now contains only the 12 tables needed at runtime
+
+### Removed
+- Raw RIDB tables: campsite_attributes (2.4M rows), campsite_equipment (432K rows)
+- Intermediate pipeline tables: n_campsite, n_campsite_equipment, n_facility
+- Unused tables: links, rec_areas, rec_area_addresses, rec_area_activities, activities, permit_entrances, tours, events
+
 ## [0.7.2] — 2026-02-07
 
 ### Changed
