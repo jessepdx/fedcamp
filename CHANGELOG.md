@@ -6,9 +6,10 @@ All notable changes to the RV Camping Finder project.
 
 ### Added
 - AWS Lightsail deployment (Ubuntu 24.04, nano instance, us-west-2)
+- Live at https://fedcamp.cloudromeo.com
 - `deploy.sh` — one-command SCP deploy script (`--db` flag to include database)
 - `requirements.txt` — Flask + gunicorn
-- Caddy reverse proxy with automatic HTTPS support
+- Caddy reverse proxy with automatic HTTPS (Let's Encrypt)
 - gunicorn WSGI server (2 workers) managed by systemd
 
 ## [0.7.3] — 2026-02-07

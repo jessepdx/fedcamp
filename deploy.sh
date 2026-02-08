@@ -2,6 +2,7 @@
 set -euo pipefail
 
 # Deploy FedCamp to Lightsail instance
+# https://fedcamp.cloudromeo.com
 # Usage: ./deploy.sh [--db]  (pass --db to also upload ridb.db)
 
 HOST="ubuntu@54.190.143.246"
