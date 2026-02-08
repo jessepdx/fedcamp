@@ -2,6 +2,14 @@
 
 All notable changes to the RV Camping Finder project.
 
+## [0.8.2] — 2026-02-08
+
+### Fixed
+- Disabled Flask debug mode in production (was exposing Werkzeug interactive debugger)
+- Added security headers: CSP, X-Content-Type-Options, X-Frame-Options, Referrer-Policy
+- Added SRI integrity hashes to all CDN resources (Pico CSS, Leaflet, htmx)
+- Removed `| safe` from `street1` and `facility_use_fee` fields (not HTML)
+
 ## [0.8.1] — 2026-02-08
 
 ### Added

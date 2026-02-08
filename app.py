@@ -6,10 +6,27 @@ Usage:
     # Opens at http://localhost:5000
 """
 
+import os
 from flask import Flask, render_template, request, g, jsonify
 import db
 
 app = Flask(__name__)
+
+
+@app.after_request
+def set_security_headers(response):
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Content-Security-Policy"] = (
+        "default-src 'self'; "
+        "script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net; "
+        "style-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net; "
+        "img-src 'self' https://*.tile.openstreetmap.org https://ridb-img.s3.us-west-2.amazonaws.com data:; "
+        "connect-src 'self' https://raw.githubusercontent.com; "
+        "font-src 'self'"
+    )
+    return response
 
 AMENITY_FILTERS = [
     ("FULL_HOOKUPS",     "Full Hookups"),
@@ -240,4 +257,4 @@ def condition_color(value):
 
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+    app.run(debug=os.environ.get("FLASK_DEBUG", "").lower() == "true", port=5000)

@@ -151,7 +151,7 @@
     <div id="facility-map" style="height:350px; border-radius:8px;"></div>
     <small>
         {{ f.latitude }}, {{ f.longitude }}
-        {% if f.street1 %} &middot; {{ f.street1 | safe }}{% endif %}
+        {% if f.street1 %} &middot; {{ f.street1 }}{% endif %}
         {% if f.city %}, {{ f.city }}{% endif %}
         {% if f.state_code %}, {{ f.state_code }}{% endif %}
         {% if f.postal_code %} {{ f.postal_code }}{% endif %}
@@ -214,7 +214,7 @@
 <article>
     <header><strong>Details</strong></header>
     <table>
-        {% if f.facility_use_fee %}<tr><td>Fee</td><td>{{ f.facility_use_fee | safe }}</td></tr>{% endif %}
+        {% if f.facility_use_fee %}<tr><td>Fee</td><td>{{ f.facility_use_fee }}</td></tr>{% endif %}
         {% if f.stay_limit %}<tr><td>Stay Limit</td><td>{{ f.stay_limit }}</td></tr>{% endif %}
         {% if f.facility_phone %}<tr><td>Phone</td><td>{{ f.facility_phone }}</td></tr>{% endif %}
         {% if f.facility_email %}<tr><td>Email</td><td>{{ f.facility_email }}</td></tr>{% endif %}
