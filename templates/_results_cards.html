@@ -1,0 +1,96 @@
+{% for r in results %}
+<article class="result-card">
+    <div class="card-body">
+        <div class="card-main">
+            <div class="card-header-row">
+                <h3 class="card-title">
+                    <a href="/facility/{{ r.facility_id }}">{{ r.facility_name or 'Unnamed Facility' }}</a>
+                </h3>
+                <div class="condition-pills">
+                    {% if r.road_access and r.road_access != 'UNKNOWN' %}
+                    <span class="condition-pill" style="background:{{ r.road_access | condition_color }}">
+                        {{ r.road_access | tag_display }}
+                    </span>
+                    {% endif %}
+                    {% if r.seasonal_status and r.seasonal_status != 'UNKNOWN' %}
+                    <span class="condition-pill" style="background:{{ r.seasonal_status | condition_color }}">
+                        {{ r.seasonal_status | tag_display }}
+                    </span>
+                    {% endif %}
+                    {% if r.fire_status and r.fire_status != 'UNKNOWN' %}
+                    <span class="condition-pill" style="background:{{ r.fire_status | condition_color }}">
+                        {{ r.fire_status | tag_display }}
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card-meta">
+                {% if r.org_abbrev %}
+                <span class="org-badge">{{ r.org_abbrev }}</span>
+                {% endif %}
+                {% if r.camping_type %}
+                <span class="type-label">{{ r.camping_type | replace('_', ' ') | title }}</span>
+                {% endif %}
+                {% if r.city and r.state_code %}
+                <span>{{ r.city }}, {{ r.state_code }}</span>
+                {% elif r.state_code %}
+                <span>{{ r.state_code }}</span>
+                {% endif %}
+                {% if r.distance_miles is defined and r.distance_miles is not none %}
+                <span>{{ "%.1f" | format(r.distance_miles) }} mi</span>
+                {% endif %}
+            </div>
+
+            <div class="card-stats">
+                {% if r.total_campsites %}
+                <span>{{ r.total_campsites }} sites</span>
+                {% endif %}
+                {% if r.max_rv_length %}
+                <span>Max {{ r.max_rv_length }} ft</span>
+                {% endif %}
+                {% if r.full_hookup_sites %}
+                <span>{{ r.full_hookup_sites }} full hookup</span>
+                {% elif r.electric_hookup_sites %}
+                <span>{{ r.electric_hookup_sites }} electric</span>
+                {% endif %}
+                {% if r.pullthrough_sites %}
+                <span>{{ r.pullthrough_sites }} pull-through</span>
+                {% endif %}
+                {% if r.max_amps %}
+                <span>{{ r.max_amps }} amp</span>
+                {% endif %}
+                {% if r.elevation_ft %}
+                <span>{{ "{:,}".format(r.elevation_ft) }} ft elev</span>
+                {% endif %}
+                {% if r.boondock_accessibility and r.boondock_accessibility != 'UNKNOWN' %}
+                <span>Access: {{ r.boondock_accessibility | title }}</span>
+                {% endif %}
+            </div>
+
+            {% if r.top_tags %}
+            <div class="card-tags">
+                {% for tag in r.top_tags %}
+                <span class="tag">{{ tag | tag_display }}</span>
+                {% endfor %}
+                {% if r.tag_count > r.top_tags|length %}
+                <span class="tag tag-more">+{{ r.tag_count - r.top_tags|length }} more</span>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <div class="card-links">
+                <small>
+                    <a href="https://www.recreation.gov/camping/campgrounds/{{ r.facility_id }}" target="_blank">Recreation.gov</a>
+                </small>
+            </div>
+        </div>
+
+        {% if r.photo_url %}
+        <div class="card-photo">
+            <img src="{{ r.photo_url }}" alt="{{ r.facility_name }}" loading="lazy">
+        </div>
+        {% endif %}
+    </div>
+</article>
+{% endfor %}

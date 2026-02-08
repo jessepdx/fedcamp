@@ -1,0 +1,264 @@
+
+================================================================================
+  1. DATABASE OVERVIEW
+================================================================================
+Tables: 16
+  activities                    :          154
+  campsite_attributes           :    2,423,061
+  campsite_equipment            :      431,992
+  campsites                     :      132,974
+  events                        :            0
+  facilities                    :       15,061
+  facility_activities           :       48,795
+  facility_addresses            :       16,328
+  links                         :       64,550
+  media                         :       32,500
+  organizations                 :           33
+  permit_entrances              :          857
+  rec_area_activities           :            0
+  rec_area_addresses            :        3,878
+  rec_areas                     :        3,671
+  tours                         :            0
+
+DB file: 261.0 MB
+
+================================================================================
+  2. FACILITIES - Shape of the data
+================================================================================
+Column completeness (non-null, non-empty):
+  facility_id                        :   15,061 / 15,061  (100.0%)
+  facility_name                      :   15,053 / 15,061  ( 99.9%)
+  facility_type                      :   15,061 / 15,061  (100.0%)
+  facility_description               :   14,267 / 15,061  ( 94.7%)
+  facility_directions                :    8,297 / 15,061  ( 55.1%)
+  facility_phone                     :    6,592 / 15,061  ( 43.8%)
+  facility_email                     :    4,288 / 15,061  ( 28.5%)
+  facility_latitude                  :   15,061 / 15,061  (100.0%)
+  facility_longitude                 :   15,061 / 15,061  (100.0%)
+  facility_reservation_url           :      102 / 15,061  (  0.7%)
+  facility_map_url                   :      326 / 15,061  (  2.2%)
+  facility_use_fee                   :    2,103 / 15,061  ( 14.0%)
+  facility_ada_access                :    4,764 / 15,061  ( 31.6%)
+  facility_accessibility_text        :      253 / 15,061  (  1.7%)
+  reservable                         :   15,061 / 15,061  (100.0%)
+  enabled                            :   15,061 / 15,061  (100.0%)
+  stay_limit                         :      334 / 15,061  (  2.2%)
+  keywords                           :    4,805 / 15,061  ( 31.9%)
+  parent_org_id                      :   15,061 / 15,061  (100.0%)
+  parent_rec_area_id                 :   14,279 / 15,061  ( 94.8%)
+  legacy_facility_id                 :    4,816 / 15,061  ( 32.0%)
+  last_updated                       :   15,061 / 15,061  (100.0%)
+
+Facility types:
+  Facility                           :    8,173
+  Campground                         :    5,630
+  Activity Pass                      :      537
+  Visitor Center                     :      248
+  Permit                             :      145
+  Ticket Facility                    :      134
+  Tree Permit                        :       82
+  Timed Entry                        :       35
+  Venue Reservations                 :       32
+  Cemetery and Memorial              :       24
+  Library                            :        9
+  National Fish Hatchery             :        3
+  Museum                             :        3
+  Archives                           :        3
+  Kiosk                              :        1
+  Federal                            :        1
+  Construction Camp site             :        1
+
+Enabled status:
+  enabled=1: 15,061
+
+Reservable:
+  reservable=0: 9,304
+  reservable=1: 5,757
+
+Reservable by facility type:
+  Facility                 :      0 /  8,173 reservable (0.0%)
+  Campground               :  4,792 /  5,630 reservable (85.1%)
+  Activity Pass            :    537 /    537 reservable (100.0%)
+  Visitor Center           :      0 /    248 reservable (0.0%)
+  Permit                   :    145 /    145 reservable (100.0%)
+  Ticket Facility          :    134 /    134 reservable (100.0%)
+  Tree Permit              :     82 /     82 reservable (100.0%)
+  Timed Entry              :     35 /     35 reservable (100.0%)
+  Venue Reservations       :     32 /     32 reservable (100.0%)
+  Cemetery and Memorial    :      0 /     24 reservable (0.0%)
+  Library                  :      0 /      9 reservable (0.0%)
+  National Fish Hatchery   :      0 /      3 reservable (0.0%)
+  Museum                   :      0 /      3 reservable (0.0%)
+  Archives                 :      0 /      3 reservable (0.0%)
+  Kiosk                    :      0 /      1 reservable (0.0%)
+  Federal                  :      0 /      1 reservable (0.0%)
+  Construction Camp site   :      0 /      1 reservable (0.0%)
+
+================================================================================
+  3. FACILITIES - Geographic coverage
+================================================================================
+Coordinate quality:
+  Total: 15,061
+  Valid coords: 12,474 (lat/lon both non-zero)
+  Zero coords: 2,587
+  NULL coords: 0
+
+Latitude range (non-zero):
+  Lat: -88.5482 to 69.3625 (avg 39.6832)
+  Lon: -172.6471 to 145.7204
+
+Coords outside continental US (lat not 24-50, lon not -125 to -66):
+  111 facilities
+
+Facilities by state (top 25):
+  CA   :  2,108
+  UT   :  1,433
+  CO   :  1,199
+  WY   :  1,059
+  OR   :  1,032
+  ID   :    845
+  MT   :    623
+  AZ   :    581
+  WA   :    570
+  NM   :    439
+  NC   :    426
+  AK   :    352
+  TX   :    334
+  OK   :    272
+  AR   :    244
+  TN   :    214
+  MI   :    209
+  GA   :    199
+  NV   :    194
+  KY   :    176
+  SD   :    173
+  VA   :    166
+  MO   :    142
+  MN   :    141
+  WV   :    133
+
+States with most zero-coord facilities:
+  CA   :    504
+  UT   :    389
+  WY   :    387
+  CO   :    288
+  NC   :    244
+  OR   :    206
+  ID   :    129
+  WA   :    109
+  MT   :     91
+  NM   :     40
+
+================================================================================
+  4. FACILITIES <-> CAMPSITES relationship
+================================================================================
+Facilities total: 15,061
+Facilities WITH campsites: 5,172
+Facilities WITHOUT campsites: 9,889
+
+Campsites per facility distribution:
+  1         :  1,300 facilities (   1,300 campsites)
+  2-5       :    859 facilities (   2,977 campsites)
+  6-10      :    394 facilities (   3,243 campsites)
+  11-25     :  1,014 facilities (  17,617 campsites)
+  26-50     :    787 facilities (  28,603 campsites)
+  51-100    :    555 facilities (  39,260 campsites)
+  101-200   :    223 facilities (  29,918 campsites)
+  201-500   :     40 facilities (  10,056 campsites)
+
+Largest facilities by campsite count:
+  NPS    Colter Bay Campground                             :   360 sites
+  NPS    MATHER CAMPGROUND                                 :   357 sites
+  USACE  SHENANGO REC AREA CAMPGROUND                      :   328 sites
+  USACE  BLOOMINGTON EAST                                  :   323 sites
+  NPS    Gros Ventre Campground                            :   322 sites
+  NPS    Tuolumne Meadows Campground                       :   311 sites
+  FS     Cemetery Point Picnic Area                        :   310 sites
+  USACE  Mill Creek Camping (Berlin Lake)                  :   307 sites
+  FS     MERRILL CAMPGROUND                                :   302 sites
+  NPS    BLACKWOODS CAMPGROUND                             :   292 sites
+  FS     STRAWBERRY BAY                                    :   292 sites
+  FS     BROKEN ARROW CAMPGROUND                           :   274 sites
+  USACE  SEVEN POINTS (PA)                                 :   267 sites
+  NPS    Rocky Mountain National Park Moraine Park Campground:   258 sites
+  USACE  PRAIRIE FLOWER RECREATION AREA                    :   252 sites
+
+================================================================================
+  5. CAMPSITES - Shape of the data
+================================================================================
+Column completeness:
+  campsite_id              :    132,974 / 132,974  (100.0%)
+  facility_id              :    132,974 / 132,974  (100.0%)
+  campsite_name            :    132,956 / 132,974  (100.0%)
+  campsite_type            :    132,963 / 132,974  (100.0%)
+  type_of_use              :    132,974 / 132,974  (100.0%)
+  loop                     :    129,478 / 132,974  ( 97.4%)
+  campsite_accessible      :      9,026 / 132,974  (  6.8%)
+  campsite_reservable      :    100,636 / 132,974  ( 75.7%)
+  campsite_latitude        :    107,024 / 132,974  ( 80.5%)
+  campsite_longitude       :    107,024 / 132,974  ( 80.5%)
+  created_date             :    132,974 / 132,974  (100.0%)
+  last_updated             :    132,974 / 132,974  (100.0%)
+
+Type of use:
+  Overnight      :  129,955
+  Day            :    3,018
+  multi          :        1
+
+All campsite types:
+  STANDARD NONELECTRIC                         :   60,301
+  STANDARD ELECTRIC                            :   33,386
+  MANAGEMENT                                   :   10,949
+  TENT ONLY NONELECTRIC                        :    9,540
+  RV NONELECTRIC                               :    3,298
+  RV ELECTRIC                                  :    3,045
+  WALK TO                                      :    1,985
+  GROUP STANDARD NONELECTRIC                   :    1,270
+  EQUESTRIAN NONELECTRIC                       :    1,068
+  BOAT IN                                      :      930
+  GROUP SHELTER ELECTRIC                       :      817
+  CABIN NONELECTRIC                            :      728
+  GROUP TENT ONLY AREA NONELECTRIC             :      591
+  PARKING                                      :      586
+  HIKE TO                                      :      571
+  GROUP STANDARD AREA NONELECTRIC              :      548
+  PICNIC                                       :      438
+  TENT ONLY ELECTRIC                           :      431
+  CABIN ELECTRIC                               :      372
+  GROUP PICNIC AREA                            :      350
+  GROUP SHELTER NONELECTRIC                    :      334
+  EQUESTRIAN ELECTRIC                          :      270
+  MOORING                                      :      259
+  GROUP STANDARD ELECTRIC                      :      235
+  OVERNIGHT SHELTER ELECTRIC                   :      150
+  SHELTER NONELECTRIC                          :      117
+  OVERNIGHT SHELTER NONELECTRIC                :       81
+  YURT                                         :       79
+  GROUP WALK TO                                :       47
+  GROUP RV AREA NONELECTRIC                    :       36
+  GROUP EQUESTRIAN                             :       29
+  GROUP STANDARD AREA ELECTRIC                 :       26
+  Zone                                         :       24
+  LOOKOUT                                      :       24
+  GROUP HIKE TO                                :       18
+  SHELTER ELECTRIC                             :       13
+  ANCHORAGE                                    :       13
+  NULL                                         :       11
+  BALL FIELD                                   :        3
+  Designated Campsite                          :        1
+
+Reservable campsites:
+  No: 32,338
+  Yes: 100,636
+
+Accessible campsites:
+  No: 123,948
+  Yes: 9,026
+
+Campsite coordinate quality:
+  Valid: 107,024
+  Zero: 25,950
+
+Loop field (campsite grouping within facility):
+  Has loop value: 129,478
+  Unique loop names: 5,483

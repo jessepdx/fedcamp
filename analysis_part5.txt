@@ -1,0 +1,343 @@
+
+================================================================================
+  14. PERMIT ENTRANCES
+================================================================================
+Total: 857
+
+By type:
+  Entry Point                   :   183
+  Trailhead                     :   112
+  Small Campsite, 2 Tent Pads   :   104
+  Campsite                      :    63
+  Designated Campsite           :    46
+  Non Zone South                :    32
+  Backcountry Lakes             :    32
+  Large Campsite, 4 Tent Pads   :    25
+  Group Site                    :    21
+  Zone                          :    20
+  03 Mountain Camping Zones     :    20
+  Ovrq                          :    19
+  09 Other Climbing Sites       :    15
+  Non Zone North                :    14
+  Individual Campsite           :    14
+  Boat Launch                   :    14
+  Grassy Lake                   :    13
+  01 Jackson Lake               :    13
+  04 Mountain Group Sites       :    12
+  02 Leigh Lake                 :    12
+  Campground                    :    11
+  Parking Space                 :    10
+  Platform                      :     7
+  River                         :     5
+  Land with Platform            :     5
+  River Segment                 :     4
+  Cabin                         :     4
+  05 Northern Canyons           :     4
+  Wilderness                    :     3
+  08 Lwr Saddle-Moraine-Caves   :     3
+  Permit Area                   :     2
+  John D. Rockefeller Parkway   :     2
+  Houseboat                     :     2
+  07 Meadows-Platforms          :     2
+  Small Campsite, 0 Tent Pads   :     1
+  Entry Point-Restricted        :     1
+  Entry Point - Zone 5          :     1
+  Entry Point - Zone 4          :     1
+  Entry Point - Zone 3          :     1
+  Entry Point - Zone 2          :     1
+  Entry Point - Zone 1          :     1
+  Accessible Sites              :     1
+  06 South Fork - Garnet Canyon :     1
+
+Facilities with permit entrances:
+  47 facilities
+
+Permit entrances by organization:
+  NPS     :   492
+  FS      :   328
+  BLM     :    22
+  FWS     :    12
+
+================================================================================
+  15. ADDRESSES - State coverage
+================================================================================
+Facility addresses:
+  Total address records: 16,328
+  Unique states: 79
+
+All states/territories represented:
+  CA   :  2,208
+  UT   :  1,566
+  CO   :  1,225
+  WY   :  1,090
+  OR   :  1,067
+  ID   :    868
+  MT   :    672
+  WA   :    623
+  AZ   :    617
+  NM   :    458
+  NC   :    458
+  AK   :    402
+  TX   :    386
+  OK   :    303
+  AR   :    286
+  GA   :    240
+  TN   :    235
+  MI   :    216
+  NV   :    202
+  KY   :    199
+  VA   :    195
+  SD   :    175
+  WV   :    157
+  MO   :    152
+  MS   :    151
+  MN   :    151
+  PA   :    133
+  KS   :    121
+  NY   :    113
+  SC   :    107
+  MD   :    106
+  IA   :    104
+  AL   :    103
+  FL   :    101
+  ME   :     97
+  IL   :     93
+  NH   :     92
+  OH   :     83
+  WI   :     71
+  ND   :     70
+  MA   :     69
+  LA   :     68
+  VT   :     63
+  IN   :     46
+  NE   :     42
+  HI   :     38
+  DC   :     36
+  OREGON:     16
+  NJ   :     11
+  PR   :     10
+  VI   :      9
+  Tennessee:      8
+  STATE MAPPING BROKEN:      8
+  Oregon:      5
+  California:      5
+  CT   :      5
+  RI   :      4
+  AS   :      4
+  Wyoming:      3
+  Washington:      3
+  MP   :      3
+  Arizona:      3
+  Virginia:      2
+  UTAH :      2
+  GU   :      2
+  Colorado:      2
+  Alaska:      2
+  WASHINGTON:      1
+  Utah :      1
+  TEXAS:      1
+  TENNESSEE:      1
+  MONTANA:      1
+  Idaho:      1
+  IOWA :      1
+  IN   :      1
+  ILE-DE-FRANCE:      1
+  FM   :      1
+  DE   :      1
+  ARIZONA:      1
+
+Rec area addresses:
+  Total: 3,878
+  Unique states: 58
+
+Facilities without any address record:
+  1,804 facilities have no address
+
+================================================================================
+  16. DATA FRESHNESS - Last updated dates
+================================================================================
+Facility last_updated distribution:
+  2020:  7,083
+  2021:    630
+  2022:    483
+  2023:    383
+  2024:    524
+  2025:  1,848
+  2026:  4,110
+
+Campsite last_updated distribution:
+  2018:      6
+  2020:     74
+  2021:     12
+  2022:     84
+  2023:      4
+  2024:      2
+  2025: 128,591
+  2026:  4,201
+
+Rec area last_updated distribution:
+  2020:    725
+  2021:    843
+  2022:    536
+  2023:    299
+  2024:    267
+  2025:    759
+  2026:    242
+
+Most recently updated facilities (top 10):
+  2026-02-07                GUN CREEK
+  2026-02-07                WHEATLAND PARK
+  2026-02-07                BOLAN MOUNTAIN LOOKOUT
+  2026-02-07                NORTH MARCUM DAY USE AREA
+  2026-02-07                OUTLET PARK
+  2026-02-07                SHAGBARK GROUP AREA
+  2026-02-07                LIGHTFOOT LANDING
+  2026-02-07                OUTLET(MELVERN)
+  2026-02-07                NEMO LANDING
+  2026-02-07                Hayden Flat Group Campground
+
+Oldest last_updated facilities (top 10):
+  2020-09-10                Six Mile Campground
+  2020-09-10                Nelson Crag Trailhead
+  2020-09-10                Wheeler Brook East Trailhead
+  2020-09-10                Miles Notch Trailhead
+  2020-09-10                West Mountain Snow-parking area
+  2020-09-10                Beehive ORV Trailhead
+  2020-09-10                Blue Springs Summit Sno-Park
+  2020-09-10                River Bench Day Use
+  2020-09-10                Rob Brook - Nana XC-Ski Trailhead
+  2020-09-10                Heavens Gate Overlook
+
+================================================================================
+  17. EDGE CASES AND ANOMALIES
+================================================================================
+Orphaned campsites (facility_id not in facilities table):
+  4,768
+
+Non-Campground facilities that have campsites:
+  Permit                        :     2 facilities,     34 campsites
+
+MANAGEMENT campsites — deeper look:
+  Total: 10,949
+  Reservable: 72
+  Top equipment: Tent(4,891), RV(3,969), Trailer(3,936), PICKUP CAMPER(1,007), CARAVAN/CAMPER VAN(906)
+
+  MANAGEMENT campsites by org:
+    FS      :  7,137
+    USACE   :  1,720
+    NPS     :  1,316
+    BLM     :    189
+    FWS     :     10
+    BOR     :      6
+
+Most common facility names (possible duplicates):
+  Visitor Center                               :  43 occurrences
+                                               :   8 occurrences
+  Wilderness areas                             :   5 occurrences
+  North Fork Campground                        :   5 occurrences
+  State Park                                   :   4 occurrences
+  Spring Creek Campground                      :   4 occurrences
+  Deer Creek Trailhead                         :   4 occurrences
+  Black Bear Management Program                :   4 occurrences
+
+Campsites with potentially bad non-zero coords:
+  Out of range: 0
+
+Most-shared facility coordinates (potential data entry errors):
+  (46.962405, -90.660457):   14 facilities share this exact point
+
+Facility descriptions mentioning RV-related terms:
+  'RV':  7,175 facilities
+  'motorhome':     42 facilities
+  'fifth wheel':     14 facilities
+  'hookup':  1,029 facilities
+  'dump station':    678 facilities
+  'pull-through':    103 facilities
+  'pull through':     25 facilities
+  'full hook':     55 facilities
+  'electric hook':    493 facilities
+  'water hook':    250 facilities
+  'sewer hook':     45 facilities
+  '30 amp':     34 facilities
+  '50 amp':     64 facilities
+  'generator':     59 facilities
+  'not recommended for rv':      4 facilities
+  'no rv':     46 facilities
+  'gravel road':    126 facilities
+  'dirt road':    127 facilities
+  'paved road':    190 facilities
+  'high clearance':    114 facilities
+  '4wd':     77 facilities
+  'four wheel':     19 facilities
+  'dispersed':    342 facilities
+  'primitive':    731 facilities
+  'dry camp':     16 facilities
+  'vault toilet':  2,414 facilities
+  'potable water':    580 facilities
+
+Campsites typed 'TENT ONLY' but with RV equipment:
+  165
+
+Campsites typed 'RV' but with NO RV/Trailer equipment:
+  938
+
+Type of use breakdown by campsite type:
+                                      Overnight   :       11
+  ANCHORAGE                           Overnight   :       13
+  BALL FIELD                          Day         :        3
+  BOAT IN                             Overnight   :      930
+  CABIN ELECTRIC                      Overnight   :      368
+  CABIN ELECTRIC                      Day         :        4
+  CABIN NONELECTRIC                   Overnight   :      728
+  Designated Campsite                 Overnight   :        1
+  EQUESTRIAN ELECTRIC                 Overnight   :      270
+  EQUESTRIAN NONELECTRIC              Overnight   :    1,068
+  GROUP EQUESTRIAN                    Overnight   :       29
+  GROUP HIKE TO                       Overnight   :       18
+  GROUP PICNIC AREA                   Day         :      346
+  GROUP PICNIC AREA                   Overnight   :        4
+  GROUP RV AREA NONELECTRIC           Overnight   :       36
+  GROUP SHELTER ELECTRIC              Day         :      794
+  GROUP SHELTER ELECTRIC              Overnight   :       23
+  GROUP SHELTER NONELECTRIC           Day         :      279
+  GROUP SHELTER NONELECTRIC           Overnight   :       55
+  GROUP STANDARD AREA ELECTRIC        Overnight   :       25
+  GROUP STANDARD AREA ELECTRIC        Day         :        1
+  GROUP STANDARD AREA NONELECTRIC     Day         :      326
+  GROUP STANDARD AREA NONELECTRIC     Overnight   :      222
+  GROUP STANDARD ELECTRIC             Overnight   :      216
+  GROUP STANDARD ELECTRIC             Day         :       19
+  GROUP STANDARD NONELECTRIC          Overnight   :    1,266
+  GROUP STANDARD NONELECTRIC          Day         :        4
+  GROUP TENT ONLY AREA NONELECTRIC    Overnight   :      591
+  GROUP WALK TO                       Overnight   :       43
+  GROUP WALK TO                       Day         :        4
+  HIKE TO                             Overnight   :      570
+  HIKE TO                             multi       :        1
+  LOOKOUT                             Overnight   :       20
+  LOOKOUT                             Day         :        4
+  MANAGEMENT                          Overnight   :   10,772
+  MANAGEMENT                          Day         :      177
+  MOORING                             Day         :      200
+  MOORING                             Overnight   :       59
+  OVERNIGHT SHELTER ELECTRIC          Overnight   :      150
+  OVERNIGHT SHELTER NONELECTRIC       Overnight   :       81
+  PARKING                             Day         :      368
+  PARKING                             Overnight   :      218
+  PICNIC                              Day         :      430
+  PICNIC                              Overnight   :        8
+  RV ELECTRIC                         Overnight   :    3,045
+  RV NONELECTRIC                      Overnight   :    3,298
+  SHELTER ELECTRIC                    Day         :       11
+  SHELTER ELECTRIC                    Overnight   :        2
+  SHELTER NONELECTRIC                 Overnight   :       87
+  SHELTER NONELECTRIC                 Day         :       30
+  STANDARD ELECTRIC                   Overnight   :   33,386
+  STANDARD NONELECTRIC                Overnight   :   60,285
+  STANDARD NONELECTRIC                Day         :       16
+  TENT ONLY ELECTRIC                  Overnight   :      431
+  TENT ONLY NONELECTRIC               Overnight   :    9,540
+  WALK TO                             Overnight   :    1,983
+  WALK TO                             Day         :        2
+  YURT                                Overnight   :       79
+  Zone                                Overnight   :       24

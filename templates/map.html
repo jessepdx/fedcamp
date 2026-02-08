@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+{% block title %}RV Camping Finder{% endblock %}
+
+{% block head %}
+<style>
+    #state-map {
+        height: 75vh;
+        min-height: 400px;
+        border-radius: 8px;
+        border: 1px solid #ddd;
+    }
+    .map-status {
+        background: white;
+        padding: 8px 14px;
+        border-radius: 6px;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+        font-size: 0.9rem;
+        min-width: 180px;
+    }
+    .map-status strong {
+        display: block;
+        margin-bottom: 2px;
+    }
+    .map-status small {
+        color: #666;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<hgroup>
+    <h1>RV Camping Finder</h1>
+    <p>Click a pin to see campground details, or click a state to load its campgrounds</p>
+</hgroup>
+
+<div id="state-map"></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function() {
+    var stateCounts = {{ state_counts | tojson }};
+
+    var nameToCode = {
+        "Alabama":"AL","Alaska":"AK","Arizona":"AZ","Arkansas":"AR","California":"CA",
+        "Colorado":"CO","Connecticut":"CT","Delaware":"DE","Florida":"FL","Georgia":"GA",
+        "Hawaii":"HI","Idaho":"ID","Illinois":"IL","Indiana":"IN","Iowa":"IA",
+        "Kansas":"KS","Kentucky":"KY","Louisiana":"LA","Maine":"ME","Maryland":"MD",
+        "Massachusetts":"MA","Michigan":"MI","Minnesota":"MN","Mississippi":"MS",
+        "Missouri":"MO","Montana":"MT","Nebraska":"NE","Nevada":"NV",
+        "New Hampshire":"NH","New Jersey":"NJ","New Mexico":"NM","New York":"NY",
+        "North Carolina":"NC","North Dakota":"ND","Ohio":"OH","Oklahoma":"OK",
+        "Oregon":"OR","Pennsylvania":"PA","Rhode Island":"RI","South Carolina":"SC",
+        "South Dakota":"SD","Tennessee":"TN","Texas":"TX","Utah":"UT","Vermont":"VT",
+        "Virginia":"VA","Washington":"WA","West Virginia":"WV","Wisconsin":"WI",
+        "Wyoming":"WY","District of Columbia":"DC","Puerto Rico":"PR"
+    };
+
+    function stateCode(props) {
+        return props.STUSPS || props.postal || nameToCode[props.name || props.NAME] || null;
+    }
+
+    var map = L.map('state-map', {
+        center: [39.5, -98.5],
+        zoom: 4,
+        minZoom: 3,
+        maxZoom: 18
+    });
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors',
+        maxZoom: 18
+    }).addTo(map);
+
+    // Status control (top-left)
+    var status = L.control({position: 'topleft'});
+    status.onAdd = function() {
+        this._div = L.DomUtil.create('div', 'map-status');
+        this._div.innerHTML = '<strong>Locating you...</strong>';
+        return this._div;
+    };
+    status.update = function(html) {
+        this._div.innerHTML = html;
+    };
+    status.addTo(map);
+
+    // Pin layer
+    var pinLayer = L.layerGroup().addTo(map);
+    var loadedState = null;
+
+    function campingColor(type) {
+        var colors = { 'DEVELOPED': '#2d7d46', 'PRIMITIVE': '#c49f17', 'DISPERSED': '#6c5ce7' };
+        return colors[type] || '#95a5a6';
+    }
+
+    function loadPins(stateCode, stateName) {
+        if (loadedState === stateCode) return;
+        loadedState = stateCode;
+        pinLayer.clearLayers();
+        status.update('<strong>' + (stateName || stateCode) + '</strong><small>Loading campgrounds...</small>');
+
+        fetch('/api/pins?state=' + stateCode)
+            .then(function(r) { return r.json(); })
+            .then(function(pins) {
+                pins.forEach(function(p) {
+                    var marker = L.circleMarker([p.latitude, p.longitude], {
+                        radius: 7,
+                        fillColor: campingColor(p.camping_type),
+                        color: '#fff',
+                        weight: 2,
+                        fillOpacity: 0.85
+                    }).addTo(pinLayer);
+
+                    // Hover tooltip for basic info
+                    var tip = escapeHtml(p.facility_name);
+                    if (p.total_campsites) tip += ' (' + p.total_campsites + ' sites)';
+                    if (p.org_abbrev) tip += ' — ' + p.org_abbrev;
+                    marker.bindTooltip(tip);
+
+                    // Click opens facility in new tab
+                    marker.on('click', function() {
+                        window.open('/facility/' + p.facility_id, '_blank');
+                    });
+                });
+                status.update('<strong>' + (stateName || stateCode) + '</strong><small>'
+                    + pins.length + ' campgrounds</small>');
+            });
+    }
+
+    // State borders (click to load pins)
+    var geojsonLayer;
+    var geojsonData;
+
+    function onClickState(e) {
+        var props = e.target.feature.properties;
+        var code = stateCode(props);
+        var name = props.name || props.NAME || code;
+        if (code && stateCounts[code]) {
+            loadPins(code, name);
+            map.fitBounds(e.target.getBounds(), { padding: [30, 30] });
+        }
+    }
+
+    function onEachFeature(feature, layer) {
+        layer.on({ click: onClickState });
+    }
+
+    // Point-in-polygon (ray casting)
+    function pointInPolygon(lat, lng, coords) {
+        var inside = false;
+        for (var i = 0, j = coords.length - 1; i < coords.length; j = i++) {
+            var xi = coords[i][1], yi = coords[i][0];
+            var xj = coords[j][1], yj = coords[j][0];
+            if ((yi > lng) !== (yj > lng) &&
+                lat < (xj - xi) * (lng - yi) / (yj - yi) + xi) {
+                inside = !inside;
+            }
+        }
+        return inside;
+    }
+
+    function findStateAt(lat, lng) {
+        if (!geojsonData) return null;
+        for (var i = 0; i < geojsonData.features.length; i++) {
+            var f = geojsonData.features[i];
+            var geom = f.geometry;
+            var rings = geom.type === 'Polygon' ? [geom.coordinates[0]]
+                : geom.type === 'MultiPolygon' ? geom.coordinates.map(function(p) { return p[0]; })
+                : [];
+            for (var r = 0; r < rings.length; r++) {
+                if (pointInPolygon(lat, lng, rings[r])) {
+                    return { code: stateCode(f.properties), name: f.properties.name || f.properties.NAME };
+                }
+            }
+        }
+        return null;
+    }
+
+    // Geolocation
+    var userLat = null, userLon = null;
+
+    function onGeoSuccess(pos) {
+        userLat = pos.coords.latitude;
+        userLon = pos.coords.longitude;
+
+        L.circleMarker([userLat, userLon], {
+            radius: 10, fillColor: '#3b82f6', color: '#fff',
+            weight: 3, fillOpacity: 0.9
+        }).addTo(map).bindPopup('You are here').openPopup();
+
+        tryLoadUserState();
+    }
+
+    function onGeoError() {
+        status.update('<strong>Click a state</strong><small>to load campgrounds</small>');
+    }
+
+    function tryLoadUserState() {
+        if (userLat === null || !geojsonData) return;
+        var st = findStateAt(userLat, userLon);
+        if (st && st.code && stateCounts[st.code]) {
+            loadPins(st.code, st.name);
+            map.setView([userLat, userLon], 7);
+        } else {
+            status.update('<strong>Click a state</strong><small>to load campgrounds</small>');
+            map.setView([userLat, userLon], 7);
+        }
+    }
+
+    // Kick off geolocation
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(onGeoSuccess, onGeoError,
+            { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 });
+    } else {
+        onGeoError();
+    }
+
+    // Load state borders
+    fetch('https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json')
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            geojsonData = data;
+            geojsonLayer = L.geoJson(data, {
+                style: { fillColor: 'transparent', fillOpacity: 0, weight: 1, color: '#999' },
+                onEachFeature: onEachFeature
+            }).addTo(map);
+            tryLoadUserState();
+        });
+})();
+</script>
+{% endblock %}

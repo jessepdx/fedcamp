@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}About — RV Camping Finder{% endblock %}
+
+{% block content %}
+<h1>About RV Camping Finder</h1>
+
+<article>
+    <header><strong>Data Source</strong></header>
+    <p>All campground data comes from the <a href="https://ridb.recreation.gov" target="_blank">Recreation Information Database (RIDB)</a>,
+    the federal government's official database of recreation facilities on public lands.</p>
+    <p>This includes campgrounds managed by the National Park Service (NPS), USDA Forest Service (FS),
+    Bureau of Land Management (BLM), US Army Corps of Engineers (USACE), Bureau of Reclamation (BOR),
+    and US Fish & Wildlife Service (FWS).</p>
+</article>
+
+<article>
+    <header><strong>Condition Indicators</strong></header>
+    <p>Instead of a single score, each facility shows practical condition indicators that help you decide if it's right for your trip:</p>
+
+    <h4>Road Access</h4>
+    <p>How you'll get there. Based on facility descriptions and campsite data.</p>
+    <table>
+        <tbody>
+            <tr><td><strong style="color:#2d7d46">Paved</strong></td><td>Paved roads to the campground.</td></tr>
+            <tr><td><strong style="color:#6c757d">Gravel</strong></td><td>Gravel access roads.</td></tr>
+            <tr><td><strong style="color:#d4782f">Dirt</strong></td><td>Unpaved dirt roads.</td></tr>
+            <tr><td><strong style="color:#c0392b">High Clearance</strong></td><td>High clearance vehicle recommended.</td></tr>
+            <tr><td><strong style="color:#c0392b">4WD Required</strong></td><td>Four-wheel drive needed for access.</td></tr>
+        </tbody>
+    </table>
+
+    <h4>Seasonal Status</h4>
+    <p>When the campground is open. Parsed from facility descriptions.</p>
+    <table>
+        <tbody>
+            <tr><td><strong style="color:#2d7d46">Open Year-Round</strong></td><td>No seasonal closures mentioned.</td></tr>
+            <tr><td><strong style="color:#c49f17">Seasonal Closure</strong></td><td>Closes for part of the year.</td></tr>
+            <tr><td><strong style="color:#d4782f">Winter Closure</strong></td><td>Specifically closed during winter months.</td></tr>
+        </tbody>
+    </table>
+
+    <h4>Campfire Status</h4>
+    <p>Whether campfires are allowed, based on descriptions and campsite-level data.</p>
+    <table>
+        <tbody>
+            <tr><td><strong style="color:#2d7d46">Campfires Allowed</strong></td><td>Campfires permitted at sites.</td></tr>
+            <tr><td><strong style="color:#c49f17">Restrictions</strong></td><td>Fire restrictions mentioned in description.</td></tr>
+            <tr><td><strong style="color:#c0392b">No Campfires</strong></td><td>Campfires not permitted.</td></tr>
+        </tbody>
+    </table>
+
+    <h4>Other Indicators</h4>
+    <ul>
+        <li><strong>Elevation</strong> &mdash; Campground elevation in feet, parsed from descriptions.</li>
+        <li><strong>Max RV Length</strong> &mdash; Maximum RV/trailer length from campsite data, equipment records, or descriptions.</li>
+        <li><strong>Boondock Accessibility</strong> &mdash; For dispersed/primitive sites: Easy, Moderate, or Rough access.</li>
+    </ul>
+</article>
+
+<article>
+    <header><strong>Search &amp; Filters</strong></header>
+    <p>Find campgrounds two ways:</p>
+    <ul>
+        <li><strong>By State</strong> &mdash; Click a state on the <a href="/">home page map</a>, or use the <a href="/search-form">search form</a> to select a state.</li>
+        <li><strong>Search Nearby</strong> &mdash; The home page automatically detects your location. Choose a radius and search for campgrounds near you.</li>
+    </ul>
+    <p>Refine results with filters (also available in the slide-out panel on the results page):</p>
+    <ul>
+        <li><strong>Camping Type</strong> &mdash; Developed campgrounds, primitive campgrounds, or dispersed/boondocking.</li>
+        <li><strong>Road Access</strong> &mdash; Filter by road type: paved, gravel, dirt, high clearance, 4WD.</li>
+        <li><strong>Season</strong> &mdash; Open year-round, seasonal closure, or winter closure.</li>
+        <li><strong>Campfires</strong> &mdash; Campfires allowed, restrictions, or no campfires.</li>
+        <li><strong>Agency</strong> &mdash; Filter by managing agency (FS, BLM, NPS, USACE, BOR, FWS).</li>
+        <li><strong>Amenities</strong> &mdash; Require specific features: full hookups, electric, pull-through sites, dump station, etc.</li>
+    </ul>
+</article>
+
+<article>
+    <header><strong>Dispersed / Boondocking</strong></header>
+    <p>Dispersed camping areas (mostly BLM and Forest Service land) do not have traditional campground infrastructure.
+    These show a <strong>boondock accessibility</strong> rating:</p>
+    <ul>
+        <li><strong>Easy</strong> &mdash; Accessible by standard vehicle on paved or maintained roads.</li>
+        <li><strong>Moderate</strong> &mdash; Some rough roads, standard vehicle possible with care.</li>
+        <li><strong>Rough</strong> &mdash; High clearance or 4WD may be required.</li>
+    </ul>
+</article>
+
+<article>
+    <header><strong>Limitations</strong></header>
+    <ul>
+        <li>Condition data is based on RIDB descriptions and campsite data only. Real conditions may differ.</li>
+        <li>Seasonal closures and fire restrictions change year to year — always verify current status.</li>
+        <li>About 20% of facilities lack coordinates and won't appear in proximity searches.</li>
+        <li>Photos are sourced from RIDB and may not be current.</li>
+        <li>Always check Recreation.gov or contact the managing agency before traveling.</li>
+    </ul>
+</article>
+{% endblock %}

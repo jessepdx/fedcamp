@@ -1,0 +1,509 @@
+/* RV Camping Finder — Custom Styles */
+
+/* Leaflet overrides — prevent Pico CSS from styling map elements */
+.leaflet-marker-icon,
+.leaflet-marker-shadow {
+    background: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+}
+
+.leaflet-control-zoom a {
+    padding: 0 !important;
+    width: 30px !important;
+    height: 30px !important;
+    line-height: 30px !important;
+    font-size: 18px !important;
+}
+
+a.leaflet-control-zoom-in {
+    border-radius: 4px 4px 0 0 !important;
+}
+
+a.leaflet-control-zoom-out {
+    border-radius: 0 0 4px 4px !important;
+}
+
+/* Nav */
+.brand { text-decoration: none; }
+
+/* Search form */
+.search-mode-toggle {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.rig-selector {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.tag-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 0.25rem;
+}
+
+/* Geolocation */
+.geo-locate-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+}
+
+.geo-locate-row button {
+    flex-shrink: 0;
+    margin: 0;
+}
+
+.geo-status {
+    font-size: 0.85rem;
+    color: var(--pico-muted-color);
+}
+
+.geo-success {
+    color: #2d7d46;
+    font-weight: 500;
+}
+
+.geo-error {
+    color: #c0392b;
+}
+
+/* Results header */
+.results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.results-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* Result cards */
+.result-card {
+    margin-bottom: 0.75rem;
+}
+
+.card-body {
+    display: flex;
+    gap: 1rem;
+}
+
+.card-main {
+    flex: 1;
+    min-width: 0;
+}
+
+.card-photo {
+    flex: 0 0 140px;
+}
+
+.card-photo img {
+    width: 140px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 6px;
+}
+
+.card-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.75rem;
+}
+
+.card-title {
+    font-size: 1.1rem;
+    margin-bottom: 0.25rem;
+}
+
+.card-title a {
+    text-decoration: none;
+}
+
+.card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.4rem;
+    font-size: 0.85rem;
+    color: var(--pico-muted-color);
+}
+
+.card-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    font-size: 0.85rem;
+    margin-bottom: 0.4rem;
+}
+
+.card-stats span {
+    background: #edf2f7;
+    color: #2c3e50;
+    padding: 0.1rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+}
+
+.card-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    margin-bottom: 0.3rem;
+}
+
+.card-confidence {
+    margin-top: 0.2rem;
+}
+
+/* Condition pills */
+.condition-pills {
+    display: flex;
+    gap: 0.25rem;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+}
+
+.condition-pill {
+    display: inline-block;
+    color: white;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+/* Conditions grid (facility detail) */
+.conditions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 1rem;
+}
+
+.condition-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.condition-label {
+    color: var(--pico-muted-color);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 0.7rem;
+}
+
+.condition-value {
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+/* Org badge */
+.org-badge {
+    background: #34495e;
+    color: white;
+    padding: 0.1rem 0.4rem;
+    border-radius: 3px;
+    font-size: 0.75rem;
+    font-weight: bold;
+}
+
+.type-label {
+    font-style: italic;
+}
+
+/* Tags */
+.tag {
+    display: inline-block;
+    background: #edf2f7;
+    color: #2c3e50;
+    padding: 0.15rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.78rem;
+}
+
+.tag-warning {
+    background: #fde8e8;
+    color: #c0392b;
+}
+
+.tag-more {
+    color: var(--pico-muted-color);
+    font-style: italic;
+}
+
+.tag-group {
+    margin-bottom: 0.5rem;
+}
+
+.tag-category {
+    display: block;
+    color: var(--pico-muted-color);
+    margin-bottom: 0.2rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Facility detail */
+.facility-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+/* (score panel styles removed — replaced by conditions-grid) */
+
+/* Stats grid */
+.stats-grid table {
+    margin: 0;
+}
+
+.stats-grid td {
+    padding: 0.25rem 0.5rem;
+}
+
+/* Photo gallery */
+.photo-gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 0.5rem;
+}
+
+.photo-gallery img {
+    width: 100%;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+/* Lightbox */
+.lightbox {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    z-index: 2000;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    cursor: pointer;
+}
+
+.lightbox.open {
+    display: flex;
+}
+
+.lightbox img {
+    max-width: 90vw;
+    max-height: 80vh;
+    object-fit: contain;
+    border-radius: 4px;
+    cursor: default;
+}
+
+.lightbox-close {
+    position: absolute;
+    top: 1rem;
+    right: 1.5rem;
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 2.5rem;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0;
+}
+
+.lightbox-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255, 255, 255, 0.15);
+    border: none;
+    color: #fff;
+    font-size: 3rem;
+    cursor: pointer;
+    padding: 0.5rem 1rem;
+    line-height: 1;
+    border-radius: 4px;
+}
+
+.lightbox-arrow:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.lightbox-prev { left: 1rem; }
+.lightbox-next { right: 1rem; }
+
+.lightbox-caption {
+    color: #ccc;
+    margin-top: 0.75rem;
+    font-size: 0.9rem;
+    text-align: center;
+    max-width: 80vw;
+}
+
+.lightbox-counter {
+    color: #888;
+    font-size: 0.8rem;
+    margin-top: 0.25rem;
+}
+
+/* Activities */
+.activity-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+}
+
+.activity-list .tag {
+    background: #e8f4f0;
+    color: #2c3e50;
+}
+
+/* Facility description HTML cleanup */
+.facility-description {
+    max-height: 300px;
+    overflow-y: auto;
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+/* Nearby list */
+.nearby-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 0.5rem;
+}
+
+.nearby-item {
+    padding: 0.5rem;
+    background: #edf2f7;
+    border-radius: 6px;
+}
+
+.nearby-item a {
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.nearby-item small {
+    display: block;
+    color: var(--pico-muted-color);
+}
+
+/* Filter drawer */
+.filter-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.35);
+    z-index: 999;
+}
+
+.filter-overlay.open {
+    display: block;
+}
+
+.filter-drawer {
+    position: fixed;
+    top: 0;
+    left: -360px;
+    width: 340px;
+    height: 100vh;
+    background: #fff;
+    z-index: 1000;
+    transition: left 0.3s ease;
+    overflow-y: auto;
+    padding: 1.25rem;
+    box-shadow: 3px 0 12px rgba(0, 0, 0, 0.15);
+}
+
+.filter-drawer.open {
+    left: 0;
+}
+
+.filter-drawer-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+
+.filter-close-btn {
+    padding: 0.2rem 0.6rem;
+    font-size: 1.2rem;
+    line-height: 1;
+    border: none;
+    cursor: pointer;
+}
+
+.filter-drawer label strong {
+    display: block;
+    margin-bottom: 0.15rem;
+}
+
+.filter-fieldset {
+    border: none;
+    padding: 0;
+    margin: 0 0 0.75rem 0;
+}
+
+.filter-fieldset label {
+    display: block;
+    font-size: 0.9rem;
+    margin-bottom: 0.1rem;
+}
+
+.filter-apply-btn {
+    width: 100%;
+    margin-top: 0.5rem;
+}
+
+.filter-toggle-btn {
+    font-size: 0.9rem;
+    padding: 0.3rem 0.7rem;
+    margin-right: 0.5rem;
+    vertical-align: middle;
+    cursor: pointer;
+}
+
+/* HTMX loading indicator */
+.htmx-indicator {
+    display: none;
+}
+.htmx-request .htmx-indicator,
+.htmx-request.htmx-indicator {
+    display: inline;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .card-photo { display: none; }
+    .card-header-row { flex-direction: column; }
+    .results-header { flex-direction: column; }
+    .facility-header { flex-direction: column; }
+    .photo-gallery { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); }
+}

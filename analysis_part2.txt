@@ -1,0 +1,714 @@
+
+================================================================================
+  6. CAMPSITE ATTRIBUTES - Complete inventory
+================================================================================
+Total attribute records: 2,423,061
+Unique attribute names: 341
+
+All attributes by frequency:
+  Checkout Time                                :    123,255 records,     83 unique values
+  Checkin Time                                 :    123,093 records,     84 unique values
+  Max Num of People                            :    120,390 records,     98 unique values
+  Max Num of Vehicles                          :    117,108 records,     80 unique values
+  Pets Allowed                                 :    113,295 records,      8 unique values
+  IS EQUIPMENT MANDATORY                       :    110,562 records,      3 unique values
+  Min Num of People                            :    109,925 records,     29 unique values
+  Driveway Surface                             :    105,454 records,     13 unique values
+  Capacity/Size Rating                         :    105,323 records,     12 unique values
+  Max Vehicle Length                           :    103,209 records,    313 unique values
+  Driveway Entry                               :    102,366 records,     12 unique values
+  Campfire Allowed                             :     95,200 records,      4 unique values
+  Shade                                        :     89,341 records,      9 unique values
+  Placed on Map                                :     76,172 records,      3 unique values
+  Picnic Table                                 :     64,314 records,      4 unique values
+  Driveway Length                              :     55,031 records,    564 unique values
+  Site Access                                  :     49,827 records,     14 unique values
+  Water Hookup                                 :     45,618 records,      7 unique values
+  Electricity Hookup                           :     44,424 records,     57 unique values
+  Fire Pit                                     :     42,970 records,      3 unique values
+  GRILLS                                       :     34,223 records,      3 unique values
+  Site Length                                  :     33,904 records,    316 unique values
+  Min Num of Vehicles                          :     30,027 records,     14 unique values
+  Site Rating                                  :     27,497 records,     10 unique values
+  Driveway Grade                               :     26,395 records,      8 unique values
+  Site Width                                   :     25,761 records,    188 unique values
+  Location Rating                              :     25,446 records,      9 unique values
+  Condition Rating                             :     23,834 records,     11 unique values
+  CAMPFIRE RINGS                               :     23,044 records,      2 unique values
+  PICNIC TABLES                                :     19,977 records,      1 unique values
+  Proximity to Water                           :     18,396 records,     10 unique values
+  Tent Pad Length                              :     16,034 records,    112 unique values
+  BBQ                                          :     15,589 records,      3 unique values
+  Tent Pad Width                               :     15,480 records,     91 unique values
+  Tent Pad                                     :     13,676 records,      3 unique values
+  Site Height/Overhead Clearance               :     10,878 records,     65 unique values
+  Sewer Hookup                                 :     10,274 records,      4 unique values
+  Base Number of People                        :      9,748 records,     35 unique values
+  Base Number of Vehicles                      :      9,171 records,     28 unique values
+  Hike In Distance to Site                     :      8,880 records,    589 unique values
+  Double Driveway                              :      7,919 records,      6 unique values
+  Accessibility                                :      7,052 records,      2 unique values
+  Quiet Area                                   :      6,819 records,      3 unique values
+  FOOD STORAGE LOCKER                          :      6,586 records,      1 unique values
+  LANTERN POSTS                                :      6,370 records,      1 unique values
+  FLUSH TOILETS                                :      5,837 records,      1 unique values
+  DRINKING WATER                               :      5,577 records,      2 unique values
+  PAVED ROADS                                  :      5,063 records,      1 unique values
+  VAULT TOILETS                                :      4,899 records,      1 unique values
+  TENT PADS                                    :      4,625 records,      2 unique values
+  HOST                                         :      4,426 records,      2 unique values
+  ELECTRIC HOOKUPS                             :      4,197 records,      1 unique values
+  Food Locker                                  :      4,076 records,      3 unique values
+  WATER SPIGOT                                 :      4,071 records,      1 unique values
+  Shower/Bath Type                             :      3,919 records,      5 unique values
+  DUMP STATION                                 :      3,911 records,      2 unique values
+  Lantern Pole                                 :      3,770 records,      2 unique values
+  WATER HOOKUPS                                :      3,636 records,      1 unique values
+  Privacy                                      :      3,604 records,      3 unique values
+  PAVED PARKING                                :      3,433 records,      1 unique values
+  Accessible Occupant Message                  :      3,338 records,      2 unique values
+  BOAT RAMP                                    :      3,191 records,      1 unique values
+  SHOWERS                                      :      3,135 records,      1 unique values
+  Bed Type                                     :      2,961 records,     20 unique values
+  PARKING AREA                                 :      2,748 records,      2 unique values
+  TRASH COLLECTION                             :      2,704 records,      1 unique values
+  LAKE ACCESS                                  :      2,491 records,      1 unique values
+  Max Num of Horses                            :      2,386 records,     23 unique values
+  ACCESSIBLE FLUSH TOILETS                     :      2,382 records,      1 unique values
+  SELF PAY STATION                             :      2,352 records,      1 unique values
+  TRAILHEADS                                   :      2,085 records,      1 unique values
+  PAVED SITES                                  :      2,049 records,      1 unique values
+  Num of Beds                                  :      1,950 records,     17 unique values
+  CELL PHONE SERVICE                           :      1,891 records,      1 unique values
+  ACCESSIBLE PARKING                           :      1,887 records,      1 unique values
+  DAY USE AREA                                 :      1,867 records,      1 unique values
+  FLUSH TOILETS (SEASONAL)                     :      1,843 records,      1 unique values
+  ACCESSIBLE SHOWERS                           :      1,838 records,      1 unique values
+  ACCESSIBLE CAMPSITES                         :      1,825 records,      1 unique values
+  RECYCLING                                    :      1,818 records,      1 unique values
+  PLAYGROUND                                   :      1,810 records,      1 unique values
+  ENTRANCE STATION                             :      1,802 records,      1 unique values
+  Num of Rooms                                 :      1,794 records,     16 unique values
+  Full Hookup                                  :      1,778 records,      5 unique values
+  Num of Bedrooms                              :      1,741 records,     12 unique values
+  PICNIC AREA                                  :      1,740 records,      1 unique values
+  Lean To/Shelter                              :      1,734 records,      3 unique values
+  BEACH ACCESS                                 :      1,699 records,      1 unique values
+  FIREWOOD                                     :      1,625 records,      1 unique values
+  AMPHITHEATER                                 :      1,592 records,      1 unique values
+  ACCESSIBLE DRINKING WATER                    :      1,546 records,      1 unique values
+  DRINKING WATER (PEAK SEASON)                 :      1,515 records,      3 unique values
+  WATER (SEASONAL)                             :      1,383 records,      1 unique values
+  EMERGENCY PHONE                              :      1,364 records,      2 unique values
+  ACCESSIBLE VAULT TOILETS                     :      1,344 records,      1 unique values
+  Grills/Fire Ring                             :      1,300 records,      3 unique values
+  PICNIC SHELTERS                              :      1,253 records,      1 unique values
+  DRINKING WATER (HAND PUMP)                   :      1,233 records,      1 unique values
+  ACCESSIBLE GRILLS                            :      1,205 records,      1 unique values
+  Platform                                     :      1,114 records,      3 unique values
+  BOAT TRAILER PARKING                         :      1,107 records,      1 unique values
+  TABLES                                       :      1,099 records,      1 unique values
+  BOAT DOCK                                    :      1,086 records,      1 unique values
+  RV PARKING                                   :      1,051 records,      1 unique values
+  GENERAL STORE                                :      1,004 records,      2 unique values
+  ICE                                          :        993 records,      1 unique values
+  TABLE & BENCHES                              :        969 records,      1 unique values
+  ELECTRICITY                                  :        957 records,      1 unique values
+  ACCESSIBLE PICNIC AREA                       :        892 records,      1 unique values
+  ACCESSIBLE SITES                             :        878 records,      1 unique values
+  CAMPFIRE CIRCLES                             :        849 records,      1 unique values
+  ACCESSIBLE PICNIC SHELTERS                   :        836 records,      1 unique values
+  VISITOR CENTER                               :        794 records,      2 unique values
+  ACCESSIBLE BOAT RAMP                         :        784 records,      1 unique values
+  RIVER ACCESS                                 :        777 records,      1 unique values
+  LAUNDRY FACILITIES                           :        769 records,      1 unique values
+  CAMPFIRE PROGRAMS                            :        758 records,      1 unique values
+  ACCESSIBLE PLAYGROUND                        :        754 records,      1 unique values
+  PIT TOILETS                                  :        742 records,      1 unique values
+  ACCESSIBLE WALKWAYS                          :        725 records,      1 unique values
+  TRAILHEAD PARKING                            :        714 records,      1 unique values
+  ACCESSIBLE TRAILS                            :        713 records,      1 unique values
+  PAVED PATHWAYS                               :        708 records,      1 unique values
+  CREEK ACCESS                                 :        685 records,      1 unique values
+  UTILITY SINKS                                :        672 records,      1 unique values
+  COIN SHOWERS                                 :        665 records,      2 unique values
+  MARINA                                       :        658 records,      1 unique values
+  SHOWERS (SEASONAL)                           :        614 records,      1 unique values
+  ATM                                          :        596 records,      1 unique values
+  FISH CLEANING STATIONS                       :        595 records,      1 unique values
+  BOAT SLIPS                                   :        561 records,      1 unique values
+  Satellite TV Access                          :        552 records,      2 unique values
+  WATERFRONT SITES                             :        547 records,      1 unique values
+  DOCK                                         :        532 records,      1 unique values
+  FIREWOOD VENDER                              :        498 records,      1 unique values
+  KAYAK RENTALS                                :        493 records,      1 unique values
+  WIRELESS INTERNET                            :        491 records,      1 unique values
+  FISHING PIER                                 :        473 records,      1 unique values
+  NON-POTABLE WATER                            :        470 records,      1 unique values
+  ACCESSIBLE PIT TOILETS                       :        469 records,      1 unique values
+  GIFT SHOP                                    :        451 records,      2 unique values
+  Horse Stall/Corral                           :        430 records,      3 unique values
+  BASKETBALL COURTS                            :        420 records,      1 unique values
+  VOLLEYBALL COURTS                            :        414 records,      1 unique values
+  RESTAURANT                                   :        390 records,      2 unique values
+  OFF-ROAD VEHICLE TRAILS                      :        388 records,      1 unique values
+  ACCESSIBLE FISHING DOCK                      :        373 records,      1 unique values
+  FISHING LICENSES                             :        369 records,      1 unique values
+  HORSESHOE PIT                                :        361 records,      1 unique values
+  EMERGENCY SERVICES                           :        359 records,      1 unique values
+  LIFEGUARDS                                   :        352 records,      1 unique values
+  TENNIS COURTS                                :        351 records,      1 unique values
+  SOFTBALL FIELDS                              :        351 records,      1 unique values
+  CANOE RENTALS                                :        351 records,      1 unique values
+  SOCCER FIELDS                                :        342 records,      1 unique values
+  SWIMMING POOL                                :        339 records,      1 unique values
+  RECREATION CENTER                            :        339 records,      1 unique values
+  CONCESSION (SEASONAL)                        :        334 records,      1 unique values
+  VENDING MACHINES                             :        333 records,      1 unique values
+  INTERPRETIVE TRAILS                          :        331 records,      1 unique values
+  BASEBALL FIELDS                              :        327 records,      1 unique values
+  HORSEBACK RIDING TRAILS                      :        318 records,      1 unique values
+  BIKE RENTALS                                 :        318 records,      1 unique values
+  RANGER STATION                               :        299 records,      1 unique values
+  ACCESSIBLE BOCK DOCK                         :        294 records,      1 unique values
+  SCENIC OVERLOOKS                             :        285 records,      1 unique values
+  BILGE PUMP STATION                           :        266 records,      1 unique values
+  WASHER & DRYER                               :        262 records,      1 unique values
+  Horse Hitching Post                          :        259 records,      3 unique values
+  LIGHTS                                       :        257 records,      1 unique values
+  CORRALS                                      :        254 records,      1 unique values
+  Non Smoking                                  :        248 records,      2 unique values
+  FUEL AVAILABLE                               :        240 records,      1 unique values
+  HORSE CORRALS                                :        224 records,      1 unique values
+  CONCESSIONS                                  :        216 records,      2 unique values
+  Porch                                        :        212 records,      3 unique values
+  PAY PHONE                                    :        208 records,      1 unique values
+  BOAT STORAGE                                 :        201 records,      1 unique values
+  BROOM & DUST PAN                             :        199 records,      1 unique values
+  PROPANE                                      :        186 records,      1 unique values
+  FIREPLACE                                    :        182 records,      1 unique values
+  WOOD STOVE                                   :        177 records,      1 unique values
+  Furnished                                    :        174 records,      2 unique values
+  Cabin Heating                                :        174 records,      5 unique values
+  SECURITY LIGHTS                              :        171 records,      1 unique values
+  CHURCH                                       :        171 records,      1 unique values
+  HITCHING RACKS                               :        167 records,      1 unique values
+  BED(S) WITH MATTRESS                         :        167 records,      1 unique values
+  Toilet                                       :        155 records,      2 unique values
+  TABLE & CHAIRS                               :        154 records,      1 unique values
+  CATEGORY                                     :        153 records,      4 unique values
+  MAP NUMBER                                   :        152 records,    150 unique values
+  FIRE EXTINGUISHER                            :        147 records,      1 unique values
+  BOARDWALK                                    :        146 records,      1 unique values
+  CAVE TOURS                                   :        145 records,      1 unique values
+  OUTHOUSE                                     :        144 records,      1 unique values
+  BUNKBED(S)                                   :        142 records,      1 unique values
+  COOKING UTENSILS                             :        140 records,      1 unique values
+  Lighting                                     :        134 records,      4 unique values
+  COOKING POTS                                 :        134 records,      1 unique values
+  PORTABLE TOILETS                             :        132 records,      1 unique values
+  COOKING AREA                                 :        131 records,      1 unique values
+  CAMPING SUPPLIES                             :        124 records,      1 unique values
+  KITCHEN                                      :        123 records,      1 unique values
+  FISHING DOCK                                 :        123 records,      1 unique values
+  GEOLOGICAL ATTRACTIONS                       :        122 records,      1 unique values
+  BOAT RENTALS                                 :        121 records,      1 unique values
+  SMOKE ALARM                                  :        119 records,      1 unique values
+  Generator Free                               :        118 records,      2 unique values
+  Stove/Oven                                   :        114 records,      2 unique values
+  Microwave                                    :        112 records,      2 unique values
+  Internet Access                              :        107 records,      2 unique values
+  Wood Heating                                 :        106 records,      2 unique values
+  Woodstove/Fireplace                          :        104 records,      2 unique values
+  KENNEL                                       :        102 records,      1 unique values
+  COT(S)                                       :        102 records,      1 unique values
+  REFRIGERATOR                                 :        100 records,      1 unique values
+  PROPANE STOVE                                :         99 records,      1 unique values
+  Hot Water                                    :         99 records,      2 unique values
+  EDUCATIONAL PROGRAMS                         :         96 records,      1 unique values
+  Deck                                         :         90 records,      2 unique values
+  OVEN                                         :         89 records,      1 unique values
+  Living Room                                  :         88 records,      2 unique values
+  HEATING STOVE                                :         85 records,      1 unique values
+                                               :         83 records,      4 unique values
+  HEATER                                       :         75 records,      1 unique values
+  COFFEE POT                                   :         75 records,      1 unique values
+  CLOTHES DRYER                                :         75 records,      1 unique values
+  MOTOR BOAT RENTALS                           :         74 records,      1 unique values
+  Stove/Fridge                                 :         70 records,      3 unique values
+  BED(S)                                       :         70 records,      1 unique values
+  ICE MACHINE                                  :         67 records,      1 unique values
+  FISHING GUIDE                                :         66 records,      1 unique values
+  PONTOON RENTAL                               :         64 records,      1 unique values
+  Group Allowed                                :         63 records,      1 unique values
+  DINING AREA                                  :         63 records,      1 unique values
+  PROPANE OVEN                                 :         62 records,      1 unique values
+  Fridge                                       :         62 records,      2 unique values
+  BUNKBEDS(S) WITH MATTRESSES                  :         62 records,      1 unique values
+  Propane Heating                              :         61 records,      2 unique values
+  COUCHES                                      :         61 records,      1 unique values
+  Fridge with Freezer                          :         58 records,      2 unique values
+  SHUTTLE BUS SERVICE                          :         56 records,      1 unique values
+  Electric Heating                             :         52 records,      2 unique values
+  BAIT SHOP                                    :         51 records,      1 unique values
+  PROPANE HEAT                                 :         50 records,      1 unique values
+  ELECTRIC STOVE                               :         50 records,      1 unique values
+  PROPANE LIGHTS                               :         49 records,      1 unique values
+  MOTORCYCLE TRAILS                            :         49 records,      1 unique values
+  LANTERN                                      :         49 records,      1 unique values
+  Supplies                                     :         47 records,      4 unique values
+  SLEEPING SHELTER                             :         47 records,      1 unique values
+  MOP                                          :         47 records,      1 unique values
+  Clothes-Line                                 :         47 records,      2 unique values
+  FUTON(S)                                     :         46 records,      1 unique values
+  CLEANING SUPPLIES                            :         46 records,      1 unique values
+  Oil Heating                                  :         45 records,      1 unique values
+  HISTORIC SITES                               :         45 records,      1 unique values
+  MOTEL                                        :         43 records,      1 unique values
+  MATTRESS PAD(S)                              :         37 records,      1 unique values
+  HORSE STALLS                                 :         37 records,      1 unique values
+  AXE                                          :         37 records,      1 unique values
+  DVD PLAYER                                   :         35 records,      1 unique values
+  CLEANING EQUIPMENT                           :         35 records,      1 unique values
+  ACCESSIBLE SCENIC OVERLOOK                   :         35 records,      1 unique values
+  HORSE STAGING AREA                           :         34 records,      1 unique values
+  PLAYGROIUND                                  :         33 records,      1 unique values
+  RV STORAGE                                   :         32 records,      1 unique values
+  PROPANE REFRIDGERATOR                        :         32 records,      1 unique values
+  ARCHEOLOGICAL SITES                          :         32 records,      1 unique values
+  Cable TV Access                              :         30 records,      2 unique values
+  BEAR POLE                                    :         30 records,      1 unique values
+  Air Conditioning                             :         29 records,      3 unique values
+  Manure Disposal                              :         28 records,      1 unique values
+  Fax Hookup                                   :         28 records,      2 unique values
+  FOOT STORAGE LOCKER                          :         28 records,      1 unique values
+  TABLE                                        :         25 records,      1 unique values
+  FIRE RING                                    :         25 records,      1 unique values
+  WIND SHELTERS                                :         24 records,      1 unique values
+  TWIN BED(S)                                  :         24 records,      1 unique values
+  Gas Heating                                  :         22 records,      2 unique values
+  BATHTUB                                      :         21 records,      1 unique values
+  KITCHEN (NO WATER)                           :         20 records,      1 unique values
+  STOCK WATERING TANK                          :         19 records,      1 unique values
+  OUTDOOR COOLER BOX                           :         19 records,      1 unique values
+  HORSE WATERING STATION                       :         19 records,      1 unique values
+  EVENT AREA                                   :         18 records,      1 unique values
+  WATER TROUGHS                                :         17 records,      1 unique values
+  BUCKET & SHOVEL                              :         16 records,      1 unique values
+  GROUP COOKING FACILITIES                     :         15 records,      1 unique values
+  FIRST AID KIT                                :         15 records,      1 unique values
+  Telephone Hookup                             :         14 records,      2 unique values
+  BOAT INCLUDED                                :         14 records,      1 unique values
+  SAW                                          :         13 records,      1 unique values
+  COMMUNITY PARK                               :         13 records,      1 unique values
+  FITNESS TRAILS                               :         12 records,      1 unique values
+  LOOKOUT TOWER                                :         11 records,      1 unique values
+  ADIRONDACK SHELTER                           :         10 records,      1 unique values
+  SNOW SHOVEL                                  :          9 records,      1 unique values
+  CLOTHESLINE                                  :          9 records,      1 unique values
+  BOAT MAINTENANCE                             :          9 records,      1 unique values
+  PROPANE LANTERN (FUEL NOT PROVIDED)          :          8 records,      1 unique values
+  FISH HATCHERY                                :          8 records,      1 unique values
+  TWIN BED PLATFORM                            :          7 records,      1 unique values
+  PROPANE GRILLS                               :          7 records,      1 unique values
+  HAS RENTALS                                  :          7 records,      3 unique values
+  ELECTRIC HOOKUPS 50 AMP                      :          6 records,      1 unique values
+  COLEMAN STOVE (FUEL NOT PROVIDED)            :          6 records,      1 unique values
+  BAY ACCESS                                   :          6 records,      1 unique values
+  GROCERY STORE                                :          5 records,      1 unique values
+  Clothes-Washer                               :          5 records,      1 unique values
+  Clothes-Dryer                                :          5 records,      1 unique values
+  Cabin Electricity                            :          5 records,      1 unique values
+  Radio                                        :          4 records,      1 unique values
+  PROPANE FIREPLACE                            :          4 records,      1 unique values
+  OUTDOOR SHOWERS                              :          4 records,      1 unique values
+  FISHING RENTALS                              :          4 records,      1 unique values
+  FENCED PASTURES                              :          4 records,      1 unique values
+  BATTERY LIGHTS                               :          4 records,      1 unique values
+  Telephone                                    :          3 records,      1 unique values
+  PROPANE LANTERN                              :          3 records,      1 unique values
+  Maximum Group Capacity                       :          3 records,      3 unique values
+  MULTI-USE COURT                              :          3 records,      1 unique values
+  BUTTERFLY GARDEN                             :          3 records,      1 unique values
+  AMPHITHEATHER                                :          3 records,      1 unique values
+  SMALL REFRIDGERATOR                          :          2 records,      1 unique values
+  OFF-ROAD VEHICLE RENTALS                     :          2 records,      1 unique values
+  Dish-Washer                                  :          2 records,      1 unique values
+  Television                                   :          1 records,      1 unique values
+  SHOOTING RANGE                               :          1 records,      1 unique values
+  RV SUPPLIES                                  :          1 records,      1 unique values
+  RAIN CATCHMENT BARREL                        :          1 records,      1 unique values
+  MEAT SHED                                    :          1 records,      1 unique values
+  LIGHTHOUSE                                   :          1 records,      1 unique values
+  FIRST AID STATION                            :          1 records,      1 unique values
+  DVD                                          :          1 records,      1 unique values
+  COLEMAN LANTERN (FUEL NOT PROVIDED)          :          1 records,      1 unique values
+  CASINO                                       :          1 records,      1 unique values
+  BUS STOP                                     :          1 records,      1 unique values
+  BOAT TRIPS                                   :          1 records,      1 unique values
+  ANCHORAGE                                    :          1 records,      1 unique values
+
+  --- Driveway Entry (102,366 records, 12 unique values) ---
+    'Back-In'                               :   58,762 ( 57.4%)
+    'Back-in'                               :   27,499 ( 26.9%)
+    'Pull-Through'                          :    7,299 (  7.1%)
+    'Pull-through'                          :    5,225 (  5.1%)
+    'Parallel'                              :    2,364 (  2.3%)
+    'N/A'                                   :    1,056 (  1.0%)
+    ''                                      :       79 (  0.1%)
+    'Pull-Through '                         :       31 (  0.0%)
+    'Back In'                               :       31 (  0.0%)
+    'Pull-Thru'                             :       17 (  0.0%)
+    'BACK-IN'                               :        2 (  0.0%)
+    'pull-through'                          :        1 (  0.0%)
+
+  --- Driveway Surface (105,454 records, 13 unique values) ---
+    'Paved'                                 :   53,980 ( 51.2%)
+    'Gravel'                                :   49,546 ( 47.0%)
+    'N/A'                                   :    1,696 (  1.6%)
+    'Grass'                                 :       84 (  0.1%)
+    'GRAVEL'                                :       56 (  0.1%)
+    'Gravel '                               :       36 (  0.0%)
+    ''                                      :       25 (  0.0%)
+    'gravel'                                :       15 (  0.0%)
+    'PAVED'                                 :        9 (  0.0%)
+    'Pull-through'                          :        3 (  0.0%)
+    'Back-in'                               :        2 (  0.0%)
+    'paved'                                 :        1 (  0.0%)
+    'Slight'                                :        1 (  0.0%)
+
+  --- Driveway Length (55,031 records, 564 unique values) ---
+    '40'                                    :    4,029 (  7.3%)
+    '30'                                    :    3,304 (  6.0%)
+    '50'                                    :    3,136 (  5.7%)
+    '0'                                     :    2,874 (  5.2%)
+    '60'                                    :    2,523 (  4.6%)
+    '45'                                    :    2,305 (  4.2%)
+    '35'                                    :    2,215 (  4.0%)
+    '20'                                    :    2,101 (  3.8%)
+    '25'                                    :    1,794 (  3.3%)
+    '55'                                    :    1,107 (  2.0%)
+    '42'                                    :    1,051 (  1.9%)
+    '36'                                    :    1,044 (  1.9%)
+    '38'                                    :      891 (  1.6%)
+    '32'                                    :      875 (  1.6%)
+    '48'                                    :      855 (  1.6%)
+    '70'                                    :      826 (  1.5%)
+    '24'                                    :      798 (  1.5%)
+    '28'                                    :      771 (  1.4%)
+    '65'                                    :      742 (  1.3%)
+    '46'                                    :      699 (  1.3%)
+    '75'                                    :      669 (  1.2%)
+    '22'                                    :      646 (  1.2%)
+    '52'                                    :      640 (  1.2%)
+    '18'                                    :      631 (  1.1%)
+    '34'                                    :      587 (  1.1%)
+    ... and 539 more values
+
+  --- Driveway Grade (26,395 records, 8 unique values) ---
+    'Slight'                                :   18,731 ( 71.0%)
+    'Moderate'                              :    4,431 ( 16.8%)
+    'N/A'                                   :    1,845 (  7.0%)
+    'Severe'                                :    1,077 (  4.1%)
+    ''                                      :      303 (  1.1%)
+    'Gravel'                                :        4 (  0.0%)
+    'Pull-through'                          :        2 (  0.0%)
+    'Paved'                                 :        2 (  0.0%)
+
+  --- Max Vehicle Length (103,209 records, 313 unique values) ---
+    '40'                                    :    9,245 (  9.0%)
+    '0'                                     :    8,948 (  8.7%)
+    '30'                                    :    8,170 (  7.9%)
+    '35'                                    :    6,211 (  6.0%)
+    '20'                                    :    5,842 (  5.7%)
+    '45'                                    :    5,449 (  5.3%)
+    '50'                                    :    4,513 (  4.4%)
+    '25'                                    :    4,290 (  4.2%)
+    '60'                                    :    4,178 (  4.0%)
+    '32'                                    :    2,148 (  2.1%)
+    '55'                                    :    2,085 (  2.0%)
+    ''                                      :    1,944 (  1.9%)
+    '36'                                    :    1,913 (  1.9%)
+    '18'                                    :    1,876 (  1.8%)
+    '24'                                    :    1,851 (  1.8%)
+    '38'                                    :    1,403 (  1.4%)
+    '65'                                    :    1,221 (  1.2%)
+    '28'                                    :    1,177 (  1.1%)
+    '26'                                    :    1,173 (  1.1%)
+    '42'                                    :    1,159 (  1.1%)
+    '70'                                    :    1,130 (  1.1%)
+    '15'                                    :    1,042 (  1.0%)
+    '48'                                    :    1,005 (  1.0%)
+    '22'                                    :    1,004 (  1.0%)
+    '27'                                    :      823 (  0.8%)
+    ... and 288 more values
+
+  --- Site Access (49,827 records, 14 unique values) ---
+    'Drive-In'                              :   36,046 ( 72.3%)
+    'Drive In'                              :    8,009 ( 16.1%)
+    'Hike-In'                               :    2,750 (  5.5%)
+    'N/A'                                   :      834 (  1.7%)
+    'Hike In'                               :      543 (  1.1%)
+    'Boat-In'                               :      529 (  1.1%)
+    'Walk-In'                               :      450 (  0.9%)
+    ''                                      :      369 (  0.7%)
+    'Boat In'                               :      268 (  0.5%)
+    'Hike-In,Boat-In'                       :       13 (  0.0%)
+    'Hike-In,Drive-In'                      :       10 (  0.0%)
+    'Bike'                                  :        3 (  0.0%)
+    'Drive in'                              :        2 (  0.0%)
+    'Drive-Up'                              :        1 (  0.0%)
+
+  --- Water Hookup (45,618 records, 7 unique values) ---
+    'Yes'                                   :   26,490 ( 58.1%)
+    'No'                                    :   18,262 ( 40.0%)
+    'Y'                                     :      499 (  1.1%)
+    ''                                      :      323 (  0.7%)
+    'Water Hookup'                          :       36 (  0.1%)
+    'NO'                                    :        6 (  0.0%)
+    'yes'                                   :        2 (  0.0%)
+
+  --- Sewer Hookup (10,274 records, 4 unique values) ---
+    'No'                                    :    5,763 ( 56.1%)
+    'Y'                                     :    3,026 ( 29.5%)
+    'Yes'                                   :      817 (  8.0%)
+    'Sewer Hookup'                          :      668 (  6.5%)
+
+  --- Electricity Hookup (44,424 records, 57 unique values) ---
+    '50'                                    :   20,042 ( 45.1%)
+    '30'                                    :   12,745 ( 28.7%)
+    'N/A'                                   :    4,622 ( 10.4%)
+    '20/30/50'                              :    1,718 (  3.9%)
+    '30/50'                                 :      947 (  2.1%)
+    ''                                      :      770 (  1.7%)
+    '15'                                    :      672 (  1.5%)
+    '50/30'                                 :      526 (  1.2%)
+    '20/30'                                 :      387 (  0.9%)
+    '50 /20/30/50'                          :      360 (  0.8%)
+    '50/30/20'                              :      358 (  0.8%)
+    '20'                                    :      316 (  0.7%)
+    '15/30/50'                              :      160 (  0.4%)
+    '30 /50'                                :      145 (  0.3%)
+    '50 /20/30'                             :       95 (  0.2%)
+    '30/20'                                 :       73 (  0.2%)
+    '50 /30/50'                             :       53 (  0.1%)
+    '30 /30'                                :       47 (  0.1%)
+    '20 /20'                                :       38 (  0.1%)
+    '15/20/30'                              :       38 (  0.1%)
+    'No'                                    :       35 (  0.1%)
+    'Electricity Hookup'                    :       30 (  0.1%)
+    '50 /50'                                :       26 (  0.1%)
+    '50 /50/30/20'                          :       25 (  0.1%)
+    '50 /30'                                :       21 (  0.0%)
+    ... and 32 more values
+
+  --- Full Hookup (1,778 records, 5 unique values) ---
+    '50'                                    :    1,447 ( 81.4%)
+    '30'                                    :      257 ( 14.5%)
+    '15'                                    :       58 (  3.3%)
+    '100'                                   :        9 (  0.5%)
+    'Full Hookup'                           :        7 (  0.4%)
+
+  --- Double Driveway (7,919 records, 6 unique values) ---
+    'Y'                                     :    4,502 ( 56.9%)
+    'Yes'                                   :    1,890 ( 23.9%)
+    'No'                                    :      931 ( 11.8%)
+    ''                                      :      428 (  5.4%)
+    'yes'                                   :      135 (  1.7%)
+    'YES'                                   :       33 (  0.4%)
+
+  --- Capacity/Size Rating (105,323 records, 12 unique values) ---
+    'Single'                                :   99,423 ( 94.4%)
+    'Double'                                :    3,690 (  3.5%)
+    'Group'                                 :      969 (  0.9%)
+    'N/A'                                   :      534 (  0.5%)
+    'Quad'                                  :      199 (  0.2%)
+    'Triple'                                :      171 (  0.2%)
+    'SINGLE'                                :      143 (  0.1%)
+    ''                                      :      132 (  0.1%)
+    'DOUBLE'                                :       32 (  0.0%)
+    'Single '                               :       15 (  0.0%)
+    'single'                                :        9 (  0.0%)
+    'double'                                :        6 (  0.0%)
+
+  --- Shade (89,341 records, 9 unique values) ---
+    'Yes'                                   :   62,154 ( 69.6%)
+    'Full'                                  :   23,456 ( 26.3%)
+    'No'                                    :    2,945 (  3.3%)
+    ''                                      :      438 (  0.5%)
+    'Shade '                                :      205 (  0.2%)
+    'yes'                                   :      127 (  0.1%)
+    'no'                                    :       11 (  0.0%)
+    'NO'                                    :        3 (  0.0%)
+    'Partial'                               :        2 (  0.0%)
+
+  --- Proximity to Water (18,396 records, 10 unique values) ---
+    'Lakefront'                             :    8,767 ( 47.7%)
+    'Riverfront'                            :    4,699 ( 25.5%)
+    'N/A'                                   :    3,169 ( 17.2%)
+    ''                                      :      683 (  3.7%)
+    'Island'                                :      414 (  2.3%)
+    'Oceanfront'                            :      290 (  1.6%)
+    'Springs'                               :      273 (  1.5%)
+    'Island,'                               :       75 (  0.4%)
+    'Lakefront,Riverfront'                  :       19 (  0.1%)
+    'Riverfront,Springs'                    :        7 (  0.0%)
+
+  --- Shower/Bath Type (3,919 records, 5 unique values) ---
+    'N/A'                                   :    1,626 ( 41.5%)
+    'Shower Stall'                          :    1,463 ( 37.3%)
+    ''                                      :      723 ( 18.4%)
+    'Bathtub with Shower'                   :      101 (  2.6%)
+    'Bathtub Only'                          :        6 (  0.2%)
+
+  --- Accessibility (7,052 records, 2 unique values) ---
+    'Y'                                     :    6,929 ( 98.3%)
+    'Accessibility'                         :      123 (  1.7%)
+
+  --- IS EQUIPMENT MANDATORY (110,562 records, 3 unique values) ---
+    'true'                                  :   90,404 ( 81.8%)
+    ''                                      :   15,449 ( 14.0%)
+    'false'                                 :    4,709 (  4.3%)
+
+  --- Campfire Allowed (95,200 records, 4 unique values) ---
+    'Yes'                                   :   92,881 ( 97.6%)
+    'No'                                    :    2,128 (  2.2%)
+    'yes'                                   :      109 (  0.1%)
+    ''                                      :       82 (  0.1%)
+
+  --- Pets Allowed (113,295 records, 8 unique values) ---
+    'Yes'                                   :  110,982 ( 98.0%)
+    'No'                                    :    1,043 (  0.9%)
+    'Pets Allowed'                          :      503 (  0.4%)
+    'Domestic,Horse'                        :      344 (  0.3%)
+    ''                                      :      189 (  0.2%)
+    'yes'                                   :      170 (  0.2%)
+    'Horse'                                 :       51 (  0.0%)
+    'YES'                                   :       13 (  0.0%)
+
+  --- Site Rating (27,497 records, 10 unique values) ---
+    'Standard'                              :   16,198 ( 58.9%)
+    'Prime'                                 :    3,911 ( 14.2%)
+    'Basic'                                 :    3,161 ( 11.5%)
+    'Preferred'                             :    2,012 (  7.3%)
+    'N/A'                                   :    1,564 (  5.7%)
+    ''                                      :      623 (  2.3%)
+    'Good'                                  :       23 (  0.1%)
+    'Standar'                               :        3 (  0.0%)
+    'PRIME'                                 :        1 (  0.0%)
+    'PREFER'                                :        1 (  0.0%)
+
+  --- Condition Rating (23,834 records, 11 unique values) ---
+    'Good'                                  :   10,800 ( 45.3%)
+    'Basic'                                 :    3,447 ( 14.5%)
+    'Standard'                              :    3,379 ( 14.2%)
+    'Prime'                                 :    3,047 ( 12.8%)
+    'N/A'                                   :    1,807 (  7.6%)
+    ''                                      :      673 (  2.8%)
+    'Preferred'                             :      472 (  2.0%)
+    'Poor'                                  :      206 (  0.9%)
+    'PRIME'                                 :        1 (  0.0%)
+    'PREFER'                                :        1 (  0.0%)
+    'BASIC'                                 :        1 (  0.0%)
+
+  --- Location Rating (25,446 records, 9 unique values) ---
+    'Good'                                  :   16,080 ( 63.2%)
+    'Prime'                                 :    6,648 ( 26.1%)
+    'N/A'                                   :    1,808 (  7.1%)
+    ''                                      :      668 (  2.6%)
+    'Poor'                                  :      195 (  0.8%)
+    'GOOD'                                  :       26 (  0.1%)
+    'good'                                  :       12 (  0.0%)
+    'PRIME'                                 :        6 (  0.0%)
+    'POOR'                                  :        3 (  0.0%)
+
+  --- Checkout Time (123,255 records, 83 unique values) ---
+    '12:00 PM'                              :   49,665 ( 40.3%)
+    '11:00 AM'                              :   16,386 ( 13.3%)
+    '2:00 PM'                               :   11,139 (  9.0%)
+    '1:00 PM'                               :    9,437 (  7.7%)
+    '4:00 PM'                               :    8,254 (  6.7%)
+    '3:00 PM'                               :    7,062 (  5.7%)
+    '02:00 PM'                              :    2,922 (  2.4%)
+    '0:00 AM'                               :    2,448 (  2.0%)
+    '10:00 AM'                              :    2,152 (  1.7%)
+    '6:00 PM'                               :    1,994 (  1.6%)
+    '04:00 PM'                              :    1,867 (  1.5%)
+    '03:00 PM'                              :    1,364 (  1.1%)
+    '01:00 PM'                              :    1,196 (  1.0%)
+    '10:00 PM'                              :    1,021 (  0.8%)
+    '5:00 PM'                               :      999 (  0.8%)
+    '4:30 PM'                               :      968 (  0.8%)
+    ''                                      :      851 (  0.7%)
+    '05:00 PM'                              :      517 (  0.4%)
+    '11:30 AM'                              :      387 (  0.3%)
+    '9:00 PM'                               :      269 (  0.2%)
+    '06:00 PM'                              :      268 (  0.2%)
+    '1:30 PM'                               :      238 (  0.2%)
+    '8:00 PM'                               :      232 (  0.2%)
+    '2:30 PM'                               :      216 (  0.2%)
+    '0:00 PM'                               :      174 (  0.1%)
+    ... and 58 more values
+
+  --- Checkin Time (123,093 records, 84 unique values) ---
+    '2:00 PM'                               :   40,439 ( 32.9%)
+    '3:00 PM'                               :   16,778 ( 13.6%)
+    '12:00 PM'                              :   10,778 (  8.8%)
+    '4:00 PM'                               :    9,175 (  7.5%)
+    '1:00 PM'                               :    8,471 (  6.9%)
+    '02:00 PM'                              :    7,538 (  6.1%)
+    '6:00 PM'                               :    6,875 (  5.6%)
+    '5:00 PM'                               :    5,281 (  4.3%)
+    '03:00 PM'                              :    2,649 (  2.2%)
+    '0:00 AM'                               :    2,413 (  2.0%)
+    '04:00 PM'                              :    2,273 (  1.8%)
+    '01:00 PM'                              :    1,544 (  1.3%)
+    '06:00 PM'                              :    1,459 (  1.2%)
+    '05:00 PM'                              :    1,139 (  0.9%)
+    ''                                      :      693 (  0.6%)
+    '10:00 AM'                              :      677 (  0.5%)
+    '8:00 AM'                               :      533 (  0.4%)
+    '6:00 AM'                               :      466 (  0.4%)
+    '12:30 PM'                              :      452 (  0.4%)
+    '11:00 AM'                              :      427 (  0.3%)
+    '06:00 AM'                              :      415 (  0.3%)
+    '2:30 PM'                               :      375 (  0.3%)
+    '12:01 PM'                              :      258 (  0.2%)
+    '3:30 PM'                               :      216 (  0.2%)
+    '08:00 AM'                              :      211 (  0.2%)
+    ... and 59 more values
+
+================================================================================
+  7. CAMPSITE EQUIPMENT - Complete inventory
+================================================================================
+Total equipment records: 431,992
+Unique equipment names: 15
+
+All equipment types:
+  Tent                          :  102,753 records | len: 1-500ft (avg 44) | zero_len: 44,106
+  RV                            :   87,950 records | len: 1-500ft (avg 43) | zero_len: 15,500
+  Trailer                       :   85,285 records | len: 1-500ft (avg 43) | zero_len: 16,354
+  PICKUP CAMPER                 :   24,429 records | len: 1-120ft (avg 31) | zero_len: 16,457
+  POP UP                        :   21,832 records | len: 8-255ft (avg 32) | zero_len: 14,711
+  CARAVAN/CAMPER VAN            :   19,691 records | len: 10-120ft (avg 32) | zero_len: 11,077
+  FIFTH WHEEL                   :   18,595 records | len: 6-350ft (avg 37) | zero_len: 10,299
+  SMALL TENT                    :   17,828 records | len: 5-70ft (avg 23) | zero_len: 17,239
+  VEHICLE                       :   16,807 records | len: 8-100ft (avg 31) | zero_len: 11,249
+  CAR                           :   13,403 records | len: 10-120ft (avg 31) | zero_len: 9,653
+  LARGE TENT OVER 9X12`         :   13,353 records | len: 10-72ft (avg 29) | zero_len: 12,800
+  Boat                          :    4,538 records | len: 8-85ft (avg 34) | zero_len: 3,311
+  Hammock                       :    2,197 records | len: 12-64ft (avg 37) | zero_len: 2,113
+  RV/MOTORHOME                  :    1,943 records | len: 16-65ft (avg 36) | zero_len: 1,312
+  Horse                         :    1,388 records | len: 1-115ft (avg 42) | zero_len: 568
+
+RV max_length distribution:
+  0 (zero/unknown)         :   15,500
+  1-15 ft                  :      393
+  16-20 ft                 :    3,508
+  21-25 ft                 :    5,971
+  26-30 ft                 :    9,949
+  31-35 ft                 :    8,631
+  36-40 ft                 :   12,075
+  41-45 ft                 :    7,547
+  46-60 ft                 :   15,338
+  60+ ft                   :    9,038

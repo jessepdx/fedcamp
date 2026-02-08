@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+{% block title %}Search Results — RV Camping Finder{% endblock %}
+
+{% block content %}
+<!-- Filter overlay -->
+<div id="filter-overlay" class="filter-overlay" onclick="toggleFilterDrawer()"></div>
+
+<!-- Filter drawer -->
+<aside id="filter-drawer" class="filter-drawer">
+    <div class="filter-drawer-header">
+        <strong>Filters</strong>
+        <button onclick="toggleFilterDrawer()" class="outline filter-close-btn">&times;</button>
+    </div>
+    <form id="filter-form" action="/search" method="get">
+        <!-- Preserve search context -->
+        {% if state %}
+        <input type="hidden" name="state" value="{{ state }}">
+        {% endif %}
+        {% if lat is not none and lon is not none %}
+        <input type="hidden" name="lat" value="{{ lat }}">
+        <input type="hidden" name="lon" value="{{ lon }}">
+        <input type="hidden" name="radius" value="{{ radius }}">
+        {% endif %}
+        {% if view == 'map' %}
+        <input type="hidden" name="view" value="map">
+        {% endif %}
+
+        <label><strong>Camping Type</strong></label>
+        <fieldset class="filter-fieldset">
+            {% for val, label in camping_type_options %}
+            <label>
+                <input type="checkbox" name="camping_type" value="{{ val }}"
+                       {{ 'checked' if val in camping_types else '' }}>
+                {{ label }}
+            </label>
+            {% endfor %}
+        </fieldset>
+
+        <label><strong>Road Access</strong></label>
+        <fieldset class="filter-fieldset">
+            {% for val, label in road_access_options %}
+            <label>
+                <input type="checkbox" name="road_access" value="{{ val }}"
+                       {{ 'checked' if val in selected_road_access else '' }}>
+                {{ label }}
+            </label>
+            {% endfor %}
+        </fieldset>
+
+        <label><strong>Season</strong></label>
+        <fieldset class="filter-fieldset">
+            {% for val, label in seasonal_options %}
+            <label>
+                <input type="checkbox" name="seasonal_status" value="{{ val }}"
+                       {{ 'checked' if val in selected_seasonal else '' }}>
+                {{ label }}
+            </label>
+            {% endfor %}
+        </fieldset>
+
+        <label><strong>Campfires</strong></label>
+        <fieldset class="filter-fieldset">
+            {% for val, label in fire_options %}
+            <label>
+                <input type="checkbox" name="fire_status" value="{{ val }}"
+                       {{ 'checked' if val in selected_fire else '' }}>
+                {{ label }}
+            </label>
+            {% endfor %}
+        </fieldset>
+
+        <label><strong>Agency</strong></label>
+        <fieldset class="filter-fieldset">
+            {% for val, label in agency_options %}
+            <label>
+                <input type="checkbox" name="agency" value="{{ val }}"
+                       {{ 'checked' if val in selected_agencies else '' }}>
+                {{ val }} — {{ label }}
+            </label>
+            {% endfor %}
+        </fieldset>
+
+        <label><strong>Amenities</strong></label>
+        <fieldset class="filter-fieldset">
+            {% for val, label in amenity_filters %}
+            <label>
+                <input type="checkbox" name="tag" value="{{ val }}"
+                       {{ 'checked' if val in tag_filters else '' }}>
+                {{ label }}
+            </label>
+            {% endfor %}
+        </fieldset>
+
+        <button type="submit" class="filter-apply-btn">Apply Filters</button>
+    </form>
+</aside>
+
+<div class="results-header">
+    <hgroup>
+        <h2>
+            <button onclick="toggleFilterDrawer()" class="filter-toggle-btn outline" title="Open filters">
+                &#9776; Filters
+            </button>
+            Search Results
+        </h2>
+        <p>{{ search_desc }}
+           &middot; <strong>{{ total }}</strong> campground{{ 's' if total != 1 else '' }} found
+        </p>
+    </hgroup>
+    <div class="results-actions">
+        <a href="/" role="button" class="outline">New Search</a>
+        {% if results and view == 'list' %}
+        <a href="{{ request.url }}&view=map" role="button" class="outline secondary">Map View</a>
+        {% elif results and view == 'map' %}
+        <a href="{{ request.url | replace('&view=map', '') }}" role="button" class="outline secondary">List View</a>
+        {% endif %}
+    </div>
+</div>
+
+{% if view == 'map' and results %}
+<div id="results-map" style="height:500px; border-radius:8px; margin-bottom:1rem;"></div>
+<script>
+    var facilities = {{ results | tojson }};
+</script>
+{% endif %}
+
+{% if not results %}
+<article>
+    <p>No campgrounds found matching your criteria. Try broadening your search — remove condition filters, add more camping types, or remove amenity filters.</p>
+</article>
+{% else %}
+
+<div id="results-list">
+    {% include "_results_cards.html" %}
+</div>
+
+{% if has_more %}
+<div id="load-more" style="text-align:center; margin:1rem 0;">
+    <button class="outline"
+            hx-get="/search?{{ request.query_string.decode() }}&page={{ page + 1 }}"
+            hx-target="#results-list"
+            hx-swap="beforeend"
+            hx-indicator="#loading">
+        Load More
+    </button>
+    <span id="loading" class="htmx-indicator">Loading...</span>
+</div>
+{% endif %}
+
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if view == 'map' and results %}
+<script>
+    initResultsMap(facilities);
+</script>
+{% endif %}
+{% endblock %}

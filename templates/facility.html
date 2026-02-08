@@ -1,0 +1,257 @@
+{% extends "base.html" %}
+{% block title %}{{ f.facility_name }} — RV Camping Finder{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ul>
+        <li><a href="/search-form">Search</a></li>
+        <li>{{ f.facility_name }}</li>
+    </ul>
+</nav>
+
+{# ---- Header ---- #}
+<div class="facility-header">
+    <div>
+        <hgroup>
+            <h1>{{ f.facility_name }}</h1>
+            <p>
+                {% if f.org_abbrev %}<span class="org-badge">{{ f.org_abbrev }}</span>{% endif %}
+                {% if f.org_name %}{{ f.org_name }}{% endif %}
+                {% if f.city and f.state_code %} &middot; {{ f.city }}, {{ f.state_code }}{% elif f.state_code %} &middot; {{ f.state_code }}{% endif %}
+                {% if f.camping_type %} &middot; {{ f.camping_type | replace('_', ' ') | title }}{% endif %}
+            </p>
+        </hgroup>
+    </div>
+    <div class="header-links">
+        <a href="https://www.recreation.gov/camping/campgrounds/{{ f.facility_id }}" role="button" class="outline" target="_blank">View on Recreation.gov</a>
+        {% if f.facility_reservation_url %}
+        <a href="{{ f.facility_reservation_url }}" role="button" target="_blank">Reserve</a>
+        {% endif %}
+    </div>
+</div>
+
+{# ---- Conditions Panel ---- #}
+<article>
+    <header><strong>Conditions</strong></header>
+    <div class="conditions-grid">
+        <div class="condition-item">
+            <small class="condition-label">Road Access</small>
+            <span class="condition-pill" style="background:{{ f.road_access | condition_color }}">
+                {{ f.road_access | tag_display }}
+            </span>
+        </div>
+        {% if f.driveway_surface and f.driveway_surface != 'UNKNOWN' %}
+        <div class="condition-item">
+            <small class="condition-label">Driveway Surface</small>
+            <span class="condition-pill" style="background:{{ f.driveway_surface | condition_color }}">
+                {{ f.driveway_surface | tag_display }}
+            </span>
+        </div>
+        {% endif %}
+        <div class="condition-item">
+            <small class="condition-label">Season</small>
+            <span class="condition-pill" style="background:{{ f.seasonal_status | condition_color }}">
+                {{ f.seasonal_status | tag_display }}
+            </span>
+        </div>
+        <div class="condition-item">
+            <small class="condition-label">Campfires</small>
+            <span class="condition-pill" style="background:{{ f.fire_status | condition_color }}">
+                {{ f.fire_status | tag_display }}
+            </span>
+        </div>
+        {% if f.elevation_ft %}
+        <div class="condition-item">
+            <small class="condition-label">Elevation</small>
+            <span class="condition-value">{{ "{:,}".format(f.elevation_ft) }} ft</span>
+        </div>
+        {% endif %}
+        {% if f.max_rv_length %}
+        <div class="condition-item">
+            <small class="condition-label">Max RV Length</small>
+            <span class="condition-value">{{ f.max_rv_length }} ft</span>
+        </div>
+        {% endif %}
+        {% if f.boondock_accessibility %}
+        <div class="condition-item">
+            <small class="condition-label">Boondock Access</small>
+            <span class="condition-pill" style="background:{{ f.boondock_accessibility | condition_color }}">
+                {{ f.boondock_accessibility | title }}
+            </span>
+            {% if f.boondock_accessibility == 'ROUGH' %}
+            <small>High clearance or 4WD may be required</small>
+            {% elif f.boondock_accessibility == 'MODERATE' %}
+            <small>Some rough roads, standard vehicle possible with care</small>
+            {% elif f.boondock_accessibility == 'EASY' %}
+            <small>Accessible by standard vehicle</small>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</article>
+
+{# ---- Tags ---- #}
+{% if f.tags %}
+<article>
+    <header><strong>Features</strong></header>
+    {% for cat, tag_list in f.tags.items() %}
+    <div class="tag-group">
+        <small class="tag-category">{{ cat }}</small>
+        {% for tag in tag_list %}
+        <span class="tag {% if cat == 'WARNING' %}tag-warning{% endif %}">{{ tag | tag_display }}</span>
+        {% endfor %}
+    </div>
+    {% endfor %}
+</article>
+{% endif %}
+
+{# ---- Stats ---- #}
+<article>
+    <header><strong>Campground Stats</strong></header>
+    <div class="grid stats-grid">
+        <div>
+            <table>
+                <tr><td>Total Sites</td><td><strong>{{ f.total_campsites }}</strong></td></tr>
+                {% if f.rv_type_sites %}<tr><td>RV Sites</td><td>{{ f.rv_type_sites }}</td></tr>{% endif %}
+                {% if f.sites_accepting_rv %}<tr><td>Sites Accepting RVs</td><td>{{ f.sites_accepting_rv }}</td></tr>{% endif %}
+                {% if f.tent_only_sites %}<tr><td>Tent-Only Sites</td><td>{{ f.tent_only_sites }}</td></tr>{% endif %}
+                {% if f.group_sites %}<tr><td>Group Sites</td><td>{{ f.group_sites }}</td></tr>{% endif %}
+                {% if f.overnight_sites %}<tr><td>Overnight Sites</td><td>{{ f.overnight_sites }}</td></tr>{% endif %}
+            </table>
+        </div>
+        <div>
+            <table>
+                {% if f.max_rv_length %}<tr><td>Max RV Length</td><td><strong>{{ f.max_rv_length }} ft</strong></td></tr>{% endif %}
+                {% if f.max_amps %}<tr><td>Max Amps</td><td>{{ f.max_amps }}</td></tr>{% endif %}
+                {% if f.full_hookup_sites %}<tr><td>Full Hookup Sites</td><td>{{ f.full_hookup_sites }}</td></tr>{% endif %}
+                {% if f.electric_hookup_sites %}<tr><td>Electric Hookup Sites</td><td>{{ f.electric_hookup_sites }}</td></tr>{% endif %}
+                {% if f.pullthrough_sites %}<tr><td>Pull-Through Sites</td><td>{{ f.pullthrough_sites }}</td></tr>{% endif %}
+                {% if f.backin_sites %}<tr><td>Back-In Sites</td><td>{{ f.backin_sites }}</td></tr>{% endif %}
+                {% if f.surface_predominant %}<tr><td>Surface</td><td>{{ f.surface_predominant | title }}</td></tr>{% endif %}
+            </table>
+        </div>
+    </div>
+</article>
+
+{# ---- Map ---- #}
+{% if f.latitude and f.longitude and f.coords_valid %}
+<article>
+    <header><strong>Location</strong></header>
+    <div id="facility-map" style="height:350px; border-radius:8px;"></div>
+    <small>
+        {{ f.latitude }}, {{ f.longitude }}
+        {% if f.street1 %} &middot; {{ f.street1 | safe }}{% endif %}
+        {% if f.city %}, {{ f.city }}{% endif %}
+        {% if f.state_code %}, {{ f.state_code }}{% endif %}
+        {% if f.postal_code %} {{ f.postal_code }}{% endif %}
+    </small>
+</article>
+{% endif %}
+
+{# ---- Photos ---- #}
+{% if f.photos %}
+<article>
+    <header><strong>Photos</strong></header>
+    <div class="photo-gallery">
+        {% for ph in f.photos %}
+        <img src="{{ ph.url }}" alt="{{ ph.title or f.facility_name }}" loading="lazy"
+             onclick="openLightbox({{ loop.index0 }})">
+        {% endfor %}
+    </div>
+
+    <!-- Lightbox -->
+    <div id="lightbox" class="lightbox" onclick="closeLightbox()">
+        <button class="lightbox-close" onclick="closeLightbox()">&times;</button>
+        <button id="lb-prev" class="lightbox-arrow lightbox-prev" onclick="lbPrev(event)">&#8249;</button>
+        <img id="lightbox-img" src="" alt="" onclick="event.stopPropagation()">
+        <button id="lb-next" class="lightbox-arrow lightbox-next" onclick="lbNext(event)">&#8250;</button>
+        <div id="lightbox-caption" class="lightbox-caption"></div>
+        <div id="lightbox-counter" class="lightbox-counter"></div>
+    </div>
+</article>
+{% endif %}
+
+{# ---- Description ---- #}
+{% if f.facility_description %}
+<article>
+    <header><strong>Description</strong></header>
+    <div class="facility-description">{{ f.facility_description | safe }}</div>
+</article>
+{% endif %}
+
+{# ---- Directions ---- #}
+{% if f.facility_directions %}
+<article>
+    <header><strong>Directions</strong></header>
+    <div>{{ f.facility_directions | safe }}</div>
+</article>
+{% endif %}
+
+{# ---- Activities ---- #}
+{% if f.activities %}
+<article>
+    <header><strong>Activities</strong></header>
+    <div class="activity-list">
+        {% for a in f.activities %}
+        <span class="tag">{{ a }}</span>
+        {% endfor %}
+    </div>
+</article>
+{% endif %}
+
+{# ---- Details ---- #}
+<article>
+    <header><strong>Details</strong></header>
+    <table>
+        {% if f.facility_use_fee %}<tr><td>Fee</td><td>{{ f.facility_use_fee | safe }}</td></tr>{% endif %}
+        {% if f.stay_limit %}<tr><td>Stay Limit</td><td>{{ f.stay_limit }}</td></tr>{% endif %}
+        {% if f.facility_phone %}<tr><td>Phone</td><td>{{ f.facility_phone }}</td></tr>{% endif %}
+        {% if f.facility_email %}<tr><td>Email</td><td>{{ f.facility_email }}</td></tr>{% endif %}
+        {% if f.facility_ada_access %}<tr><td>ADA Access</td><td>{{ f.facility_ada_access }}</td></tr>{% endif %}
+        {% if f.reservable %}<tr><td>Reservable</td><td>Yes</td></tr>{% endif %}
+    </table>
+</article>
+
+{# ---- Nearby ---- #}
+{% if nearby %}
+<article>
+    <header><strong>Nearby Campgrounds</strong></header>
+    <div class="nearby-list">
+        {% for n in nearby %}
+        <div class="nearby-item">
+            <a href="/facility/{{ n.facility_id }}">{{ n.facility_name }}</a>
+            <small>
+                {{ "%.1f" | format(n.distance_miles) }} mi
+                {% if n.org_abbrev %}&middot; {{ n.org_abbrev }}{% endif %}
+                {% if n.total_campsites %}&middot; {{ n.total_campsites }} sites{% endif %}
+                {% if n.boondock_accessibility and n.boondock_accessibility != 'UNKNOWN' %}&middot; Boondocking ({{ n.boondock_accessibility | title }}){% endif %}
+            </small>
+        </div>
+        {% endfor %}
+    </div>
+</article>
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+{% if f.photos %}
+<script>
+    lbPhotos = {{ f.photos | tojson }}.map(function(ph) {
+        return {url: ph.url, caption: ph.title || {{ (f.facility_name or '') | tojson }}};
+    });
+</script>
+{% endif %}
+{% if f.latitude and f.longitude and f.coords_valid %}
+<script>
+    var map = L.map('facility-map').setView([{{ f.latitude }}, {{ f.longitude }}], 12);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors',
+        maxZoom: 18
+    }).addTo(map);
+    L.marker([{{ f.latitude }}, {{ f.longitude }}])
+        .addTo(map)
+        .bindPopup('<strong>{{ f.facility_name | e }}</strong>');
+</script>
+{% endif %}
+{% endblock %}

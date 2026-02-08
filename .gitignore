@@ -1,0 +1,8 @@
+venv/
+__pycache__/
+*.pyc
+.env
+ridb.db
+*.db-journal
+*.db-shm
+*.db-wal
