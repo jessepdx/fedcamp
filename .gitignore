@@ -9,3 +9,4 @@ ridb_full.db
 *.db-wal
 *.log
 *_log.txt
+scripts/seasonal_cache.json

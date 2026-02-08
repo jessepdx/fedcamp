@@ -2,6 +2,15 @@
 
 All notable changes to the RV Camping Finder project.
 
+## [0.8.5] — 2026-02-08
+
+### Added
+- `scripts/scrape_seasonal.py` — scrapes recreation.gov API for campground notices and availability data to reclassify UNKNOWN seasonal statuses
+- Resumable scraping with JSON cache (`scripts/seasonal_cache.json`)
+- `--dry-run` and `--apply-only` modes for flexible usage
+- Notice-based classification: permanently closed, temporarily closed, winter closure, seasonal closure, open year-round
+- Availability API fallback: detects closed campgrounds from 100% "Not Available" sites
+
 ## [0.8.4] — 2026-02-08
 
 ### Added
