@@ -7,6 +7,9 @@ All notable changes to the RV Camping Finder project.
 ### Added
 - "Limited data" notice on NPS facility detail pages that lack campsite records, with link to Recreation.gov
 
+### Removed
+- `docs/TODO.md` — open items migrated to GitHub Issues (#5, #6)
+
 ### Fixed
 - 819 campgrounds (NPS, FS, BLM, USACE) missing from search results — facilities with `facility_type = 'Campground'` but zero campsite records in RIDB were misclassified as NON_CAMPING
 - Campable facility count: 5,521 → 6,356
