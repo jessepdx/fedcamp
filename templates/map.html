@@ -34,11 +34,15 @@
 </hgroup>
 
 <div id="state-map"></div>
+<noscript>
+    <p>This page requires JavaScript to display the map. <a href="/search-form">Use the search form instead</a>.</p>
+</noscript>
 {% endblock %}
 
 {% block scripts %}
 <script>
 (function() {
+    try {
     var stateCounts = {{ state_counts | tojson }};
 
     var nameToCode = {
@@ -225,7 +229,15 @@
                 onEachFeature: onEachFeature
             }).addTo(map);
             tryLoadUserState();
+        })
+        .catch(function() {
+            status.update('<strong>Click a state</strong><small>to load campgrounds</small>');
         });
+    } catch(e) {
+        document.getElementById('state-map').innerHTML =
+            '<p style="padding:2rem;text-align:center;">Map failed to load. <a href="/search-form">Use the search form instead</a>.'
+            + '<br><small style="color:#999;">' + e.message + '</small></p>';
+    }
 })();
 </script>
 {% endblock %}
