@@ -7,8 +7,14 @@ Usage:
 """
 
 import os
+from datetime import datetime, timezone, timedelta
 from flask import Flask, render_template, request, g, jsonify
 import db
+
+PST = timezone(timedelta(hours=-8))
+
+# Winter months where seasonal/winter-closure campgrounds are likely closed
+WINTER_MONTHS = {11, 12, 1, 2, 3, 4}  # Nov–Apr
 
 app = Flask(__name__)
 
@@ -77,6 +83,12 @@ AGENCIES = [
     ("BOR",   "Bureau of Reclamation"),
     ("FWS",   "US Fish & Wildlife Service"),
 ]
+
+
+@app.context_processor
+def inject_now():
+    now = datetime.now(PST)
+    return {"now_pst": now, "current_month": now.month}
 
 
 @app.before_request
@@ -258,6 +270,19 @@ def condition_color(value):
         'UNKNOWN': '#95a5a6',
     }
     return colors.get(value, '#95a5a6')
+
+
+@app.template_filter("likely_open")
+def likely_open(seasonal_status):
+    """Estimate if a campground is likely open right now based on PST month."""
+    month = datetime.now(PST).month
+    if seasonal_status == "OPEN_YEAR_ROUND":
+        return True
+    if seasonal_status in ("PERMANENTLY_CLOSED", "TEMPORARILY_CLOSED"):
+        return False
+    if seasonal_status in ("WINTER_CLOSURE", "SEASONAL_CLOSURE"):
+        return month not in WINTER_MONTHS
+    return None  # UNKNOWN
 
 
 if __name__ == "__main__":

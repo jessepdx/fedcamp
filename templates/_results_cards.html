@@ -12,9 +12,10 @@
                         {{ r.road_access | tag_display }}
                     </span>
                     {% endif %}
-                    {% if r.seasonal_status and r.seasonal_status != 'UNKNOWN' %}
-                    <span class="condition-pill" style="background:{{ r.seasonal_status | condition_color }}">
-                        {{ r.seasonal_status | tag_display }}
+                    {% if r.seasonal_status and r.seasonal_status != 'UNKNOWN' and r.seasonal_status != 'OPEN_YEAR_ROUND' %}
+                    {% set is_open = r.seasonal_status | likely_open %}
+                    <span class="condition-pill" style="background:{{ '#c0392b' if is_open == false else r.seasonal_status | condition_color }}">
+                        {{ r.seasonal_status | tag_display }}{% if is_open == false %} — Likely Closed{% elif is_open and r.seasonal_status in ('WINTER_CLOSURE', 'SEASONAL_CLOSURE') %} — Likely Open{% endif %}
                     </span>
                     {% endif %}
                     {% if r.fire_status and r.fire_status != 'UNKNOWN' %}

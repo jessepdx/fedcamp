@@ -35,7 +35,8 @@
 
 {# ---- Seasonal / Closure warning ---- #}
 {% if f.seasonal_status in ('PERMANENTLY_CLOSED', 'TEMPORARILY_CLOSED', 'WINTER_CLOSURE', 'SEASONAL_CLOSURE') %}
-<article class="closure-notice {% if f.seasonal_status in ('PERMANENTLY_CLOSED', 'TEMPORARILY_CLOSED') %}closure-notice-red{% endif %}">
+{% set is_open = f.seasonal_status | likely_open %}
+<article class="closure-notice {% if f.seasonal_status in ('PERMANENTLY_CLOSED', 'TEMPORARILY_CLOSED') %}closure-notice-red{% elif is_open == false and f.seasonal_status in ('WINTER_CLOSURE', 'SEASONAL_CLOSURE') %}closure-notice-red{% endif %}">
     <p>
         {% if f.seasonal_status == 'PERMANENTLY_CLOSED' %}
         <strong>Permanently closed.</strong> This campground is no longer operational.
@@ -43,10 +44,20 @@
         <strong>Temporarily closed.</strong> This campground is currently closed. Check
         <a href="https://www.recreation.gov/camping/campgrounds/{{ f.facility_id }}" target="_blank">Recreation.gov</a> for updates.
         {% elif f.seasonal_status == 'WINTER_CLOSURE' %}
-        <strong>Winter closure.</strong> This campground closes during winter months. Check current conditions before traveling.
+        <strong>Winter closure.</strong> This campground closes during winter months.
+        {% if is_open %}
+        Likely <strong>open now</strong> ({{ now_pst.strftime('%B') }}).
+        {% else %}
+        Likely <strong>closed now</strong> ({{ now_pst.strftime('%B') }}). Check conditions before traveling.
+        {% endif %}
         {% elif f.seasonal_status == 'SEASONAL_CLOSURE' %}
-        <strong>Seasonal operation.</strong> This campground is not open year-round. Check
+        <strong>Seasonal operation.</strong> This campground is not open year-round.
+        {% if is_open %}
+        Likely <strong>open now</strong> ({{ now_pst.strftime('%B') }}).
+        {% else %}
+        Likely <strong>closed now</strong> ({{ now_pst.strftime('%B') }}). Check
         <a href="https://www.recreation.gov/camping/campgrounds/{{ f.facility_id }}" target="_blank">Recreation.gov</a> for current dates.
+        {% endif %}
         {% endif %}
     </p>
 </article>

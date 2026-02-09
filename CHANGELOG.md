@@ -2,6 +2,17 @@
 
 All notable changes to the RV Camping Finder project.
 
+## [0.8.6] — 2026-02-09
+
+### Added
+- Date-aware seasonal status: facility banners and result pills now show "Likely Open" or "Likely Closed" based on current month (PST)
+- `likely_open` Jinja2 template filter using PST timezone (winter = Nov–Apr)
+- `now_pst` and `current_month` injected into all templates via context processor
+
+### Changed
+- Seasonal/winter closure banners on facility detail pages show current month and estimated open/closed status
+- Result card pills turn red with "Likely Closed" suffix during winter months for seasonal/winter closure campgrounds
+
 ## [0.8.5] — 2026-02-08
 
 ### Added
