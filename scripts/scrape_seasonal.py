@@ -39,7 +39,7 @@ HEADERS = {
     "Accept": "application/json",
 }
 
-REQUEST_DELAY = 0.2  # seconds between requests (~5 req/sec)
+REQUEST_DELAY = 1.0  # seconds between requests (~1 req/sec)
 
 
 # ============================================================
@@ -174,17 +174,26 @@ def classify_from_availability(availability_data):
 # ============================================================
 
 def fetch_json(url):
-    """Fetch JSON from a URL with standard headers. Returns dict or None."""
+    """Fetch JSON from a URL with standard headers. Returns dict or None.
+
+    Retries on 429 with exponential backoff (2s, 4s, 8s).
+    """
     req = Request(url, headers=HEADERS)
-    try:
-        with urlopen(req, timeout=15) as resp:
-            return json.loads(resp.read().decode("utf-8"))
-    except HTTPError as e:
-        if e.code == 404:
+    for attempt in range(4):
+        try:
+            with urlopen(req, timeout=10) as resp:
+                return json.loads(resp.read().decode("utf-8"))
+        except HTTPError as e:
+            if e.code in (400, 404):
+                return None
+            if e.code == 429:
+                wait = 2 ** (attempt + 1)  # 2, 4, 8, 16
+                time.sleep(wait)
+                continue
+            return None  # other HTTP errors → skip
+        except (URLError, TimeoutError, OSError):
             return None
-        raise
-    except (URLError, TimeoutError):
-        return None
+    return None  # exhausted retries
 
 
 def fetch_notices(facility_id):
@@ -375,6 +384,9 @@ def main():
     args = sys.argv[1:]
     dry_run = "--dry-run" in args
     apply_only = "--apply-only" in args
+
+    # Unbuffer stdout for progress visibility
+    sys.stdout.reconfigure(line_buffering=True)
 
     print(f"Recreation.gov Seasonal Scraper — {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"Database: {DB_PATH}")
