@@ -2,6 +2,20 @@
 
 All notable changes to the RV Camping Finder project.
 
+## [0.8.7] — 2026-02-10
+
+### Fixed
+- Filter drawer overflows viewport on phones under 340px wide (now caps at 100vw)
+- Nearby campgrounds grid causes horizontal scroll on narrow screens
+
+### Changed
+- Map heights moved from inline styles to CSS classes (enables media query overrides)
+- Map page min-height reduced from 400px to 300px
+
+### Added
+- 768px breakpoint: shorter maps, tighter grids, wrapped header links, smaller nav text
+- 480px breakpoint: stacked layouts for header links, search toggle, geo-locate row; single-column tag/nearby grids; reduced map heights and container padding
+
 ## [0.8.6] — 2026-02-09
 
 ### Added
