@@ -7,6 +7,7 @@ All notable changes to the RV Camping Finder project.
 ### Fixed
 - Filter drawer overflows viewport on phones under 340px wide (now caps at 100vw)
 - Nearby campgrounds grid causes horizontal scroll on narrow screens
+- Map pins on mobile: tapping now shows a popup with name/details and a link, instead of immediately navigating away
 
 ### Changed
 - Map heights moved from inline styles to CSS classes (enables media query overrides)

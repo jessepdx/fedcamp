@@ -120,20 +120,19 @@
                         fillOpacity: 0.85
                     }).addTo(pinLayer);
 
-                    // Hover tooltip for basic info
-                    var tip = escapeHtml(p.facility_name);
-                    if (p.total_campsites) tip += ' (' + p.total_campsites + ' sites)';
-                    if (p.org_abbrev) tip += ' — ' + p.org_abbrev;
-                    if (p.seasonal_status === 'PERMANENTLY_CLOSED') tip += ' [CLOSED]';
-                    else if (p.seasonal_status === 'TEMPORARILY_CLOSED') tip += ' [TEMP CLOSED]';
-                    else if (p.seasonal_status === 'WINTER_CLOSURE') tip += ' [Winter Closure]';
-                    else if (p.seasonal_status === 'SEASONAL_CLOSURE') tip += ' [Seasonal]';
-                    marker.bindTooltip(tip);
+                    // Popup with link (works on mobile — tap to preview, tap link to open)
+                    var html = '<strong><a href="/facility/' + p.facility_id + '" target="_blank">'
+                        + escapeHtml(p.facility_name) + '</a></strong>';
+                    if (p.total_campsites) html += '<br>' + p.total_campsites + ' sites';
+                    if (p.org_abbrev) html += ' &middot; ' + p.org_abbrev;
+                    if (p.seasonal_status === 'PERMANENTLY_CLOSED') html += '<br><em>Permanently Closed</em>';
+                    else if (p.seasonal_status === 'TEMPORARILY_CLOSED') html += '<br><em>Temporarily Closed</em>';
+                    else if (p.seasonal_status === 'WINTER_CLOSURE') html += '<br><em>Winter Closure</em>';
+                    else if (p.seasonal_status === 'SEASONAL_CLOSURE') html += '<br><em>Seasonal</em>';
+                    marker.bindPopup(html);
 
-                    // Click opens facility in new tab
-                    marker.on('click', function() {
-                        window.open('/facility/' + p.facility_id, '_blank');
-                    });
+                    // Tooltip for desktop hover
+                    marker.bindTooltip(escapeHtml(p.facility_name));
                 });
                 status.update('<strong>' + (stateName || stateCode) + '</strong><small>'
                     + pins.length + ' campgrounds</small>');
