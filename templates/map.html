@@ -24,6 +24,24 @@
     .map-status small {
         color: #666;
     }
+    .map-legend {
+        background: white;
+        padding: 8px 12px;
+        border-radius: 6px;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+        font-size: 0.8rem;
+        line-height: 1.6;
+    }
+    .map-legend i {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        margin-right: 5px;
+        vertical-align: middle;
+        border: 2px solid #fff;
+        box-shadow: 0 0 0 1px rgba(0,0,0,0.2);
+    }
 </style>
 {% endblock %}
 
@@ -87,6 +105,20 @@
         this._div.innerHTML = html;
     };
     status.addTo(map);
+
+    // Legend control (bottom-right)
+    var legend = L.control({position: 'bottomright'});
+    legend.onAdd = function() {
+        var div = L.DomUtil.create('div', 'map-legend');
+        div.innerHTML =
+            '<i style="background:#2d7d46"></i>Developed<br>' +
+            '<i style="background:#c49f17"></i>Primitive<br>' +
+            '<i style="background:#6c5ce7"></i>Dispersed<br>' +
+            '<i style="background:#d4782f"></i>Seasonal<br>' +
+            '<i style="background:#c0392b"></i>Closed';
+        return div;
+    };
+    legend.addTo(map);
 
     // Pin layer
     var pinLayer = L.layerGroup().addTo(map);

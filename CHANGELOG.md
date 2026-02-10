@@ -14,6 +14,7 @@ All notable changes to the RV Camping Finder project.
 - Map page min-height reduced from 400px to 300px
 
 ### Added
+- Pin color legend on map page (Developed, Primitive, Dispersed, Seasonal, Closed)
 - 768px breakpoint: shorter maps, tighter grids, wrapped header links, smaller nav text
 - 480px breakpoint: stacked layouts for header links, search toggle, geo-locate row; single-column tag/nearby grids; reduced map heights and container padding
 
