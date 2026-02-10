@@ -181,7 +181,7 @@
 {% if f.latitude and f.longitude and f.coords_valid %}
 <article>
     <header><strong>Location</strong></header>
-    <div id="facility-map" style="height:350px; border-radius:8px;"></div>
+    <div id="facility-map" class="facility-map"></div>
     <small>
         {{ f.latitude }}, {{ f.longitude }}
         {% if f.street1 %} &middot; {{ f.street1 }}{% endif %}

@@ -118,7 +118,7 @@
 </div>
 
 {% if view == 'map' and results %}
-<div id="results-map" style="height:500px; border-radius:8px; margin-bottom:1rem;"></div>
+<div id="results-map" class="results-map"></div>
 <script>
     var facilities = {{ results | tojson }};
 </script>

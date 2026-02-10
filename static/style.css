@@ -441,6 +441,10 @@ a.leaflet-control-zoom-out {
     color: var(--pico-muted-color);
 }
 
+/* Map containers */
+.results-map { height: 500px; border-radius: 8px; margin-bottom: 1rem; }
+.facility-map { height: 350px; border-radius: 8px; }
+
 /* Filter drawer */
 .filter-overlay {
     display: none;
