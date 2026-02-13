@@ -2,6 +2,15 @@
 
 All notable changes to the RV Camping Finder project.
 
+## [0.9.0] — 2026-02-13
+
+### Added
+- Public JSON API: `/api/search`, `/api/facility/<id>`, `/api/states`
+- Search API supports all existing filters (state, lat/lon, camping type, agency, road access, seasonal status, fire status, RV length, amenity tags)
+- Pagination via `limit` (max 100) and `offset` params
+- Enables integration with AI chatbots (ChatGPT, Claude) and custom tools
+- API rate limiting: 60 requests/minute per IP (returns 429 with Retry-After header)
+
 ## [0.8.8] — 2026-02-13
 
 ### Fixed

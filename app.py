@@ -7,11 +7,41 @@ Usage:
 """
 
 import os
+import time
+import threading
 from datetime import datetime, timezone, timedelta
 from flask import Flask, render_template, request, g, jsonify
 import db
 
 PST = timezone(timedelta(hours=-8))
+
+# Simple in-memory rate limiter for API endpoints
+_rate_lock = threading.Lock()
+_rate_buckets = {}  # ip -> [timestamps]
+API_RATE_LIMIT = 60   # requests per window
+API_RATE_WINDOW = 60   # seconds
+
+
+def _check_rate_limit(ip):
+    """Return (allowed, remaining, retry_after). Prunes stale entries."""
+    now = time.monotonic()
+    cutoff = now - API_RATE_WINDOW
+    with _rate_lock:
+        hits = _rate_buckets.get(ip, [])
+        hits = [t for t in hits if t > cutoff]
+        if len(hits) >= API_RATE_LIMIT:
+            retry = hits[0] - cutoff
+            _rate_buckets[ip] = hits
+            return False, 0, retry
+        hits.append(now)
+        _rate_buckets[ip] = hits
+        # Prune stale IPs periodically (keep dict from growing unbounded)
+        if len(_rate_buckets) > 5000:
+            stale = [k for k, v in _rate_buckets.items()
+                     if not v or v[-1] < cutoff]
+            for k in stale:
+                del _rate_buckets[k]
+        return True, API_RATE_LIMIT - len(hits), 0
 
 # Winter months where seasonal/winter-closure campgrounds are likely closed
 WINTER_MONTHS = {11, 12, 1, 2, 3, 4}  # Nov–Apr
@@ -93,6 +123,15 @@ def inject_now():
 
 @app.before_request
 def before_request():
+    # Rate-limit API endpoints (60 req/min per IP)
+    if request.path.startswith("/api/"):
+        ip = request.remote_addr
+        allowed, remaining, retry_after = _check_rate_limit(ip)
+        if not allowed:
+            resp = jsonify({"error": "rate limit exceeded"})
+            resp.status_code = 429
+            resp.headers["Retry-After"] = str(int(retry_after) + 1)
+            return resp
     g.conn = db.get_connection()
 
 
@@ -241,6 +280,64 @@ def api_pins():
                 "seasonal_status": r.get("seasonal_status"),
             })
     return jsonify(pins)
+
+
+@app.route("/api/search")
+def api_search():
+    state = request.args.get("state", "").strip()
+    lat = request.args.get("lat", type=float)
+    lon = request.args.get("lon", type=float)
+    radius = request.args.get("radius", 100, type=float)
+    ct = request.args.getlist("camping_type")
+    tags = request.args.getlist("tag")
+    agencies = request.args.getlist("agency")
+    road_access = request.args.getlist("road_access")
+    seasonal = request.args.getlist("seasonal_status")
+    fire = request.args.getlist("fire_status")
+    rv_length = request.args.get("rv_length", type=int)
+    limit = min(request.args.get("limit", 25, type=int), 100)
+    offset = request.args.get("offset", 0, type=int)
+
+    if not ct:
+        ct = ["DEVELOPED"]
+
+    filter_kwargs = dict(
+        camping_types=ct, tag_filters=tags, agencies=agencies,
+        road_access=road_access or None,
+        seasonal_status=seasonal or None,
+        fire_status=fire or None,
+        min_rv_length=rv_length,
+    )
+
+    if lat is not None and lon is not None:
+        results = db.search_by_location(
+            g.conn, lat, lon, radius,
+            limit=limit, offset=offset, **filter_kwargs)
+        total = db.get_search_count(
+            g.conn, lat=lat, lon=lon, radius_miles=radius, **filter_kwargs)
+    elif state:
+        results = db.search_by_state(
+            g.conn, state,
+            limit=limit, offset=offset, **filter_kwargs)
+        total = db.get_search_count(
+            g.conn, state_code=state, **filter_kwargs)
+    else:
+        return jsonify({"error": "state or lat/lon required"}), 400
+
+    return jsonify({"total": total, "results": results})
+
+
+@app.route("/api/facility/<facility_id>")
+def api_facility(facility_id):
+    data = db.get_facility(g.conn, facility_id)
+    if not data:
+        return jsonify({"error": "facility not found"}), 404
+    return jsonify(data)
+
+
+@app.route("/api/states")
+def api_states():
+    return jsonify(db.get_states(g.conn))
 
 
 @app.route("/about")
