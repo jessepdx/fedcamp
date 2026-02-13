@@ -29,7 +29,7 @@ def set_security_headers(response):
         "script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net https://connect.facebook.net; "
         "style-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net; "
         "img-src 'self' https://*.tile.openstreetmap.org https://cdn.recreation.gov https://www.facebook.com data:; "
-        "connect-src 'self' https://raw.githubusercontent.com https://www.facebook.com; "
+        "connect-src 'self' https://raw.githubusercontent.com https://www.facebook.com https://script.google.com; "
         "font-src 'self'"
     )
     return response
