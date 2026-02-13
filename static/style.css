@@ -534,6 +534,129 @@ a.leaflet-control-zoom-out {
     display: inline;
 }
 
+/* Stats page */
+.stats-cards {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.stats-card {
+    text-align: center;
+    margin: 0;
+    padding: 1.25rem 0.5rem;
+}
+
+.stats-card-value {
+    font-size: 2rem;
+    font-weight: bold;
+    line-height: 1.2;
+}
+
+.stats-card-label {
+    color: var(--pico-muted-color);
+    font-size: 0.85rem;
+    margin-top: 0.25rem;
+}
+
+/* Sparkline (daily activity) */
+.sparkline {
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    height: 120px;
+    padding-bottom: 1.5rem;
+    overflow-x: auto;
+}
+
+.spark-bar-wrap {
+    flex: 1;
+    min-width: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+    justify-content: flex-end;
+    position: relative;
+}
+
+.spark-bar {
+    width: 100%;
+    background: #3b82f6;
+    border-radius: 2px 2px 0 0;
+    min-height: 2px;
+    transition: background 0.15s;
+}
+
+.spark-bar-wrap:hover .spark-bar {
+    background: #1d4ed8;
+}
+
+.spark-label {
+    font-size: 0.6rem;
+    color: var(--pico-muted-color);
+    position: absolute;
+    bottom: -1.25rem;
+    white-space: nowrap;
+}
+
+/* Show every Nth label to prevent overlap */
+.spark-bar-wrap:not(:nth-child(7n+1)) .spark-label {
+    display: none;
+}
+
+/* Horizontal bar charts */
+.bar-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.bar-label {
+    flex: 0 0 180px;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.bar-label a {
+    text-decoration: none;
+}
+
+.bar-label code {
+    font-size: 0.8rem;
+}
+
+.bar-track {
+    flex: 1;
+    background: #edf2f7;
+    border-radius: 4px;
+    height: 20px;
+    overflow: hidden;
+}
+
+.bar-fill {
+    height: 100%;
+    background: #3b82f6;
+    border-radius: 4px;
+    min-width: 4px;
+}
+
+.bar-fill-green { background: #2d7d46; }
+.bar-fill-orange { background: #d4782f; }
+.bar-fill-slate { background: #64748b; }
+
+.bar-count {
+    flex: 0 0 50px;
+    text-align: right;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--pico-muted-color);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .card-photo { display: none; }
@@ -548,6 +671,8 @@ a.leaflet-control-zoom-out {
     .header-links { display: flex; flex-wrap: wrap; gap: 0.5rem; }
     .header-links a { font-size: 0.85rem; padding: 0.3rem 0.6rem; }
     nav ul li a { font-size: 0.85rem; }
+    .stats-cards { grid-template-columns: repeat(2, 1fr); }
+    .bar-label { flex: 0 0 140px; }
 }
 
 @media (max-width: 480px) {
@@ -563,4 +688,9 @@ a.leaflet-control-zoom-out {
     .filter-toggle-btn { width: 100%; }
     #state-map { min-height: 250px; }
     .brand strong { font-size: 0.95rem; }
+    .stats-cards { grid-template-columns: repeat(2, 1fr); }
+    .stats-card-value { font-size: 1.5rem; }
+    .bar-label { flex: 0 0 100px; font-size: 0.8rem; }
+    .bar-count { flex: 0 0 40px; font-size: 0.8rem; }
+    .sparkline { height: 80px; }
 }

@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% block title %}Site Stats — RV Camping Finder{% endblock %}
+
+{% block content %}
+<h1>Site Stats</h1>
+
+{% if not stats.has_data %}
+<article>
+    <p>No log files found. Stats are only available on the live server.</p>
+    <p><small>To test locally, set <code>CADDY_LOG_DIR</code> to a directory containing Caddy JSON access logs.</small></p>
+</article>
+{% else %}
+
+{# ── Summary Cards ── #}
+<div class="stats-cards">
+    <article class="stats-card">
+        <div class="stats-card-value">{{ "{:,}".format(stats.unique_visitors) }}</div>
+        <div class="stats-card-label">Unique Visitors</div>
+    </article>
+    <article class="stats-card">
+        <div class="stats-card-value">{{ "{:,}".format(stats.total_page_views) }}</div>
+        <div class="stats-card-label">Page Views</div>
+    </article>
+    <article class="stats-card">
+        <div class="stats-card-value">{{ "{:,}".format(stats.api_requests) }}</div>
+        <div class="stats-card-label">API Requests</div>
+    </article>
+    <article class="stats-card">
+        <div class="stats-card-value">{{ stats.log_days }}</div>
+        <div class="stats-card-label">Days of Data</div>
+    </article>
+</div>
+
+{# ── Daily Activity ── #}
+{% if stats.views_by_day %}
+<article>
+    <header><strong>Daily Activity</strong></header>
+    <div class="sparkline">
+        {% for date, count in stats.views_by_day %}
+        <div class="spark-bar-wrap" title="{{ date }}: {{ count }} views">
+            <div class="spark-bar" style="height: {{ (count / stats.max_day_views * 100) | round }}%"></div>
+            <div class="spark-label">{{ date[5:] }}</div>
+        </div>
+        {% endfor %}
+    </div>
+</article>
+{% endif %}
+
+{# ── Most Viewed Campgrounds ── #}
+{% if stats.top_facilities %}
+<article>
+    <header><strong>Most Viewed Campgrounds</strong></header>
+    {% set max_fac = stats.top_facilities[0].count %}
+    {% for f in stats.top_facilities %}
+    <div class="bar-row">
+        <div class="bar-label"><a href="/facility/{{ f.facility_id }}">{{ f.facility_name }}</a></div>
+        <div class="bar-track">
+            <div class="bar-fill" style="width: {{ (f.count / max_fac * 100) | round }}%"></div>
+        </div>
+        <div class="bar-count">{{ f.count }}</div>
+    </div>
+    {% endfor %}
+</article>
+{% endif %}
+
+{# ── Most Searched States ── #}
+{% if stats.top_states %}
+<article>
+    <header><strong>Most Searched States</strong></header>
+    {% set max_st = stats.top_states[0][1] %}
+    {% for code, count in stats.top_states %}
+    <div class="bar-row">
+        <div class="bar-label">{{ code }}</div>
+        <div class="bar-track">
+            <div class="bar-fill bar-fill-green" style="width: {{ (count / max_st * 100) | round }}%"></div>
+        </div>
+        <div class="bar-count">{{ count }}</div>
+    </div>
+    {% endfor %}
+</article>
+{% endif %}
+
+{# ── Top Referrers ── #}
+{% if stats.top_referrers %}
+<article>
+    <header><strong>Top Referrers</strong></header>
+    {% set max_ref = stats.top_referrers[0][1] %}
+    {% for domain, count in stats.top_referrers %}
+    <div class="bar-row">
+        <div class="bar-label">{{ domain }}</div>
+        <div class="bar-track">
+            <div class="bar-fill bar-fill-orange" style="width: {{ (count / max_ref * 100) | round }}%"></div>
+        </div>
+        <div class="bar-count">{{ count }}</div>
+    </div>
+    {% endfor %}
+</article>
+{% endif %}
+
+{# ── Top Pages ── #}
+{% if stats.top_pages %}
+<article>
+    <header><strong>Top Pages</strong></header>
+    {% set max_pg = stats.top_pages[0][1] %}
+    {% for path, count in stats.top_pages %}
+    <div class="bar-row">
+        <div class="bar-label"><code>{{ path }}</code></div>
+        <div class="bar-track">
+            <div class="bar-fill bar-fill-slate" style="width: {{ (count / max_pg * 100) | round }}%"></div>
+        </div>
+        <div class="bar-count">{{ count }}</div>
+    </div>
+    {% endfor %}
+</article>
+{% endif %}
+
+<p><small>Generated {{ stats.generated_at }}. Cached for 5 minutes. Bot traffic ({{ "{:,}".format(stats.bot_requests) }} requests) excluded.</small></p>
+
+{% endif %}
+{% endblock %}

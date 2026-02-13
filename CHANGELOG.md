@@ -2,6 +2,19 @@
 
 All notable changes to the RV Camping Finder project.
 
+## [0.9.2] — 2026-02-13
+
+### Added
+- Public `/stats` page showing site usage metrics parsed from Caddy access logs
+- Summary cards: unique visitors, page views, API requests, days of data
+- Daily activity sparkline (CSS-only bar chart)
+- Top campgrounds, states, referrers, and pages with horizontal bar charts
+- `stats.py` module — standalone log parser with 5-minute cache (no Flask dependency)
+- Bot filtering (50+ crawler patterns), Facebook/Reddit referrer normalization
+- Graceful "no data" fallback for local development
+- Nav link to Stats page
+- `CADDY_LOG_DIR` env var override for testing
+
 ## [0.9.1] — 2026-02-13
 
 ### Added

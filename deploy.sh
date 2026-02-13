@@ -12,7 +12,7 @@ SCP="scp -i $KEY -o StrictHostKeyChecking=no"
 REMOTE_DIR="/home/ubuntu/fedcamp"
 
 echo "==> Packaging app files..."
-tar czf /tmp/fedcamp.tar.gz app.py db.py templates/ static/
+tar czf /tmp/fedcamp.tar.gz app.py db.py stats.py templates/ static/
 
 echo "==> Uploading app tarball..."
 $SCP /tmp/fedcamp.tar.gz "$HOST:~"

@@ -12,6 +12,7 @@ import threading
 from datetime import datetime, timezone, timedelta
 from flask import Flask, render_template, request, g, jsonify, send_file
 import db
+import stats
 
 PST = timezone(timedelta(hours=-8))
 
@@ -348,6 +349,14 @@ def api_download():
 @app.route("/about")
 def about():
     return render_template("about.html")
+
+
+@app.route("/stats")
+def site_stats():
+    data = stats.get_stats()
+    data["top_facilities"] = stats.resolve_facility_names(
+        g.conn, data["top_facilities"])
+    return render_template("stats.html", stats=data)
 
 
 # Template filters
