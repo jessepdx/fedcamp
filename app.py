@@ -60,7 +60,7 @@ def set_security_headers(response):
         "script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net https://connect.facebook.net; "
         "style-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net; "
         "img-src 'self' https://*.tile.openstreetmap.org https://cdn.recreation.gov https://www.facebook.com data:; "
-        "connect-src 'self' https://raw.githubusercontent.com https://www.facebook.com https://script.google.com; "
+        "connect-src 'self' https://www.facebook.com https://script.google.com; "
         "font-src 'self'"
     )
     return response
@@ -145,9 +145,7 @@ def teardown_request(exception):
 
 @app.route("/")
 def index():
-    states = db.get_states(g.conn)
-    state_counts = {s["state_code"]: s["facility_count"] for s in states}
-    return render_template("map.html", state_counts=state_counts)
+    return render_template("map.html")
 
 
 @app.route("/search-form")
@@ -261,25 +259,24 @@ def map_view():
 
 @app.route("/api/pins")
 def api_pins():
-    states = [s.strip() for s in request.args.getlist("state") if s.strip()]
-    if not states:
-        return jsonify([])
-    ct = request.args.getlist("camping_type") or ["DEVELOPED", "PRIMITIVE", "DISPERSED"]
-    results = db.search_by_state(g.conn, states, camping_types=ct, limit=500, offset=0)
-    pins = []
-    for r in results:
-        if r.get("latitude") and r.get("longitude"):
-            pins.append({
-                "facility_id": r["facility_id"],
-                "facility_name": r["facility_name"],
-                "latitude": r["latitude"],
-                "longitude": r["longitude"],
-                "camping_type": r.get("camping_type"),
-                "total_campsites": r.get("total_campsites", 0),
-                "road_access": r.get("road_access"),
-                "org_abbrev": r.get("org_abbrev"),
-                "seasonal_status": r.get("seasonal_status"),
-            })
+    south = request.args.get("south", type=float)
+    north = request.args.get("north", type=float)
+    west = request.args.get("west", type=float)
+    east = request.args.get("east", type=float)
+    if None in (south, north, west, east):
+        return jsonify({"error": "south, north, west, east required"}), 400
+
+    ct = request.args.getlist("camping_type") or None
+    agencies = request.args.getlist("agency") or None
+    road_access = request.args.getlist("road_access") or None
+    hookups = request.args.getlist("hookup") or None
+    min_rv = request.args.get("min_rv_length", type=int)
+
+    pins = db.search_pins_by_bounds(
+        g.conn, south, north, west, east,
+        camping_types=ct, agencies=agencies,
+        road_access=road_access, hookups=hookups,
+        min_rv_length=min_rv)
     return jsonify(pins)
 
 

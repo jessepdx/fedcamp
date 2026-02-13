@@ -2,6 +2,34 @@
 
 All notable changes to the RV Camping Finder project.
 
+## [0.10.1] — 2026-02-13
+
+### Changed
+- Map filters moved below the map as a simple inline bar (removed slide-out drawer)
+- Compact horizontal layout: type toggles, agency/road/hookup checkboxes, RV length input, reset button
+
+### Fixed
+- Page scroll blocked by map on touch devices — vertical swipes now scroll the page instead of panning the map
+- Disabled scroll-wheel zoom so mouse wheel scrolls the page (use +/- or pinch to zoom map)
+
+## [0.10.0] — 2026-02-13
+
+### Added
+- Viewport-based map pins — campgrounds load automatically as you pan and zoom (replaces click-state-to-load)
+- Map filter drawer with camping type toggles, agency/road/hookup checkboxes, and RV length input
+- `search_pins_by_bounds()` lightweight bounding-box query in `db.py` (no address/photo/tag joins)
+- AbortController cancels in-flight requests when viewport changes quickly
+- Canvas rendering (`preferCanvas: true`) for smooth display of 6,700+ pins
+
+### Changed
+- `/api/pins` now requires `south, north, west, east` bounds instead of `state` param
+- Home page no longer fetches state borders GeoJSON (~150KB saved per page load)
+- Filter changes trigger immediate pin reload (no debounce); pan/zoom uses 300ms debounce
+
+### Removed
+- GeoJSON state border layer, point-in-polygon logic, and state click handlers
+- `state_counts` template variable and `get_states()` call from index route
+
 ## [0.9.3] — 2026-02-13
 
 ### Fixed

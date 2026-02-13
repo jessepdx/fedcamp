@@ -1,6 +1,11 @@
 /* RV Camping Finder — Custom Styles */
 
-/* Leaflet overrides — prevent Pico CSS from styling map elements */
+/* Leaflet overrides — prevent Pico CSS from styling map elements,
+   allow vertical page scroll through map on touch devices */
+.leaflet-container {
+    touch-action: pan-y !important;
+}
+
 .leaflet-marker-icon,
 .leaflet-marker-shadow {
     background: none !important;
@@ -657,6 +662,105 @@ a.leaflet-control-zoom-out {
     color: var(--pico-muted-color);
 }
 
+/* Map filter bar (below map) */
+.map-filters-bar {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    padding: 0.75rem 0;
+    font-size: 0.85rem;
+}
+
+.mf-group {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.mf-label {
+    font-weight: 600;
+    font-size: 0.78rem;
+    color: var(--pico-muted-color);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+}
+
+.mf-toggle-group {
+    display: flex;
+    gap: 3px;
+}
+
+.mf-toggle {
+    padding: 4px 10px;
+    border: 1px solid #ccc;
+    background: #fff;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #555;
+    line-height: 1.3;
+}
+
+.mf-toggle:hover {
+    background: #f0f0f0;
+}
+
+.mf-toggle.active {
+    background: #2d7d46;
+    color: #fff;
+    border-color: #2d7d46;
+}
+
+.mf-check-row {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+}
+
+.mf-check-row label {
+    display: flex;
+    align-items: center;
+    gap: 0.2rem;
+    font-size: 0.82rem;
+    cursor: pointer;
+    white-space: nowrap;
+    margin: 0;
+}
+
+.mf-check-row input[type="checkbox"] {
+    margin: 0;
+    width: 14px;
+    height: 14px;
+}
+
+.mf-rv-input {
+    width: 50px;
+    padding: 4px 6px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 0.82rem;
+    text-align: center;
+    margin: 0;
+}
+
+.mf-reset-btn {
+    padding: 4px 8px;
+    border: 1px solid #ccc;
+    background: #fff;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    color: #555;
+    line-height: 1;
+}
+
+.mf-reset-btn:hover {
+    background: #f0f0f0;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .card-photo { display: none; }
@@ -687,6 +791,10 @@ a.leaflet-control-zoom-out {
     .search-mode-toggle { flex-direction: column; gap: 0.75rem; }
     .filter-toggle-btn { width: 100%; }
     #state-map { min-height: 250px; }
+    .map-filters-bar { gap: 0.5rem; font-size: 0.78rem; }
+    .mf-toggle { font-size: 0.75rem; padding: 3px 7px; }
+    .mf-check-row label { font-size: 0.75rem; }
+    .mf-check-row { gap: 0.4rem; }
     .brand strong { font-size: 0.95rem; }
     .stats-cards { grid-template-columns: repeat(2, 1fr); }
     .stats-card-value { font-size: 1.5rem; }

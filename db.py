@@ -382,6 +382,59 @@ def _attach_top_tags(conn, results, max_tags=4):
         r["tag_count"] = len(all_tags)
 
 
+# ------------------------------------------------------------------
+# Map pins by viewport bounds
+# ------------------------------------------------------------------
+
+def search_pins_by_bounds(conn, south, north, west, east,
+                          camping_types=None, agencies=None,
+                          road_access=None, hookups=None,
+                          min_rv_length=None):
+    """Lightweight bounding-box query for map pins. No LIMIT — bbox is the constraint."""
+    if not camping_types:
+        camping_types = ["DEVELOPED", "PRIMITIVE", "DISPERSED"]
+
+    sql = """
+        SELECT
+            r.facility_id, r.facility_name, r.latitude, r.longitude,
+            r.camping_type, r.total_campsites, r.org_abbrev,
+            r.max_rv_length,
+            r.has_electric_hookup, r.has_water_hookup, r.has_sewer_hookup,
+            c.road_access, c.seasonal_status
+        FROM n_facility_rollup r
+        JOIN n_facility_conditions c ON r.facility_id = c.facility_id
+        WHERE r.coords_valid = 1
+          AND r.latitude BETWEEN ? AND ?
+          AND r.longitude BETWEEN ? AND ?
+          AND r.camping_type IN ({})
+    """.format(','.join('?' * len(camping_types)))
+    params = [south, north, west, east] + camping_types
+
+    if agencies:
+        sql += "  AND r.org_abbrev IN ({})\n".format(','.join('?' * len(agencies)))
+        params.extend(agencies)
+
+    if road_access:
+        sql += "  AND c.road_access IN ({})\n".format(','.join('?' * len(road_access)))
+        params.extend(road_access)
+
+    if hookups:
+        for h in hookups:
+            if h == 'electric':
+                sql += "  AND r.has_electric_hookup = 1\n"
+            elif h == 'water':
+                sql += "  AND r.has_water_hookup = 1\n"
+            elif h == 'sewer':
+                sql += "  AND r.has_sewer_hookup = 1\n"
+
+    if min_rv_length:
+        sql += "  AND (r.max_rv_length >= ? OR r.max_rv_length IS NULL)\n"
+        params.append(min_rv_length)
+
+    rows = conn.execute(sql, params).fetchall()
+    return [dict(r) for r in rows]
+
+
 def get_search_count(conn, state_codes=None, lat=None, lon=None,
                      radius_miles=100, camping_types=None,
                      tag_filters=None, agencies=None,

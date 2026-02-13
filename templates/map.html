@@ -48,10 +48,55 @@
 {% block content %}
 <hgroup>
     <h1>RV Camping Finder</h1>
-    <p>Click a pin to see campground details, or click a state to load its campgrounds</p>
+    <p>Pan and zoom to explore campgrounds. Use filters to narrow results.</p>
 </hgroup>
 
 <div id="state-map"></div>
+
+<div class="map-filters-bar">
+    <div class="mf-group">
+        <span class="mf-label">Type</span>
+        <div id="mf-type-group" class="mf-toggle-group">
+            <button class="mf-toggle" data-key="DEVELOPED">Developed</button>
+            <button class="mf-toggle" data-key="PRIMITIVE">Primitive</button>
+            <button class="mf-toggle" data-key="DISPERSED">Dispersed</button>
+        </div>
+    </div>
+    <div class="mf-group">
+        <span class="mf-label">Agency</span>
+        <div id="mf-agency" class="mf-check-row">
+            <label><input type="checkbox" value="FS"> FS</label>
+            <label><input type="checkbox" value="BLM"> BLM</label>
+            <label><input type="checkbox" value="USACE"> USACE</label>
+            <label><input type="checkbox" value="NPS"> NPS</label>
+            <label><input type="checkbox" value="BOR"> BOR</label>
+            <label><input type="checkbox" value="FWS"> FWS</label>
+        </div>
+    </div>
+    <div class="mf-group">
+        <span class="mf-label">Road</span>
+        <div id="mf-road" class="mf-check-row">
+            <label><input type="checkbox" value="PAVED"> Paved</label>
+            <label><input type="checkbox" value="GRAVEL"> Gravel</label>
+            <label><input type="checkbox" value="DIRT"> Dirt</label>
+            <label><input type="checkbox" value="HIGH_CLEARANCE"> High Clr</label>
+            <label><input type="checkbox" value="4WD_REQUIRED"> 4WD</label>
+        </div>
+    </div>
+    <div class="mf-group">
+        <span class="mf-label">Hookups</span>
+        <div id="mf-hookups" class="mf-check-row">
+            <label><input type="checkbox" value="electric"> Electric</label>
+            <label><input type="checkbox" value="water"> Water</label>
+            <label><input type="checkbox" value="sewer"> Sewer</label>
+        </div>
+    </div>
+    <div class="mf-group">
+        <span class="mf-label">Min RV</span>
+        <input type="number" id="mf-rv-input" class="mf-rv-input" placeholder="ft" min="0" max="100">
+    </div>
+    <button id="mf-reset-btn" class="mf-reset-btn" title="Reset filters">&#8634;</button>
+</div>
 <noscript>
     <p>This page requires JavaScript to display the map. <a href="/search-form">Use the search form instead</a>.</p>
 </noscript>
@@ -61,32 +106,14 @@
 <script>
 (function() {
     try {
-    var stateCounts = {{ state_counts | tojson }};
-
-    var nameToCode = {
-        "Alabama":"AL","Alaska":"AK","Arizona":"AZ","Arkansas":"AR","California":"CA",
-        "Colorado":"CO","Connecticut":"CT","Delaware":"DE","Florida":"FL","Georgia":"GA",
-        "Hawaii":"HI","Idaho":"ID","Illinois":"IL","Indiana":"IN","Iowa":"IA",
-        "Kansas":"KS","Kentucky":"KY","Louisiana":"LA","Maine":"ME","Maryland":"MD",
-        "Massachusetts":"MA","Michigan":"MI","Minnesota":"MN","Mississippi":"MS",
-        "Missouri":"MO","Montana":"MT","Nebraska":"NE","Nevada":"NV",
-        "New Hampshire":"NH","New Jersey":"NJ","New Mexico":"NM","New York":"NY",
-        "North Carolina":"NC","North Dakota":"ND","Ohio":"OH","Oklahoma":"OK",
-        "Oregon":"OR","Pennsylvania":"PA","Rhode Island":"RI","South Carolina":"SC",
-        "South Dakota":"SD","Tennessee":"TN","Texas":"TX","Utah":"UT","Vermont":"VT",
-        "Virginia":"VA","Washington":"WA","West Virginia":"WV","Wisconsin":"WI",
-        "Wyoming":"WY","District of Columbia":"DC","Puerto Rico":"PR"
-    };
-
-    function stateCode(props) {
-        return props.STUSPS || props.postal || nameToCode[props.name || props.NAME] || null;
-    }
 
     var map = L.map('state-map', {
         center: [39.5, -98.5],
         zoom: 4,
         minZoom: 3,
-        maxZoom: 18
+        maxZoom: 18,
+        preferCanvas: true,
+        scrollWheelZoom: false
     });
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -120,12 +147,71 @@
     };
     legend.addTo(map);
 
-    // Pin layer
+    // ---------------------------------------------------------------
+    // Filters (bar below map)
+    // ---------------------------------------------------------------
+    var filters = {
+        camping_types: [],
+        agencies: [],
+        road_access: [],
+        hookups: [],
+        min_rv_length: null
+    };
+
+    function readFiltersAndReload() {
+        filters.camping_types = [];
+        document.querySelectorAll('#mf-type-group .mf-toggle.active').forEach(function(b) {
+            filters.camping_types.push(b.dataset.key);
+        });
+        filters.agencies = [];
+        document.querySelectorAll('#mf-agency input:checked').forEach(function(c) { filters.agencies.push(c.value); });
+        filters.road_access = [];
+        document.querySelectorAll('#mf-road input:checked').forEach(function(c) { filters.road_access.push(c.value); });
+        filters.hookups = [];
+        document.querySelectorAll('#mf-hookups input:checked').forEach(function(c) { filters.hookups.push(c.value); });
+        var val = parseInt(document.getElementById('mf-rv-input').value, 10);
+        filters.min_rv_length = val > 0 ? val : null;
+        loadPins();
+    }
+
+    // Camping type toggles
+    document.querySelectorAll('#mf-type-group .mf-toggle').forEach(function(btn) {
+        btn.onclick = function() {
+            btn.classList.toggle('active');
+            readFiltersAndReload();
+        };
+    });
+
+    // Checkbox groups
+    ['mf-agency', 'mf-road', 'mf-hookups'].forEach(function(id) {
+        document.querySelectorAll('#' + id + ' input').forEach(function(cb) {
+            cb.onchange = function() { readFiltersAndReload(); };
+        });
+    });
+
+    // RV length (debounced)
+    var rvDebounce;
+    document.getElementById('mf-rv-input').oninput = function() {
+        clearTimeout(rvDebounce);
+        rvDebounce = setTimeout(readFiltersAndReload, 500);
+    };
+
+    // Reset
+    document.getElementById('mf-reset-btn').onclick = function() {
+        document.querySelectorAll('#mf-type-group .mf-toggle.active').forEach(function(b) { b.classList.remove('active'); });
+        document.querySelectorAll('.map-filters-bar input[type=checkbox]').forEach(function(cb) { cb.checked = false; });
+        document.getElementById('mf-rv-input').value = '';
+        readFiltersAndReload();
+    };
+
+    // ---------------------------------------------------------------
+    // Pin layer and loading
+    // ---------------------------------------------------------------
     var pinLayer = L.layerGroup().addTo(map);
-    var loadedState = null;
+    var loadDebounce;
+    var currentRequest = null;
 
     function campingColor(type, seasonal) {
-        // Closed/seasonal campgrounds get red/orange pins
         if (seasonal === 'PERMANENTLY_CLOSED' || seasonal === 'TEMPORARILY_CLOSED')
             return '#c0392b';
         if (seasonal === 'WINTER_CLOSURE' || seasonal === 'SEASONAL_CLOSURE')
@@ -134,15 +220,41 @@
         return colors[type] || '#95a5a6';
     }
 
-    function loadPins(stateCode, stateName) {
-        if (loadedState === stateCode) return;
-        loadedState = stateCode;
-        pinLayer.clearLayers();
-        status.update('<strong>' + (stateName || stateCode) + '</strong><small>Loading campgrounds...</small>');
+    function escapeHtml(str) {
+        if (!str) return '';
+        var d = document.createElement('div');
+        d.appendChild(document.createTextNode(str));
+        return d.innerHTML;
+    }
 
-        fetch('/api/pins?state=' + stateCode)
+    function buildQuery() {
+        var b = map.getBounds();
+        var params = 'south=' + b.getSouth().toFixed(4)
+            + '&north=' + b.getNorth().toFixed(4)
+            + '&west=' + b.getWest().toFixed(4)
+            + '&east=' + b.getEast().toFixed(4);
+        filters.camping_types.forEach(function(v) { params += '&camping_type=' + v; });
+        filters.agencies.forEach(function(v) { params += '&agency=' + v; });
+        filters.road_access.forEach(function(v) { params += '&road_access=' + v; });
+        filters.hookups.forEach(function(v) { params += '&hookup=' + v; });
+        if (filters.min_rv_length) params += '&min_rv_length=' + filters.min_rv_length;
+        return params;
+    }
+
+    function loadPins() {
+        if (currentRequest) { currentRequest.abort(); currentRequest = null; }
+
+        var query = buildQuery();
+        status.update('<strong>Loading...</strong>');
+
+        var controller = new AbortController();
+        currentRequest = controller;
+
+        fetch('/api/pins?' + query, {signal: controller.signal})
             .then(function(r) { return r.json(); })
             .then(function(pins) {
+                currentRequest = null;
+                pinLayer.clearLayers();
                 pins.forEach(function(p) {
                     var marker = L.circleMarker([p.latitude, p.longitude], {
                         radius: 7,
@@ -153,127 +265,55 @@
                         bubblingMouseEvents: false
                     }).addTo(pinLayer);
 
-                    // Popup with link (works on mobile — tap to preview, tap link to open)
                     var html = '<strong><a href="/facility/' + p.facility_id + '" target="_blank">'
                         + escapeHtml(p.facility_name) + '</a></strong>';
                     if (p.total_campsites) html += '<br>' + p.total_campsites + ' sites';
                     if (p.org_abbrev) html += ' &middot; ' + p.org_abbrev;
+                    if (p.max_rv_length) html += '<br>Max RV: ' + p.max_rv_length + ' ft';
                     if (p.seasonal_status === 'PERMANENTLY_CLOSED') html += '<br><em>Permanently Closed</em>';
                     else if (p.seasonal_status === 'TEMPORARILY_CLOSED') html += '<br><em>Temporarily Closed</em>';
                     else if (p.seasonal_status === 'WINTER_CLOSURE') html += '<br><em>Winter Closure</em>';
                     else if (p.seasonal_status === 'SEASONAL_CLOSURE') html += '<br><em>Seasonal</em>';
                     marker.bindPopup(html);
-
-                    // Tooltip for desktop hover
                     marker.bindTooltip(escapeHtml(p.facility_name));
                 });
-                status.update('<strong>' + (stateName || stateCode) + '</strong><small>'
-                    + pins.length + ' campgrounds</small>');
+                status.update('<strong>' + pins.length + ' campgrounds</strong><small>in view</small>');
+            })
+            .catch(function(err) {
+                if (err.name !== 'AbortError') {
+                    currentRequest = null;
+                    status.update('<strong>Error loading pins</strong>');
+                }
             });
     }
 
-    // State borders (click to load pins)
-    var geojsonLayer;
-    var geojsonData;
+    // Debounced load on map move
+    map.on('moveend', function() {
+        clearTimeout(loadDebounce);
+        loadDebounce = setTimeout(loadPins, 300);
+    });
 
-    function onClickState(e) {
-        var props = e.target.feature.properties;
-        var code = stateCode(props);
-        var name = props.name || props.NAME || code;
-        if (code && stateCounts[code]) {
-            loadPins(code, name);
-            map.fitBounds(e.target.getBounds(), { padding: [30, 30] });
-        }
-    }
-
-    function onEachFeature(feature, layer) {
-        layer.on({ click: onClickState });
-    }
-
-    // Point-in-polygon (ray casting)
-    function pointInPolygon(lat, lng, coords) {
-        var inside = false;
-        for (var i = 0, j = coords.length - 1; i < coords.length; j = i++) {
-            var xi = coords[i][1], yi = coords[i][0];
-            var xj = coords[j][1], yj = coords[j][0];
-            if ((yi > lng) !== (yj > lng) &&
-                lat < (xj - xi) * (lng - yi) / (yj - yi) + xi) {
-                inside = !inside;
-            }
-        }
-        return inside;
-    }
-
-    function findStateAt(lat, lng) {
-        if (!geojsonData) return null;
-        for (var i = 0; i < geojsonData.features.length; i++) {
-            var f = geojsonData.features[i];
-            var geom = f.geometry;
-            var rings = geom.type === 'Polygon' ? [geom.coordinates[0]]
-                : geom.type === 'MultiPolygon' ? geom.coordinates.map(function(p) { return p[0]; })
-                : [];
-            for (var r = 0; r < rings.length; r++) {
-                if (pointInPolygon(lat, lng, rings[r])) {
-                    return { code: stateCode(f.properties), name: f.properties.name || f.properties.NAME };
-                }
-            }
-        }
-        return null;
-    }
-
+    // ---------------------------------------------------------------
     // Geolocation
-    var userLat = null, userLon = null;
-
-    function onGeoSuccess(pos) {
-        userLat = pos.coords.latitude;
-        userLon = pos.coords.longitude;
-
-        L.circleMarker([userLat, userLon], {
-            radius: 10, fillColor: '#3b82f6', color: '#fff',
-            weight: 3, fillOpacity: 0.9
-        }).addTo(map).bindPopup('You are here').openPopup();
-
-        tryLoadUserState();
-    }
-
-    function onGeoError() {
-        status.update('<strong>Click a state</strong><small>to load campgrounds</small>');
-    }
-
-    function tryLoadUserState() {
-        if (userLat === null || !geojsonData) return;
-        var st = findStateAt(userLat, userLon);
-        if (st && st.code && stateCounts[st.code]) {
-            loadPins(st.code, st.name);
-            map.setView([userLat, userLon], 7);
-        } else {
-            status.update('<strong>Click a state</strong><small>to load campgrounds</small>');
-            map.setView([userLat, userLon], 7);
-        }
-    }
-
-    // Kick off geolocation
+    // ---------------------------------------------------------------
     if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(onGeoSuccess, onGeoError,
-            { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 });
+        navigator.geolocation.getCurrentPosition(function(pos) {
+            var lat = pos.coords.latitude;
+            var lon = pos.coords.longitude;
+            L.circleMarker([lat, lon], {
+                radius: 10, fillColor: '#3b82f6', color: '#fff',
+                weight: 3, fillOpacity: 0.9
+            }).addTo(map).bindPopup('You are here').openPopup();
+            map.setView([lat, lon], 8);
+            // moveend will fire and trigger loadPins
+        }, function() {
+            // Geolocation failed — load pins for default view
+            loadPins();
+        }, { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 });
     } else {
-        onGeoError();
+        loadPins();
     }
 
-    // Load state borders
-    fetch('https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json')
-        .then(function(r) { return r.json(); })
-        .then(function(data) {
-            geojsonData = data;
-            geojsonLayer = L.geoJson(data, {
-                style: { fillColor: 'transparent', fillOpacity: 0, weight: 1, color: '#999' },
-                onEachFeature: onEachFeature
-            }).addTo(map);
-            tryLoadUserState();
-        })
-        .catch(function() {
-            status.update('<strong>Click a state</strong><small>to load campgrounds</small>');
-        });
     } catch(e) {
         document.getElementById('state-map').innerHTML =
             '<p style="padding:2rem;text-align:center;">Map failed to load. <a href="/search-form">Use the search form instead</a>.'
