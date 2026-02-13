@@ -11,6 +11,7 @@ All notable changes to the RV Camping Finder project.
 
 ### Added
 - RV length filter on search form and results filter drawer — enter rig length in feet to exclude campgrounds confirmed too short (sites with unknown max length still appear)
+- GitHub repo link in site footer
 
 ## [0.8.7] — 2026-02-10
 
