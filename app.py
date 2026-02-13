@@ -28,7 +28,7 @@ def set_security_headers(response):
         "default-src 'self'; "
         "script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net https://connect.facebook.net; "
         "style-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net; "
-        "img-src 'self' https://*.tile.openstreetmap.org https://ridb-img.s3.us-west-2.amazonaws.com https://www.facebook.com data:; "
+        "img-src 'self' https://*.tile.openstreetmap.org https://cdn.recreation.gov https://www.facebook.com data:; "
         "connect-src 'self' https://raw.githubusercontent.com https://www.facebook.com; "
         "font-src 'self'"
     )
@@ -135,6 +135,7 @@ def search():
     road_access = request.args.getlist("road_access")
     seasonal = request.args.getlist("seasonal_status")
     fire = request.args.getlist("fire_status")
+    rv_length = request.args.get("rv_length", type=int)
     page = request.args.get("page", 1, type=int)
     view = request.args.get("view", "list")
 
@@ -148,6 +149,7 @@ def search():
         road_access=road_access or None,
         seasonal_status=seasonal or None,
         fire_status=fire or None,
+        min_rv_length=rv_length,
     )
 
     if lat is not None and lon is not None:
@@ -179,6 +181,7 @@ def search():
         selected_road_access=road_access,
         selected_seasonal=seasonal,
         selected_fire=fire,
+        rv_length=rv_length,
         search_desc=search_desc,
         view=view,
         amenity_filters=AMENITY_FILTERS,

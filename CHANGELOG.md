@@ -2,6 +2,14 @@
 
 All notable changes to the RV Camping Finder project.
 
+## [0.8.8] — 2026-02-13
+
+### Fixed
+- Campsite photos broken on live site — CSP img-src allowed `ridb-img.s3.us-west-2.amazonaws.com` but 99.6% of images come from `cdn.recreation.gov`
+
+### Added
+- RV length filter on search form and results filter drawer — enter rig length in feet to exclude campgrounds confirmed too short (sites with unknown max length still appear)
+
 ## [0.8.7] — 2026-02-10
 
 ### Fixed
