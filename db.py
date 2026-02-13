@@ -6,6 +6,7 @@ and receive plain dicts/lists. No Flask dependencies in this module.
 """
 
 import math
+import re
 import sqlite3
 
 DB_PATH = "ridb.db"
@@ -242,6 +243,12 @@ def get_facility(conn, facility_id):
         return None
 
     data = dict(row)
+
+    # Clean fee field: strip HTML tags, collapse whitespace, None if empty
+    raw_fee = data.get("facility_use_fee") or ""
+    clean_fee = re.sub(r"<[^>]+>", " ", raw_fee).strip()
+    clean_fee = re.sub(r"\s+", " ", clean_fee)
+    data["facility_use_fee"] = clean_fee or None
 
     # Tags grouped by category
     tags = conn.execute("""
