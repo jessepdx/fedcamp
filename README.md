@@ -6,7 +6,7 @@ Search and explore campgrounds on federal public lands. Built on the [Recreation
 
 FedCamp takes the raw RIDB data (132K campsites across 15K+ facilities), normalizes and enriches it through a multi-phase pipeline, then serves it through a Flask web app with an interactive map.
 
-**Map homepage** — Auto-detects your location and loads campground pins for your state. Click any pin to see details. Click a state boundary to switch states.
+**Map homepage** — Auto-detects your location and loads campground pins for the current viewport. Pan and zoom to explore freely — pins update automatically. Filter bar below the map narrows results by camping type, agency, road access, hookups, and RV length.
 
 **Condition indicators** — Instead of abstract scores, each campground shows practical info:
 - **Road Access** — Paved, Gravel, Dirt, High Clearance, or 4WD Required
@@ -24,8 +24,8 @@ FedCamp takes the raw RIDB data (132K campsites across 15K+ facilities), normali
 
 ```
 Data Pipeline:  normalize.py -> rollup.py -> classify.py -> prepare_db.py
-Web App:        app.py (Flask) + db.py (queries) + templates/ + static/
-Database:       ridb.db (SQLite, ~370MB, not included in repo)
+Web App:        app.py (Flask) + db.py (queries) + stats.py + templates/ + static/
+Database:       ridb.db (SQLite, ~72MB app-only, not included in repo)
 ```
 
 ### Data Pipeline
@@ -41,10 +41,23 @@ Run in order — each phase is idempotent (safe to re-run):
 
 ### Web App
 
-- **`app.py`** — Flask routes: `/` (map), `/search`, `/search-form`, `/facility/<id>`, `/api/pins`, `/about`
+- **`app.py`** — Flask routes: `/` (map), `/search`, `/search-form`, `/facility/<id>`, `/about`, `/stats`
 - **`db.py`** — All SQL queries with haversine distance calculations. No Flask dependency.
+- **`stats.py`** — Caddy access log parser for `/stats` page (standalone, no Flask dependency)
 - **`templates/`** — Jinja2 templates using Pico CSS, Leaflet.js, and htmx (all from CDN)
 - **`static/`** — `style.css` + `app.js`
+
+### JSON API
+
+Public API for integration with chatbots and custom tools:
+
+- **`GET /api/pins?south=&north=&west=&east=`** — Map pins by viewport bounds (with optional filter params)
+- **`GET /api/search?state=XX`** — Search by state or lat/lon with full filters
+- **`GET /api/facility/<id>`** — Full facility detail
+- **`GET /api/states`** — State list with facility counts
+- **`GET /api/download`** — Download the SQLite database
+
+Rate limited to 60 requests/minute per IP.
 
 ### Data Collection Scripts
 
@@ -93,15 +106,24 @@ This takes several hours due to API rate limits (50 req/min).
 
 - **15,449** facilities across **50** states and territories
 - **132,974** campsites with typed attributes
-- **5,514** campable facilities (Developed + Primitive + Dispersed)
+- **6,356** campable facilities (Developed + Primitive + Dispersed)
 - **2,523** facilities with photos
+- **~94%** of campable facilities have valid coordinates
 - **6 federal agencies**: Forest Service, BLM, NPS, Army Corps, Bureau of Reclamation, Fish & Wildlife
+
+## Deployment
+
+Live at **https://fedcamp.cloudromeo.com**
+
+- AWS Lightsail nano instance (Ubuntu 24.04, us-west-2)
+- Caddy (auto HTTPS via Let's Encrypt) → gunicorn (2 workers) → Flask
+- Deploy with `./deploy.sh` (code only) or `./deploy.sh --db` (with database)
 
 ## Tech Stack
 
 - **Backend**: Python 3.9, Flask, SQLite
 - **Frontend**: Pico CSS, Leaflet.js, htmx (all CDN, no build step)
-- **No external dependencies** beyond Flask (stdlib only for pipeline scripts)
+- **No external dependencies** beyond Flask + gunicorn (stdlib only for pipeline scripts)
 
 ## License
 

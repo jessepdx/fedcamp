@@ -7,6 +7,7 @@ All notable changes to the RV Camping Finder project.
 ### Changed
 - Map filters moved below the map as a simple inline bar (removed slide-out drawer)
 - Compact horizontal layout: type toggles, agency/road/hookup checkboxes, RV length input, reset button
+- README updated: viewport-based map, JSON API docs, deployment info, corrected data stats
 
 ### Fixed
 - Page scroll blocked by map on touch devices — vertical swipes now scroll the page instead of panning the map
