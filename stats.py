@@ -6,6 +6,7 @@ Parses Caddy JSON access logs server-side and returns a stats dict.
 No Flask dependency (same pattern as db.py).
 """
 
+import copy
 import glob
 import json
 import os
@@ -44,7 +45,7 @@ def get_stats():
     """Return cached stats dict. Re-parses logs if cache is stale."""
     now = time.time()
     if _cache["data"] and (now - _cache["ts"]) < CACHE_TTL:
-        return _cache["data"]
+        return copy.deepcopy(_cache["data"])
 
     data = _parse_logs()
     _cache["data"] = data
