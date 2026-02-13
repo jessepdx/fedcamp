@@ -244,11 +244,19 @@ def get_facility(conn, facility_id):
 
     data = dict(row)
 
-    # Clean fee field: strip HTML tags, collapse whitespace, None if empty
-    raw_fee = data.get("facility_use_fee") or ""
-    clean_fee = re.sub(r"<[^>]+>", " ", raw_fee).strip()
-    clean_fee = re.sub(r"\s+", " ", clean_fee)
-    data["facility_use_fee"] = clean_fee or None
+    # Null out fields that are empty-but-truthy HTML (e.g. <ul><li></li></ul>)
+    for field in ("facility_description", "facility_directions", "facility_use_fee"):
+        raw = data.get(field) or ""
+        stripped = re.sub(r"<[^>]+>", " ", raw).strip()
+        stripped = re.sub(r"\s+", " ", stripped)
+        if not stripped:
+            data[field] = None
+
+    # Fee field: also strip HTML tags for display (description/directions use | safe)
+    if data.get("facility_use_fee"):
+        raw_fee = data["facility_use_fee"]
+        clean_fee = re.sub(r"<[^>]+>", " ", raw_fee).strip()
+        data["facility_use_fee"] = re.sub(r"\s+", " ", clean_fee)
 
     # Tags grouped by category
     tags = conn.execute("""

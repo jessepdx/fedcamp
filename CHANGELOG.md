@@ -7,6 +7,7 @@ All notable changes to the RV Camping Finder project.
 ### Fixed
 - Campsite photos broken on live site — CSP img-src allowed `ridb-img.s3.us-west-2.amazonaws.com` but 99.6% of images come from `cdn.recreation.gov`
 - Fee section showing raw HTML tags — strip HTML from `facility_use_fee`, hide empty-but-truthy values like `<ul><li></li></ul>`
+- Empty HTML in `facility_description` and `facility_directions` showing blank sections (41 + 10 affected facilities)
 
 ### Added
 - RV length filter on search form and results filter drawer — enter rig length in feet to exclude campgrounds confirmed too short (sites with unknown max length still appear)
