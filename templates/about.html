@@ -87,6 +87,62 @@
 </article>
 
 <article>
+    <header><strong>JSON API</strong></header>
+    <p>FedCamp has a free public API that returns JSON. You can use it from your own scripts,
+    apps, or AI chatbots (ChatGPT custom GPTs, Claude projects, etc.).</p>
+
+    <h4>Endpoints</h4>
+    <table>
+        <thead><tr><th>Endpoint</th><th>Description</th></tr></thead>
+        <tbody>
+            <tr><td><code>/api/search</code></td><td>Search campgrounds by state or coordinates</td></tr>
+            <tr><td><code>/api/facility/&lt;id&gt;</code></td><td>Full detail for one campground</td></tr>
+            <tr><td><code>/api/states</code></td><td>List all states with campground counts</td></tr>
+        </tbody>
+    </table>
+
+    <h4>Search Parameters</h4>
+    <table>
+        <thead><tr><th>Param</th><th>Description</th></tr></thead>
+        <tbody>
+            <tr><td><code>state</code></td><td>2-letter state code (required unless using lat/lon)</td></tr>
+            <tr><td><code>lat</code>, <code>lon</code></td><td>Coordinates to search near (required unless using state)</td></tr>
+            <tr><td><code>radius</code></td><td>Search radius in miles (default 100)</td></tr>
+            <tr><td><code>camping_type</code></td><td>DEVELOPED, PRIMITIVE, or DISPERSED (repeatable, default DEVELOPED)</td></tr>
+            <tr><td><code>agency</code></td><td>FS, BLM, NPS, USACE, BOR, FWS (repeatable)</td></tr>
+            <tr><td><code>road_access</code></td><td>PAVED, GRAVEL, DIRT, HIGH_CLEARANCE, 4WD_REQUIRED (repeatable)</td></tr>
+            <tr><td><code>seasonal_status</code></td><td>OPEN_YEAR_ROUND, SEASONAL_CLOSURE, WINTER_CLOSURE (repeatable)</td></tr>
+            <tr><td><code>fire_status</code></td><td>CAMPFIRES_ALLOWED, RESTRICTIONS, NO_CAMPFIRES (repeatable)</td></tr>
+            <tr><td><code>rv_length</code></td><td>Minimum RV length in feet</td></tr>
+            <tr><td><code>tag</code></td><td>Amenity tag: FULL_HOOKUPS, ELECTRIC_HOOKUP, 50_AMP, WATER_HOOKUP, PULL_THROUGH, BIG_RIG_FRIENDLY, PAVED_ACCESS, DUMP_STATION, POTABLE_WATER, RESERVABLE (repeatable)</td></tr>
+            <tr><td><code>limit</code></td><td>Max results (default 25, max 100)</td></tr>
+            <tr><td><code>offset</code></td><td>Pagination offset</td></tr>
+        </tbody>
+    </table>
+
+    <h4>Examples</h4>
+    <pre style="overflow-x:auto"><code>GET /api/states
+GET /api/search?state=OR&amp;camping_type=DEVELOPED
+GET /api/search?state=CO&amp;camping_type=DEVELOPED&amp;camping_type=PRIMITIVE&amp;tag=FULL_HOOKUPS&amp;rv_length=35
+GET /api/search?lat=45.5&amp;lon=-122.6&amp;radius=50&amp;agency=FS&amp;agency=BLM
+GET /api/facility/273354</code></pre>
+
+    <h4>Using with AI Chatbots</h4>
+    <p>You can connect this API to ChatGPT (custom GPTs), Claude, or any AI tool that supports HTTP actions.
+    Point your chatbot at <code>https://fedcamp.cloudromeo.com/api/</code> and give it instructions like:</p>
+    <blockquote>
+        <p><em>Use the FedCamp API at fedcamp.cloudromeo.com to help users find federal campgrounds.
+        Start by calling /api/states to see what's available, then use /api/search with the user's state or
+        coordinates and any filters they mention. Use /api/facility/&lt;id&gt; to get full details
+        when a user asks about a specific campground.</em></p>
+    </blockquote>
+
+    <h4>Rate Limit</h4>
+    <p>The API is limited to <strong>60 requests per minute</strong> per IP address. If you exceed this, you'll get a
+    <code>429</code> response with a <code>Retry-After</code> header.</p>
+</article>
+
+<article>
     <header><strong>Limitations</strong></header>
     <ul>
         <li>Condition data is based on RIDB descriptions and campsite data only. Real conditions may differ.</li>

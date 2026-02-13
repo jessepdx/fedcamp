@@ -10,6 +10,7 @@ All notable changes to the RV Camping Finder project.
 - Pagination via `limit` (max 100) and `offset` params
 - Enables integration with AI chatbots (ChatGPT, Claude) and custom tools
 - API rate limiting: 60 requests/minute per IP (returns 429 with Retry-After header)
+- API documentation section on About page with endpoint reference, parameter list, examples, and chatbot integration instructions
 
 ## [0.8.8] — 2026-02-13
 
