@@ -39,6 +39,7 @@ def get_states(conn):
 def search_by_state(conn, state_code, camping_types=None,
                     tag_filters=None, agencies=None,
                     road_access=None, seasonal_status=None, fire_status=None,
+                    min_rv_length=None,
                     limit=25, offset=0):
     if not camping_types:
         camping_types = ["DEVELOPED"]
@@ -85,6 +86,10 @@ def search_by_state(conn, state_code, camping_types=None,
         sql += "  AND c.fire_status IN ({})\n".format(','.join('?' * len(fire_status)))
         params.extend(fire_status)
 
+    if min_rv_length:
+        sql += "  AND (r.max_rv_length >= ? OR r.max_rv_length IS NULL)\n"
+        params.append(min_rv_length)
+
     # Tag filters
     if tag_filters:
         for tag in tag_filters:
@@ -117,6 +122,7 @@ def search_by_location(conn, lat, lon, radius_miles=100,
                        camping_types=None, tag_filters=None,
                        agencies=None,
                        road_access=None, seasonal_status=None, fire_status=None,
+                       min_rv_length=None,
                        limit=25, offset=0):
     if not camping_types:
         camping_types = ["DEVELOPED"]
@@ -181,6 +187,10 @@ def search_by_location(conn, lat, lon, radius_miles=100,
     if fire_status:
         sql += "  AND c.fire_status IN ({})\n".format(','.join('?' * len(fire_status)))
         params.extend(fire_status)
+
+    if min_rv_length:
+        sql += "  AND (r.max_rv_length >= ? OR r.max_rv_length IS NULL)\n"
+        params.append(min_rv_length)
 
     if tag_filters:
         for tag in tag_filters:
@@ -358,7 +368,8 @@ def _attach_top_tags(conn, results, max_tags=4):
 def get_search_count(conn, state_code=None, lat=None, lon=None,
                      radius_miles=100, camping_types=None,
                      tag_filters=None, agencies=None,
-                     road_access=None, seasonal_status=None, fire_status=None):
+                     road_access=None, seasonal_status=None, fire_status=None,
+                     min_rv_length=None):
     """Get total count for pagination (without LIMIT/OFFSET)."""
     if not camping_types:
         camping_types = ["DEVELOPED"]
@@ -406,6 +417,10 @@ def get_search_count(conn, state_code=None, lat=None, lon=None,
     if fire_status:
         sql += "  AND c.fire_status IN ({})\n".format(','.join('?' * len(fire_status)))
         params.extend(fire_status)
+
+    if min_rv_length:
+        sql += "  AND (r.max_rv_length >= ? OR r.max_rv_length IS NULL)\n"
+        params.append(min_rv_length)
 
     if tag_filters:
         for tag in tag_filters:

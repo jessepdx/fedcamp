@@ -91,6 +91,10 @@
             {% endfor %}
         </fieldset>
 
+        <label><strong>Min RV Length (ft)</strong></label>
+        <input type="number" name="rv_length" min="10" max="150"
+               value="{{ rv_length or '' }}" placeholder="e.g. 35">
+
         <button type="submit" class="filter-apply-btn">Apply Filters</button>
     </form>
 </aside>
