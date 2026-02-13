@@ -159,8 +159,8 @@ function validateSearch() {
     var stateMode = document.querySelector('input[name="search_mode"][value="state"]');
     if (stateMode && stateMode.checked) {
         var state = document.querySelector('select[name="state"]');
-        if (!state || !state.value) {
-            alert('Please select a state.');
+        if (!state || !state.selectedOptions.length) {
+            alert('Please select at least one state.');
             return false;
         }
         return true;

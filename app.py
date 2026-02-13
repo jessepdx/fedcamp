@@ -164,7 +164,7 @@ def search_form():
 
 @app.route("/search")
 def search():
-    state = request.args.get("state", "").strip()
+    states = [s.strip() for s in request.args.getlist("state") if s.strip()]
     lat = request.args.get("lat", type=float)
     lon = request.args.get("lon", type=float)
     radius = request.args.get("radius", 100, type=float)
@@ -198,13 +198,13 @@ def search():
         total = db.get_search_count(
             g.conn, lat=lat, lon=lon, radius_miles=radius, **filter_kwargs)
         search_desc = f"Within {int(radius)} miles of {lat:.2f}, {lon:.2f}"
-    elif state:
+    elif states:
         results = db.search_by_state(
-            g.conn, state,
+            g.conn, states,
             limit=25, offset=offset, **filter_kwargs)
         total = db.get_search_count(
-            g.conn, state_code=state, **filter_kwargs)
-        search_desc = f"State: {state}"
+            g.conn, state_codes=states, **filter_kwargs)
+        search_desc = "States: " + ", ".join(states) if len(states) > 1 else f"State: {states[0]}"
     else:
         results = []
         total = 0
@@ -214,7 +214,7 @@ def search():
 
     ctx = dict(
         results=results, total=total, page=page, has_more=has_more,
-        state=state, lat=lat, lon=lon,
+        states=states, lat=lat, lon=lon,
         radius=radius, camping_types=ct, tag_filters=tags,
         selected_agencies=agencies,
         selected_road_access=road_access,
@@ -260,11 +260,11 @@ def map_view():
 
 @app.route("/api/pins")
 def api_pins():
-    state = request.args.get("state", "").strip()
-    if not state:
+    states = [s.strip() for s in request.args.getlist("state") if s.strip()]
+    if not states:
         return jsonify([])
     ct = request.args.getlist("camping_type") or ["DEVELOPED", "PRIMITIVE", "DISPERSED"]
-    results = db.search_by_state(g.conn, state, camping_types=ct, limit=500, offset=0)
+    results = db.search_by_state(g.conn, states, camping_types=ct, limit=500, offset=0)
     pins = []
     for r in results:
         if r.get("latitude") and r.get("longitude"):
@@ -284,7 +284,7 @@ def api_pins():
 
 @app.route("/api/search")
 def api_search():
-    state = request.args.get("state", "").strip()
+    states = [s.strip() for s in request.args.getlist("state") if s.strip()]
     lat = request.args.get("lat", type=float)
     lon = request.args.get("lon", type=float)
     radius = request.args.get("radius", 100, type=float)
@@ -315,12 +315,12 @@ def api_search():
             limit=limit, offset=offset, **filter_kwargs)
         total = db.get_search_count(
             g.conn, lat=lat, lon=lon, radius_miles=radius, **filter_kwargs)
-    elif state:
+    elif states:
         results = db.search_by_state(
-            g.conn, state,
+            g.conn, states,
             limit=limit, offset=offset, **filter_kwargs)
         total = db.get_search_count(
-            g.conn, state_code=state, **filter_kwargs)
+            g.conn, state_codes=states, **filter_kwargs)
     else:
         return jsonify({"error": "state or lat/lon required"}), 400
 

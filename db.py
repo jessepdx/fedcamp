@@ -37,11 +37,13 @@ def get_states(conn):
 # Search by state
 # ------------------------------------------------------------------
 
-def search_by_state(conn, state_code, camping_types=None,
+def search_by_state(conn, state_codes, camping_types=None,
                     tag_filters=None, agencies=None,
                     road_access=None, seasonal_status=None, fire_status=None,
                     min_rv_length=None,
                     limit=25, offset=0):
+    if isinstance(state_codes, str):
+        state_codes = [state_codes]
     if not camping_types:
         camping_types = ["DEVELOPED"]
 
@@ -64,10 +66,10 @@ def search_by_state(conn, state_code, camping_types=None,
         LEFT JOIN facility_addresses fa
             ON r.facility_id = fa.facility_id AND fa.address_type = 'Physical'
         LEFT JOIN n_facility_photo p ON r.facility_id = p.facility_id
-        WHERE fa.state_code = ?
+        WHERE fa.state_code IN ({})
           AND r.camping_type IN ({})
-    """.format(','.join('?' * len(camping_types)))
-    params = [state_code] + camping_types
+    """.format(','.join('?' * len(state_codes)), ','.join('?' * len(camping_types)))
+    params = list(state_codes) + camping_types
 
     # Agency filter
     if agencies:
@@ -380,26 +382,28 @@ def _attach_top_tags(conn, results, max_tags=4):
         r["tag_count"] = len(all_tags)
 
 
-def get_search_count(conn, state_code=None, lat=None, lon=None,
+def get_search_count(conn, state_codes=None, lat=None, lon=None,
                      radius_miles=100, camping_types=None,
                      tag_filters=None, agencies=None,
                      road_access=None, seasonal_status=None, fire_status=None,
                      min_rv_length=None):
     """Get total count for pagination (without LIMIT/OFFSET)."""
+    if isinstance(state_codes, str):
+        state_codes = [state_codes]
     if not camping_types:
         camping_types = ["DEVELOPED"]
 
-    if state_code:
+    if state_codes:
         sql = """
             SELECT COUNT(DISTINCT r.facility_id)
             FROM n_facility_rollup r
             JOIN n_facility_conditions c ON r.facility_id = c.facility_id
             LEFT JOIN facility_addresses fa
                 ON r.facility_id = fa.facility_id AND fa.address_type = 'Physical'
-            WHERE fa.state_code = ?
+            WHERE fa.state_code IN ({})
               AND r.camping_type IN ({})
-        """.format(','.join('?' * len(camping_types)))
-        params = [state_code] + camping_types
+        """.format(','.join('?' * len(state_codes)), ','.join('?' * len(camping_types)))
+        params = list(state_codes) + camping_types
     elif lat is not None and lon is not None:
         lat_delta = radius_miles / 69.0
         lon_delta = radius_miles / (69.0 * max(math.cos(math.radians(lat)), 0.01))

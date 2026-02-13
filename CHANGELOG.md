@@ -2,6 +2,13 @@
 
 All notable changes to the RV Camping Finder project.
 
+## [0.9.1] — 2026-02-13
+
+### Added
+- Multi-state search: select multiple states on the advanced search form (hold Ctrl/Cmd)
+- API supports multiple `state` params: `/api/search?state=OR&state=WA`
+- Filter drawer and pagination preserve multi-state selections
+
 ## [0.9.0] — 2026-02-13
 
 ### Added

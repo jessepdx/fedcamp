@@ -13,9 +13,9 @@
     </div>
     <form id="filter-form" action="/search" method="get">
         <!-- Preserve search context -->
-        {% if state %}
-        <input type="hidden" name="state" value="{{ state }}">
-        {% endif %}
+        {% for s in states %}
+        <input type="hidden" name="state" value="{{ s }}">
+        {% endfor %}
         {% if lat is not none and lon is not none %}
         <input type="hidden" name="lat" value="{{ lat }}">
         <input type="hidden" name="lon" value="{{ lon }}">

@@ -27,8 +27,8 @@
         </div>
 
         <div id="state-fields">
-            <select name="state" aria-label="State">
-                <option value="">Select a state...</option>
+            <label for="state-select">Hold Ctrl / Cmd to select multiple states</label>
+            <select name="state" id="state-select" aria-label="State" multiple size="8">
                 {% for s in states %}
                 <option value="{{ s.state_code }}">{{ s.state_code }} ({{ s.facility_count }} campgrounds)</option>
                 {% endfor %}
