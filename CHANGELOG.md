@@ -2,6 +2,15 @@
 
 All notable changes to the RV Camping Finder project.
 
+## [0.9.3] — 2026-02-13
+
+### Fixed
+- Map pins on mobile: tapping a pin no longer zooms out to state level (click events no longer bubble through pins to the state boundary layer)
+
+### Added
+- `scripts/backfill_coords.py` — fetches missing coordinates from recreation.gov campground API (recovered 545 of 970 facilities, coverage 86% → 94%)
+- Coordinate backfill step documented in ETL pipeline (`docs/etl_update_plan.md`)
+
 ## [0.9.2] — 2026-02-13
 
 ### Added

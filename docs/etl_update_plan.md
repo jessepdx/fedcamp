@@ -90,11 +90,22 @@ Pull any campsites not already covered by Step 3. Re-pull their attributes and e
 The pipeline is fast enough to re-run fully (~12 seconds total):
 
 ```bash
-python normalize.py   # 11s — pivots EAV, parses descriptions
-python rollup.py      # 0.6s — aggregates to facility level
-python classify.py    # 0.2s — conditions + tags
-python prepare_db.py  # 0.1s — indexes, photos, state cache
+python normalize.py               # 11s — pivots EAV, parses descriptions
+python rollup.py                  # 0.6s — aggregates to facility level
+python classify.py                # 0.2s — conditions + tags
+python prepare_db.py              # 0.1s — indexes, photos, state cache
+python scripts/backfill_coords.py # ~16 min first run, instant on re-runs (cached)
 ```
+
+### Step 6a: Backfill Missing Coordinates
+
+Many RIDB facilities have NULL lat/lon in the bulk export. `scripts/backfill_coords.py` fetches coordinates from the recreation.gov campground API (`/api/camps/campgrounds/{id}`), which has coords the RIDB export lacks.
+
+- **Resumable**: caches results in `scripts/coords_cache.json`
+- **First run**: ~16 min (970 facilities at 1 req/sec)
+- **Re-runs**: instant (only scrapes facilities not already cached)
+- **Flags**: `--dry-run` (no DB changes), `--apply-only` (apply cache without scraping)
+- **Recovery rate**: ~56% (545 of 970 in initial run, Feb 2026)
 
 No need for per-facility pipeline logic. The scripts do full DELETE + re-INSERT on normalized tables, so they rebuild cleanly from whatever is in the raw tables.
 

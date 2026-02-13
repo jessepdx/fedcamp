@@ -10,3 +10,4 @@ ridb_full.db
 *.log
 *_log.txt
 scripts/seasonal_cache.json
+scripts/coords_cache.json
