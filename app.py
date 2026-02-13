@@ -10,7 +10,7 @@ import os
 import time
 import threading
 from datetime import datetime, timezone, timedelta
-from flask import Flask, render_template, request, g, jsonify
+from flask import Flask, render_template, request, g, jsonify, send_file
 import db
 
 PST = timezone(timedelta(hours=-8))
@@ -338,6 +338,11 @@ def api_facility(facility_id):
 @app.route("/api/states")
 def api_states():
     return jsonify(db.get_states(g.conn))
+
+
+@app.route("/api/download")
+def api_download():
+    return send_file(db.DB_PATH, as_attachment=True, download_name="fedcamp.db")
 
 
 @app.route("/about")
