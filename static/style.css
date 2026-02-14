@@ -2,7 +2,8 @@
 
 /* Leaflet overrides — prevent Pico CSS from styling map elements,
    allow vertical page scroll through map on touch devices */
-.leaflet-container {
+.leaflet-container,
+.leaflet-container * {
     touch-action: pan-y !important;
 }
 
