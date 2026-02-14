@@ -388,8 +388,8 @@ def _attach_top_tags(conn, results, max_tags=4):
 
 def search_pins_by_bounds(conn, south, north, west, east,
                           camping_types=None, agencies=None,
-                          road_access=None, hookups=None,
-                          min_rv_length=None):
+                          road_access=None, styles=None,
+                          hookups=None, min_rv_length=None):
     """Lightweight bounding-box query for map pins. No LIMIT — bbox is the constraint."""
     if not camping_types:
         camping_types = ["DEVELOPED", "PRIMITIVE", "DISPERSED"]
@@ -417,6 +417,19 @@ def search_pins_by_bounds(conn, south, north, west, east,
     if road_access:
         sql += "  AND c.road_access IN ({})\n".format(','.join('?' * len(road_access)))
         params.extend(road_access)
+
+    if styles:
+        for s in styles:
+            if s == 'rv':
+                sql += "  AND r.sites_accepting_rv > 0\n"
+            elif s == 'tent':
+                sql += "  AND r.sites_accepting_tent > 0\n"
+            elif s == 'walkin':
+                sql += "  AND (r.walk_in_sites > 0 OR r.hike_in_sites > 0)\n"
+            elif s == 'boatin':
+                sql += "  AND r.boat_in_sites > 0\n"
+            elif s == 'equestrian':
+                sql += "  AND r.equestrian_sites > 0\n"
 
     if hookups:
         for h in hookups:

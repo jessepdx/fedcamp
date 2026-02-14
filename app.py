@@ -269,14 +269,15 @@ def api_pins():
     ct = request.args.getlist("camping_type") or None
     agencies = request.args.getlist("agency") or None
     road_access = request.args.getlist("road_access") or None
+    styles = request.args.getlist("style") or None
     hookups = request.args.getlist("hookup") or None
     min_rv = request.args.get("min_rv_length", type=int)
 
     pins = db.search_pins_by_bounds(
         g.conn, south, north, west, east,
         camping_types=ct, agencies=agencies,
-        road_access=road_access, hookups=hookups,
-        min_rv_length=min_rv)
+        road_access=road_access, styles=styles,
+        hookups=hookups, min_rv_length=min_rv)
     return jsonify(pins)
 
 

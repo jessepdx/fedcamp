@@ -84,6 +84,16 @@
         </div>
     </div>
     <div class="mf-group">
+        <span class="mf-label">Style</span>
+        <div id="mf-style" class="mf-check-row">
+            <label><input type="checkbox" value="rv"> RV</label>
+            <label><input type="checkbox" value="tent"> Tent</label>
+            <label><input type="checkbox" value="walkin"> Walk/Hike-in</label>
+            <label><input type="checkbox" value="boatin"> Boat-in</label>
+            <label><input type="checkbox" value="equestrian"> Equestrian</label>
+        </div>
+    </div>
+    <div class="mf-group">
         <span class="mf-label">Hookups</span>
         <div id="mf-hookups" class="mf-check-row">
             <label><input type="checkbox" value="electric"> Electric</label>
@@ -153,6 +163,7 @@
         camping_types: [],
         agencies: [],
         road_access: [],
+        styles: [],
         hookups: [],
         min_rv_length: null
     };
@@ -166,6 +177,8 @@
         document.querySelectorAll('#mf-agency input:checked').forEach(function(c) { filters.agencies.push(c.value); });
         filters.road_access = [];
         document.querySelectorAll('#mf-road input:checked').forEach(function(c) { filters.road_access.push(c.value); });
+        filters.styles = [];
+        document.querySelectorAll('#mf-style input:checked').forEach(function(c) { filters.styles.push(c.value); });
         filters.hookups = [];
         document.querySelectorAll('#mf-hookups input:checked').forEach(function(c) { filters.hookups.push(c.value); });
         var val = parseInt(document.getElementById('mf-rv-input').value, 10);
@@ -182,7 +195,7 @@
     });
 
     // Checkbox groups
-    ['mf-agency', 'mf-road', 'mf-hookups'].forEach(function(id) {
+    ['mf-agency', 'mf-road', 'mf-style', 'mf-hookups'].forEach(function(id) {
         document.querySelectorAll('#' + id + ' input').forEach(function(cb) {
             cb.onchange = function() { readFiltersAndReload(); };
         });
@@ -252,6 +265,7 @@
         filters.camping_types.forEach(function(v) { params += '&camping_type=' + v; });
         filters.agencies.forEach(function(v) { params += '&agency=' + v; });
         filters.road_access.forEach(function(v) { params += '&road_access=' + v; });
+        filters.styles.forEach(function(v) { params += '&style=' + v; });
         filters.hookups.forEach(function(v) { params += '&hookup=' + v; });
         if (filters.min_rv_length) params += '&min_rv_length=' + filters.min_rv_length;
         return params;
