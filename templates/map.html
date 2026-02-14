@@ -277,7 +277,7 @@
                         bubblingMouseEvents: false
                     }).addTo(pinLayer);
 
-                    var html = '<strong><a href="/facility/' + p.facility_id + '" target="_blank">'
+                    var html = '<strong><a href="/facility/' + p.facility_id + '">'
                         + escapeHtml(p.facility_name) + '</a></strong>';
                     if (p.total_campsites) html += '<br>' + p.total_campsites + ' sites';
                     if (p.org_abbrev) html += ' &middot; ' + p.org_abbrev;
