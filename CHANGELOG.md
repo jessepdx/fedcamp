@@ -2,6 +2,11 @@
 
 All notable changes to the RV Camping Finder project.
 
+## [0.10.2] — 2026-02-16
+
+### Added
+- Google Analytics (GA4) tracking
+
 ## [0.10.1] — 2026-02-13
 
 ### Changed

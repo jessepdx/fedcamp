@@ -57,10 +57,10 @@ def set_security_headers(response):
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     response.headers["Content-Security-Policy"] = (
         "default-src 'self'; "
-        "script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net https://connect.facebook.net; "
+        "script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net https://connect.facebook.net https://www.googletagmanager.com https://www.google-analytics.com; "
         "style-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net; "
-        "img-src 'self' https://*.tile.openstreetmap.org https://cdn.recreation.gov https://unpkg.com https://www.facebook.com data:; "
-        "connect-src 'self' https://www.facebook.com https://script.google.com; "
+        "img-src 'self' https://*.tile.openstreetmap.org https://cdn.recreation.gov https://unpkg.com https://www.facebook.com https://www.google-analytics.com https://www.googletagmanager.com data:; "
+        "connect-src 'self' https://www.facebook.com https://script.google.com https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com; "
         "font-src 'self'"
     )
     return response
