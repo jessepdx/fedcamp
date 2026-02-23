@@ -2,6 +2,13 @@
 
 All notable changes to the RV Camping Finder project.
 
+## [0.10.3] — 2026-02-23
+
+### Changed
+- About page updated for campdex.com domain and current map-based UI
+- Replaced old state-click search description with interactive map and filter bar
+- Updated API URL references from fedcamp.cloudromeo.com to campdex.com
+
 ## [0.10.2] — 2026-02-16
 
 ### Added

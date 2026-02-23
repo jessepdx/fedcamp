@@ -1,8 +1,8 @@
 {% extends "base.html" %}
-{% block title %}About — RV Camping Finder{% endblock %}
+{% block title %}About — Campdex{% endblock %}
 
 {% block content %}
-<h1>About RV Camping Finder</h1>
+<h1>About Campdex</h1>
 
 <article>
     <header><strong>Data Source</strong></header>
@@ -61,17 +61,17 @@
     <header><strong>Search &amp; Filters</strong></header>
     <p>Find campgrounds two ways:</p>
     <ul>
-        <li><strong>By State</strong> &mdash; Click a state on the <a href="/">home page map</a>, or use the <a href="/search-form">search form</a> to select a state.</li>
-        <li><strong>Search Nearby</strong> &mdash; The home page automatically detects your location. Choose a radius and search for campgrounds near you.</li>
+        <li><strong>Interactive Map</strong> &mdash; The <a href="/">home page</a> loads 6,300+ campground pins. Pan and zoom to explore, and tap any pin for details.</li>
+        <li><strong>Advanced Search</strong> &mdash; Use the <a href="/search-form">search form</a> to search by state, coordinates, or radius with detailed filters.</li>
     </ul>
-    <p>Refine results with filters (also available in the slide-out panel on the results page):</p>
+    <p>Filter pins on the map or refine advanced search results:</p>
     <ul>
         <li><strong>Camping Type</strong> &mdash; Developed campgrounds, primitive campgrounds, or dispersed/boondocking.</li>
-        <li><strong>Road Access</strong> &mdash; Filter by road type: paved, gravel, dirt, high clearance, 4WD.</li>
-        <li><strong>Season</strong> &mdash; Open year-round, seasonal closure, or winter closure.</li>
-        <li><strong>Campfires</strong> &mdash; Campfires allowed, restrictions, or no campfires.</li>
         <li><strong>Agency</strong> &mdash; Filter by managing agency (FS, BLM, NPS, USACE, BOR, FWS).</li>
-        <li><strong>Amenities</strong> &mdash; Require specific features: full hookups, electric, pull-through sites, dump station, etc.</li>
+        <li><strong>Road Access</strong> &mdash; Filter by road type: paved, gravel, dirt, high clearance, 4WD.</li>
+        <li><strong>Style</strong> &mdash; RV, Tent, Walk/Hike-in, Boat, or Equestrian.</li>
+        <li><strong>Hookups</strong> &mdash; Electric, water, or sewer hookups.</li>
+        <li><strong>Min RV Length</strong> &mdash; Only show campgrounds that fit your rig.</li>
     </ul>
 </article>
 
@@ -129,9 +129,9 @@ GET /api/facility/273354</code></pre>
 
     <h4>Using with AI Chatbots</h4>
     <p>You can connect this API to ChatGPT (custom GPTs), Claude, or any AI tool that supports HTTP actions.
-    Point your chatbot at <code>https://fedcamp.cloudromeo.com/api/</code> and give it instructions like:</p>
+    Point your chatbot at <code>https://campdex.com/api/</code> and give it instructions like:</p>
     <blockquote>
-        <p><em>Use the FedCamp API at fedcamp.cloudromeo.com to help users find federal campgrounds.
+        <p><em>Use the Campdex API at campdex.com to help users find federal campgrounds.
         Start by calling /api/states to see what's available, then use /api/search with the user's state or
         coordinates and any filters they mention. Use /api/facility/&lt;id&gt; to get full details
         when a user asks about a specific campground.</em></p>
@@ -144,7 +144,7 @@ GET /api/facility/273354</code></pre>
     <h4>Download the Database</h4>
     <p>Want the raw data? Download the full SQLite database and query it yourself.</p>
     <p>
-        <a href="/api/download" role="button" class="outline">Download fedcamp.db (~72 MB)</a>
+        <a href="/api/download" role="button" class="outline">Download campdex.db (~72 MB)</a>
         <a href="/static/fedcamp-db-guide.md" role="button" class="outline secondary">Database Guide (.md)</a>
     </p>
 </article>
