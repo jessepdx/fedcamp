@@ -7,6 +7,9 @@ All notable changes to the RV Camping Finder project.
 ### Added
 - SVG favicon (pine tree)
 
+### Fixed
+- Hide 362 facilities with no name/agency data from map pins, search results, and nearby lists
+
 ### Changed
 - About page updated for campdex.com domain and current map-based UI
 - Replaced old state-click search description with interactive map and filter bar

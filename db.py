@@ -66,7 +66,8 @@ def search_by_state(conn, state_codes, camping_types=None,
         LEFT JOIN facility_addresses fa
             ON r.facility_id = fa.facility_id AND fa.address_type = 'Physical'
         LEFT JOIN n_facility_photo p ON r.facility_id = p.facility_id
-        WHERE fa.state_code IN ({})
+        WHERE r.facility_name IS NOT NULL AND r.facility_name <> ''
+          AND fa.state_code IN ({})
           AND r.camping_type IN ({})
     """.format(','.join('?' * len(state_codes)), ','.join('?' * len(camping_types)))
     params = list(state_codes) + camping_types
@@ -166,6 +167,7 @@ def search_by_location(conn, lat, lon, radius_miles=100,
             ON r.facility_id = fa.facility_id AND fa.address_type = 'Physical'
         LEFT JOIN n_facility_photo p ON r.facility_id = p.facility_id
         WHERE r.coords_valid = 1
+          AND r.facility_name IS NOT NULL AND r.facility_name <> ''
           AND r.latitude BETWEEN ? AND ?
           AND r.longitude BETWEEN ? AND ?
           AND r.camping_type IN ({})
@@ -333,6 +335,7 @@ def get_nearby(conn, facility_id, lat, lon, radius_miles=50, limit=8):
             ON r.facility_id = fa.facility_id AND fa.address_type = 'Physical'
         WHERE r.facility_id != ?
           AND r.coords_valid = 1
+          AND r.facility_name IS NOT NULL AND r.facility_name <> ''
           AND r.camping_type IN ('DEVELOPED', 'PRIMITIVE', 'DISPERSED')
           AND r.latitude BETWEEN ? AND ?
           AND r.longitude BETWEEN ? AND ?
@@ -404,6 +407,7 @@ def search_pins_by_bounds(conn, south, north, west, east,
         FROM n_facility_rollup r
         JOIN n_facility_conditions c ON r.facility_id = c.facility_id
         WHERE r.coords_valid = 1
+          AND r.facility_name IS NOT NULL AND r.facility_name <> ''
           AND r.latitude BETWEEN ? AND ?
           AND r.longitude BETWEEN ? AND ?
           AND r.camping_type IN ({})
