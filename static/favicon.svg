@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Pine tree -->
+  <polygon points="32,6 18,28 24,28 14,44 22,44 12,58 52,58 42,44 50,44 40,28 46,28" fill="#2d7d46"/>
+  <!-- Trunk -->
+  <rect x="28" y="58" width="8" height="6" fill="#8B5E3C"/>
+</svg>

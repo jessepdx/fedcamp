@@ -4,6 +4,9 @@ All notable changes to the RV Camping Finder project.
 
 ## [0.10.3] — 2026-02-23
 
+### Added
+- SVG favicon (pine tree)
+
 ### Changed
 - About page updated for campdex.com domain and current map-based UI
 - Replaced old state-click search description with interactive map and filter bar
