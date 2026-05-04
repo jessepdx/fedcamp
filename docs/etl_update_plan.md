@@ -144,6 +144,17 @@ SYNC COMPLETE
 - Safe to run multiple times (upserts + full pipeline rebuild)
 - If a run fails mid-pull, `last_sync_date` is unchanged — the next run resumes from the same point
 
+### Pushing fresh data to the live host
+
+`sync.py` operates on the full 362MB working DB. Don't deploy that — the Lightsail nano host is sized for the trimmed app DB. After a sync:
+
+```bash
+python purge_for_deploy.py   # ridb.db -> ridb_app.db (~73MB, app-reachable tables only)
+./deploy.sh --db             # uploads ridb_app.db, swaps it in atomically as ridb.db
+```
+
+`purge_for_deploy.py --check` shows the keep/drop list without writing.
+
 ## Database notes
 
 - `sync.py` reads/writes `ridb.db`, which must contain the raw RIDB tables (`facilities`, `campsites`, `campsite_attributes`, `campsite_equipment`, `media`, `facility_addresses`, `facility_activities`). The script asserts these are present at startup.

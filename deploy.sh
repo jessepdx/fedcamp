@@ -18,9 +18,14 @@ echo "==> Uploading app tarball..."
 $SCP /tmp/fedcamp.tar.gz "$HOST:~"
 
 if [[ "${1:-}" == "--db" ]]; then
-    echo "==> Uploading ridb.db (this may take a minute)..."
-    $SCP ridb.db "$HOST:~"
-    $SSH "$HOST" "mv ~/ridb.db $REMOTE_DIR/"
+    if [[ ! -f ridb_app.db ]]; then
+        echo "ERROR: ridb_app.db not found. Run 'python purge_for_deploy.py' first." >&2
+        exit 1
+    fi
+    echo "==> Uploading ridb_app.db (this may take a minute)..."
+    $SCP ridb_app.db "$HOST:~"
+    # Atomic-ish swap: upload to a side path, then mv into place
+    $SSH "$HOST" "mv ~/ridb_app.db $REMOTE_DIR/ridb.db.new && mv $REMOTE_DIR/ridb.db.new $REMOTE_DIR/ridb.db"
 fi
 
 echo "==> Extracting on server..."

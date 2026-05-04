@@ -7,11 +7,13 @@ All notable changes to the RV Camping Finder project.
 ### Added
 - `sync.py` — incremental RIDB sync orchestrator. Pulls facilities changed since `last_sync_date`, re-pulls their campsites/attributes/equipment/media, then runs the full pipeline (`normalize` → `rollup` → `classify` → `prepare_db`) and post-pipeline cleaning (`backfill_coords`, `scrape_seasonal`). CLI flags: `--since`, `--skip-pull`, `--skip-pipeline`, `--skip-coords`, `--skip-seasonal`.
 - `last_sync_date` key in `n_meta`, written after the pipeline so `normalize.py`'s `DELETE FROM n_meta` doesn't wipe it.
+- `purge_for_deploy.py` — produces a slimmed `ridb_app.db` from the synced 362MB working DB by dropping pipeline-only tables (raw EAV `campsite_attributes`/`campsite_equipment`, intermediate `n_campsite*`/`n_facility`, `rec_areas`, etc.) and `VACUUM`ing. Output ~73MB, matching the previous live footprint. `--check` flag previews the drop list without writing.
 
 ### Changed
 - Map page now defaults to the Oregon region (center 44.0, -120.5, zoom 7) instead of a US-wide view.
 - Removed automatic browser geolocation prompt on map load — pins load immediately for the default region.
 - Refreshed RIDB data through 2026-05-04: 654 changed facilities, 15,640 campsites, 3,011 media records re-pulled. 1,484 API calls, 40.5 min. Campable facility count grew 6,319 → 7,201; coords coverage 12,474 → 13,141.
+- `deploy.sh --db` now uploads `ridb_app.db` (the purged copy) instead of `ridb.db` directly, and uses an atomic mv on the server. The script errors out if `ridb_app.db` is missing, prompting the operator to run `purge_for_deploy.py` first.
 
 ### Fixed
 - `docs/etl_update_plan.md` documented the wrong `lastupdated` date format. RIDB silently ignores `MM-DD-YYYY` and returns everything; the actual format is `YYYY-MM-DD`. Plan and `sync.py` corrected.
