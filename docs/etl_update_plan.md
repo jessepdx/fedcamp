@@ -1,55 +1,67 @@
 # ETL Incremental Update Plan
 
+> **Status**: Implemented as `sync.py` (root). First successful run: 2026-05-04.
+
 ## Overview
 
-The RIDB API supports a `lastupdated` query parameter (`MM-DD-YYYY` format) that returns records modified since a given date. This enables incremental syncs instead of full re-pulls (which take hours due to the 50 req/min rate limit).
+The RIDB API supports a `lastupdated` query parameter on `/facilities` that returns records modified since a given date. This enables incremental syncs instead of full re-pulls (which take hours due to the 50 req/min rate limit).
 
-## Current Data Profile
+> **API quirk**: the date format is **`YYYY-MM-DD`**, not `MM-DD-YYYY`. A wrong format is silently ignored — the endpoint returns *all* records as if no filter were given. The original plan documented the wrong format; this was caught in the 2026-05-04 run when the filter returned 15,245 facilities for a one-month window.
+>
+> **API quirk #2**: `/campsites?lastupdated=…` ignores the filter entirely and returns the full ~134K-row set regardless. The original plan's "Step 5: Check for Changed Campsites Independently" was therefore dropped — campsite changes are caught only via their parent facility.
+
+## Current Data Profile (as of 2026-05-04)
 
 | Table | Rows | Has `last_updated` |
 |-------|------|--------------------|
-| facilities | 15,061 | Yes |
-| campsites | 132,974 | Yes |
-| campsite_attributes | 2,423,061 | No (child of campsites) |
-| campsite_equipment | 431,992 | No (child of campsites) |
+| facilities | 15,220 | Yes |
+| campsites | 133,814 | Yes |
+| campsite_attributes | 2,436,021 | No (child of campsites) |
+| campsite_equipment | 436,075 | No (child of campsites) |
 | rec_areas | 3,671 | Yes |
-| media | 32,500 | No |
+| media | 35,105 | No |
 | facility_activities | 48,795 | No |
 | permit_entrances | 857 | Yes |
 
 ## Typical Monthly Change Volume
 
-Based on `last_updated` distribution in the current dataset:
-
-- **Facilities**: 50–200 per month (spikes to ~4K in bulk update months)
-- **Campsites**: 1K–3K per month (one-time bulk of 128K in Dec 2025)
-- **API calls needed**: ~200–500 per sync (vs ~5,000+ for full pull)
-- **Time estimate**: 5–15 minutes (vs 3–5 hours for full pull)
+- **Facilities**: 50–200/month, occasionally 500–800/month, with rare bulk-stamp events (~15K) where RIDB re-touches `LastUpdatedDate` on every record without changing data
+- **API calls per sync**: ~200–2,000 (vs ~5,000+ for full pull)
+- **Time estimate**: 5–60 min depending on changed-facility count
+- **Bulk-stamp months**: a sync starting from before the bulk-stamp date will fan-out to *every* facility (~12 hours). Use `--since <date-after-stamp>` to skip.
 
 ## Implementation: `sync.py`
 
-### Step 1: Read Last Sync Timestamp
+CLI:
+```bash
+python sync.py                           # incremental from last_sync_date
+python sync.py --since 2026-04-01        # override start date
+python sync.py --skip-pull               # only run pipeline + cleaning
+python sync.py --skip-pipeline           # only run API pull
+python sync.py --skip-coords             # skip backfill_coords
+python sync.py --skip-seasonal           # skip scrape_seasonal
+```
+
+### Step 1: Read last sync timestamp
 
 ```python
-last_sync = conn.execute(
-    "SELECT value FROM n_meta WHERE key = 'last_sync_date'"
-).fetchone()
-# Default to 30 days ago if never synced
+SELECT value FROM n_meta WHERE key = 'last_sync_date'
+# Falls back to MAX(last_updated) FROM facilities, then 30 days ago.
 ```
 
-### Step 2: Fetch Changed Facilities
+### Step 2: Fetch changed facilities
 
 ```
-GET /api/v1/facilities?lastupdated=MM-DD-YYYY&limit=50&offset=0
+GET /api/v1/facilities?lastupdated=YYYY-MM-DD&limit=50&offset=0&full=true
 ```
 
-Paginate through all results. Collect facility IDs and upsert facility rows:
+Paginate through all results. For each facility:
 
-```python
-INSERT OR REPLACE INTO facilities (...) VALUES (...)
-```
+1. `INSERT OR REPLACE INTO facilities (…)`
+2. If the response contains `FACILITYADDRESS`: `DELETE FROM facility_addresses WHERE facility_id = ?` then re-insert. (Skip if the field is absent — that's an API omission, not "really has none".)
+3. Same pattern for `ACTIVITY` → `facility_activities`.
 
-### Step 3: Re-pull Campsites for Changed Facilities
+### Step 3: Re-pull campsites for changed facilities
 
 For each changed facility ID:
 
@@ -57,88 +69,90 @@ For each changed facility ID:
 GET /api/v1/facilities/{id}/campsites?limit=50&offset=0
 ```
 
-Each campsite response includes nested `attributes` and `equipment` arrays. For each changed facility:
+Each campsite response includes nested `ATTRIBUTES` and `PERMITTEDEQUIPMENT` arrays.
 
-1. `DELETE FROM campsites WHERE facility_id = ?`
-2. `DELETE FROM campsite_attributes WHERE campsite_id IN (SELECT campsite_id FROM ...)`
-3. `DELETE FROM campsite_equipment WHERE campsite_id IN (SELECT campsite_id FROM ...)`
-4. Insert fresh campsite + attribute + equipment rows
+**Safety pattern**: fetch the first page *before* deleting. If the fetch errors or returns no `RECDATA`, skip the facility — don't wipe existing good data on a transient failure. Only when the first page comes back valid:
 
-### Step 4: Re-pull Related Data for Changed Facilities
+1. `DELETE FROM campsite_attributes WHERE campsite_id IN (SELECT … WHERE facility_id = ?)`
+2. `DELETE FROM campsite_equipment   WHERE campsite_id IN (SELECT … WHERE facility_id = ?)`
+3. `DELETE FROM campsites             WHERE facility_id = ?`
+4. Insert fresh campsite + attribute + equipment rows from this and subsequent pages.
+
+### Step 4: Re-pull facility-level media
 
 For each changed facility:
 
 ```
-GET /api/v1/facilities/{id}/media
-GET /api/v1/facilities/{id}/activities
+GET /api/v1/facilities/{id}/media?limit=50
 ```
 
-Delete and re-insert for each facility.
+Replace `media` rows where `entity_id = facility_id AND entity_type = 'Facility'`.
 
-### Step 5: Check for Changed Campsites Independently
+> Note: campsite-level media (`entity_type = 'Campsite'`) is *not* refreshed by sync — it's only obtainable via the global `/media` endpoint or per-campsite calls. `n_facility_photo` is built from campsite media, so its row count won't grow until a full media re-pull. Existing photos are preserved.
 
-Campsites can change without their parent facility changing. Check:
+### Step 5: Re-run the pipeline
 
-```
-GET /api/v1/campsites?lastupdated=MM-DD-YYYY&limit=50&offset=0
-```
-
-Pull any campsites not already covered by Step 3. Re-pull their attributes and equipment.
-
-### Step 6: Re-run Full Pipeline
-
-The pipeline is fast enough to re-run fully (~12 seconds total):
+`sync.py` invokes each script as a subprocess. Total ~12s.
 
 ```bash
-python normalize.py               # 11s — pivots EAV, parses descriptions
-python rollup.py                  # 0.6s — aggregates to facility level
-python classify.py                # 0.2s — conditions + tags
-python prepare_db.py              # 0.1s — indexes, photos, state cache
-python scripts/backfill_coords.py # ~16 min first run, instant on re-runs (cached)
+python normalize.py    # ~11s — pivots EAV, parses descriptions
+python rollup.py       # ~1s  — aggregates to facility level
+python classify.py     # ~1s  — conditions + tags
+python prepare_db.py   # ~1s  — indexes, photos, state cache
 ```
 
-### Step 6a: Backfill Missing Coordinates
+### Step 6: Post-pipeline cleaning / enrichment
 
-Many RIDB facilities have NULL lat/lon in the bulk export. `scripts/backfill_coords.py` fetches coordinates from the recreation.gov campground API (`/api/camps/campgrounds/{id}`), which has coords the RIDB export lacks.
+Both scripts are resumable via JSON cache and idempotent.
 
-- **Resumable**: caches results in `scripts/coords_cache.json`
-- **First run**: ~16 min (970 facilities at 1 req/sec)
-- **Re-runs**: instant (only scrapes facilities not already cached)
-- **Flags**: `--dry-run` (no DB changes), `--apply-only` (apply cache without scraping)
-- **Recovery rate**: ~56% (545 of 970 in initial run, Feb 2026)
+```bash
+python scripts/backfill_coords.py   # fills NULL coords from recreation.gov campground API
+python scripts/scrape_seasonal.py   # scrapes seasonal status (closures, winter, etc.)
+```
 
-No need for per-facility pipeline logic. The scripts do full DELETE + re-INSERT on normalized tables, so they rebuild cleanly from whatever is in the raw tables.
+These run **after** the pipeline because the pipeline rebuilds `n_facility_rollup` and `n_facility_conditions` from scratch — the cleaning scripts then apply their cached results to the rebuilt tables.
 
-### Step 7: Update Sync Timestamp
+- `backfill_coords.py`: cache at `scripts/coords_cache.json`. ~16 min on first run, seconds on re-runs (only new NULL-coord facilities are scraped).
+- `scrape_seasonal.py`: cache at `scripts/seasonal_cache.json`. Targets only `UNKNOWN` campable facilities, so re-runs are fast.
 
-```python
+### Step 7: Update sync timestamp
+
+**Order matters**: `normalize.py` does `DELETE FROM n_meta` and rewrites it, so writing `last_sync_date` *before* the pipeline loses it. `sync.py` writes it as the last step, after pipeline + cleaning have completed:
+
+```sql
 INSERT OR REPLACE INTO n_meta (key, value, updated_at)
-VALUES ('last_sync_date', '2026-02-07', datetime('now'))
+VALUES ('last_sync_date', '2026-05-04', datetime('now'))
 ```
 
-### Step 8: Log Results
+### Step 8: Log results
 
-Print a summary:
+Example summary from the 2026-05-04 run:
 
 ```
-Sync complete — 2026-02-07
-  Facilities updated: 47
-  Campsites updated: 312
-  API calls: 198
-  Duration: 6m 32s
-  Pipeline re-run: 11.8s
+SYNC COMPLETE
+  API calls:           1,484
+  Changed facilities:  654
+  Campsites refreshed: 15,640 across 453 facilities
+  Media records:       3,011
+  Total time:          40.5 min
 ```
 
 ## Deployment
 
-- Run as a daily cron job: `0 3 * * * cd /path/to/fedcamp && source venv/bin/activate && python sync.py`
-- Requires `RIDB_API_KEY` environment variable
-- Safe to run multiple times (idempotent — upserts + full pipeline rebuild)
-- If sync fails mid-run, next run picks up where it left off (unchanged `last_sync_date`)
+- Run as a daily cron: `0 3 * * * cd /path/to/fedcamp && source venv/bin/activate && python sync.py`
+- Requires `RIDB_API_KEY` (read from environment or `.env`)
+- Safe to run multiple times (upserts + full pipeline rebuild)
+- If a run fails mid-pull, `last_sync_date` is unchanged — the next run resumes from the same point
 
-## Edge Cases
+## Database notes
 
-- **Deleted facilities**: RIDB API doesn't surface deletions. Periodic full pulls (monthly?) can catch these, or just accept stale entries.
-- **Bulk update months**: Occasionally RIDB does mass updates (e.g., 4K facilities in Feb 2026). The sync will take longer but still work — just more API calls.
-- **New facilities**: The `lastupdated` filter catches new records too (their `LastUpdatedDate` is their creation date).
-- **campsite_attributes has no `last_updated`**: This is fine — we re-pull all attributes for any campsite that changed, via the nested response from `/facilities/{id}/campsites`.
+- `sync.py` reads/writes `ridb.db`, which must contain the raw RIDB tables (`facilities`, `campsites`, `campsite_attributes`, `campsite_equipment`, `media`, `facility_addresses`, `facility_activities`). The script asserts these are present at startup.
+- A trimmed "app-only" copy may have been deployed in the past; the local working DB must keep the raw tables to allow re-runs of the pipeline.
+
+## Edge cases
+
+- **Deleted facilities**: RIDB doesn't surface deletions. They linger as stale rows. Either tolerate this or do a periodic full pull (`scripts/pull_ridb_data.py`).
+- **Bulk-stamp events**: RIDB occasionally re-touches `LastUpdatedDate` on every record (~15K facilities). A sync that crosses such a boundary fans out to all facilities (~12 hours). Mitigate by passing `--since <date-after-the-stamp>`.
+- **New facilities**: caught by the `lastupdated` filter (their `LastUpdatedDate` is the creation date).
+- **`campsite_attributes` has no `last_updated`**: fine — they're refreshed via the nested arrays in `/facilities/{id}/campsites`.
+- **Independently-changed campsites**: not detectable. The `/campsites` endpoint ignores `lastupdated`. Such changes are only picked up if the parent facility was also touched.

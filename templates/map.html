@@ -118,8 +118,8 @@
     try {
 
     var map = L.map('state-map', {
-        center: [39.5, -98.5],
-        zoom: 4,
+        center: [44.0, -120.5],
+        zoom: 7,
         minZoom: 3,
         maxZoom: 18,
         preferCanvas: true
@@ -134,7 +134,7 @@
     var status = L.control({position: 'topleft'});
     status.onAdd = function() {
         this._div = L.DomUtil.create('div', 'map-status');
-        this._div.innerHTML = '<strong>Locating you...</strong>';
+        this._div.innerHTML = '<strong>Loading...</strong>';
         return this._div;
     };
     status.update = function(html) {
@@ -321,25 +321,9 @@
     });
 
     // ---------------------------------------------------------------
-    // Geolocation
+    // Initial load — default to Oregon region (no auto-geolocation prompt)
     // ---------------------------------------------------------------
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(function(pos) {
-            var lat = pos.coords.latitude;
-            var lon = pos.coords.longitude;
-            L.circleMarker([lat, lon], {
-                radius: 10, fillColor: '#3b82f6', color: '#fff',
-                weight: 3, fillOpacity: 0.9
-            }).addTo(map).bindPopup('You are here').openPopup();
-            map.setView([lat, lon], 8);
-            // moveend will fire and trigger loadPins
-        }, function() {
-            // Geolocation failed — load pins for default view
-            loadPins();
-        }, { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 });
-    } else {
-        loadPins();
-    }
+    loadPins();
 
     } catch(e) {
         document.getElementById('state-map').innerHTML =

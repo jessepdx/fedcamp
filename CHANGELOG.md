@@ -2,6 +2,25 @@
 
 All notable changes to the RV Camping Finder project.
 
+## [0.10.4] — 2026-05-04
+
+### Added
+- `sync.py` — incremental RIDB sync orchestrator. Pulls facilities changed since `last_sync_date`, re-pulls their campsites/attributes/equipment/media, then runs the full pipeline (`normalize` → `rollup` → `classify` → `prepare_db`) and post-pipeline cleaning (`backfill_coords`, `scrape_seasonal`). CLI flags: `--since`, `--skip-pull`, `--skip-pipeline`, `--skip-coords`, `--skip-seasonal`.
+- `last_sync_date` key in `n_meta`, written after the pipeline so `normalize.py`'s `DELETE FROM n_meta` doesn't wipe it.
+
+### Changed
+- Map page now defaults to the Oregon region (center 44.0, -120.5, zoom 7) instead of a US-wide view.
+- Removed automatic browser geolocation prompt on map load — pins load immediately for the default region.
+- Refreshed RIDB data through 2026-05-04: 654 changed facilities, 15,640 campsites, 3,011 media records re-pulled. 1,484 API calls, 40.5 min. Campable facility count grew 6,319 → 7,201; coords coverage 12,474 → 13,141.
+
+### Fixed
+- `docs/etl_update_plan.md` documented the wrong `lastupdated` date format. RIDB silently ignores `MM-DD-YYYY` and returns everything; the actual format is `YYYY-MM-DD`. Plan and `sync.py` corrected.
+- Removed the plan's "independent campsites sweep" step — `/campsites?lastupdated=…` doesn't honor the filter (returns the full ~134K set regardless of date), so that step would fan-out to every facility.
+
+### Safety
+- `sync.py` re-fetches the first page of `/facilities/{id}/campsites` *before* deleting existing campsite rows for that facility. Transient API errors no longer wipe good data.
+- Address/activity rewrites are skipped if the API response omits the field entirely (vs. an empty list, which is treated as a real "facility has none").
+
 ## [0.10.3] — 2026-02-23
 
 ### Added

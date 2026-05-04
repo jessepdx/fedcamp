@@ -4,6 +4,7 @@ __pycache__/
 .env
 ridb.db
 ridb_full.db
+*.bak
 *.db-journal
 *.db-shm
 *.db-wal
