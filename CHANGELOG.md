@@ -2,6 +2,24 @@
 
 All notable changes to the RV Camping Finder project.
 
+## [0.10.5] — 2026-08-03
+
+### Fixed
+- API rate limiter was one global bucket rather than per-IP. Behind Caddy → gunicorn on `127.0.0.1`, `request.remote_addr` is always `127.0.0.1`, so the documented "60 req/min per IP" was really 60 req/min shared by every visitor — one busy client could 429 the entire site, including the map's own `/api/pins` calls. `app.py` now resolves the caller through a new `_client_ip()` helper (`CF-Connecting-IP` → leftmost `X-Forwarded-For` → `remote_addr`).
+- `/stats` unique-visitor counts came from Caddy's `remote_ip`, which is a Cloudflare edge address, not the visitor's. Measured against the live access log this over-counted by ~26% (436 reported vs 347 actual), because a single visitor is routed through several edge IPs. `stats.py` now prefers the `CF-Connecting-IP` request header and falls back to `remote_ip` for older log lines.
+
+### Changed
+- `deploy.sh` hardening:
+  - Stops gunicorn around the database swap and deletes the stale `ridb.db-wal`/`ridb.db-shm`. Replacing `ridb.db` while the old WAL stayed in place was a SQLite corruption path, since the WAL is bound by filename rather than to file contents. Safe to discard here because `db.py` issues no writes.
+  - Verifies `ridb_app.db` locally with `wal_checkpoint(TRUNCATE)` and `integrity_check` before upload, and refuses to deploy a corrupt database.
+  - Real health checks after restart: `systemctl start` only proves the gunicorn master forked, so the script now polls the app on `127.0.0.1:5000` and then confirms `https://campdex.com/` publicly. An origin-only check would not have caught the Jul 2026 Caddy failure, through which gunicorn stayed perfectly healthy for 5 days.
+  - Snapshots the current release to `~/fedcamp-rollback-<stamp>.tar.gz`, keeps the previous database as `ridb.db.prev`, and prints exact rollback commands on failure.
+  - `StrictHostKeyChecking=no` → `accept-new`, pinning the host key after first contact.
+  - Header comment points at `campdex.com` instead of the retired `fedcamp.cloudromeo.com`; temp tarballs cleaned up on both ends.
+
+### Notes
+- Production Caddy now serves the app on both `http://campdex.com` and `https://campdex.com`. Cloudflare's SSL/TLS mode for the zone is "Flexible", so it connects to the origin over plain :80, and a redirect there caused an infinite loop. This is a stopgap — the intended end state is Cloudflare "Full (strict)" plus a firewall limiting :80/:443 to Cloudflare's ranges, which is also what makes `_client_ip()` unspoofable.
+
 ## [0.10.4] — 2026-05-04
 
 ### Added

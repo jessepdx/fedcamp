@@ -44,6 +44,30 @@ def _check_rate_limit(ip):
                 del _rate_buckets[k]
         return True, API_RATE_LIMIT - len(hits), 0
 
+
+def _client_ip():
+    """Return the real client IP for rate-limiting purposes.
+
+    Behind Caddy -> gunicorn on 127.0.0.1, request.remote_addr is always
+    127.0.0.1, which collapses the per-IP limit into one global bucket
+    shared by every visitor. Cloudflare sets CF-Connecting-IP to the true
+    client address and Caddy passes it through untouched.
+
+    This trusts the incoming headers, which is only sound while the origin
+    is reached exclusively through Cloudflare -- a client hitting the origin
+    IP directly can forge them. Firewalling :80/:443 to Cloudflare's
+    published ranges is what closes that gap.
+    """
+    cf = request.headers.get("CF-Connecting-IP")
+    if cf:
+        return cf.strip()
+    fwd = request.headers.get("X-Forwarded-For", "")
+    if fwd:
+        # Leftmost entry is the original client; the rest are proxy hops.
+        return fwd.split(",")[0].strip()
+    return request.remote_addr
+
+
 # Winter months where seasonal/winter-closure campgrounds are likely closed
 WINTER_MONTHS = {11, 12, 1, 2, 3, 4}  # Nov–Apr
 
@@ -126,7 +150,7 @@ def inject_now():
 def before_request():
     # Rate-limit API endpoints (60 req/min per IP)
     if request.path.startswith("/api/"):
-        ip = request.remote_addr
+        ip = _client_ip()
         allowed, remaining, retry_after = _check_rate_limit(ip)
         if not allowed:
             resp = jsonify({"error": "rate limit exceeded"})

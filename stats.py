@@ -180,8 +180,12 @@ def _process_entry(entry, visitors, page_views, facility_views,
     # Parse path (strip query string)
     path = uri.split("?")[0].rstrip("/") or "/"
 
-    # Unique visitor
-    ip = req.get("remote_ip", "")
+    # Unique visitor. remote_ip is Cloudflare's edge address, not the
+    # visitor's, so counting it is wrong in both directions: separate visitors
+    # share an edge node, while one visitor gets routed through several. On
+    # the live log the net effect was ~26% over-counting. Cloudflare sends the
+    # real client address in CF-Connecting-IP.
+    ip = _get_header(req, "Cf-Connecting-Ip") or req.get("remote_ip", "")
     if ip:
         visitors.add(ip)
 
