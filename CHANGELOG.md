@@ -2,6 +2,19 @@
 
 All notable changes to the Campdex (formerly RV Camping Finder) project.
 
+## [0.15.1] — 2026-08-03
+
+### Changed
+- **Missing conditions now say "Not recorded" and look like a gap, not a value.** About half of campable facilities have no road access published, 40% no season, 57% no campfire status — RIDB simply doesn't carry it. These previously rendered as a solid grey "Unknown" pill, indistinguishable at a glance from a real value. They now render as a muted dashed outline, because a solid pill reads as something the agency published. Not overclaiming is the whole point of this site.
+- Facility pages with gaps carry a line naming exactly what's missing and pointing at the description and directions, which is usually where the answer lives — plus the advice to call the agency before a long drive.
+- `tag_display` no longer mangles the acronyms this vocabulary is full of: `4WD_REQUIRED` rendered as "4Wd Required".
+
+### Fixed
+- `tag_display` raised `AttributeError` on `None`. Several condition columns are genuinely NULL rather than the literal `'UNKNOWN'`, so any template reaching one would have 500'd.
+
+### Notes
+- Checked whether the classifier discards description-derived signals it had already parsed, since descriptions often mention road and season detail. For road access and campfires the answer is **0%** — every signal the pipeline extracts is already used. For season, 351 facilities have a signal but stay `UNKNOWN`, and all 351 are "mentions snow" with no explicit closure language. That is correct: plenty of year-round campgrounds mention snow. No recoverable signal is being thrown away, so the honest fix was to surface the gap rather than guess at a value.
+
 ## [0.15.0] — 2026-08-03
 
 ### Added

@@ -1572,3 +1572,23 @@ body.map-page .map-strap-h1 {
 @media (max-width: 640px) {
     body.map-page .map-strap-h1 { font-size: .85rem; padding: .4rem .75rem 0; }
 }
+
+/* --- Unrecorded conditions -------------------------------------------
+   About half of facilities have no road access recorded, 40% no season,
+   57% no campfire status. RIDB simply doesn't carry it for them.
+
+   These render as a muted outline rather than a solid pill, because a
+   solid pill reads as a value the managing agency published. The whole
+   point of this site is not overclaiming: "we don't know" has to look
+   different from "we know, and it's fine". */
+.condition-pill-unrecorded {
+    background: transparent !important;
+    color: #6b7280;
+    border: 1px dashed #b6bec4;
+    font-weight: 600;
+}
+.data-gap-note {
+    margin-top: .75rem;
+    font-size: .82rem;
+    color: #6b7280;
+}

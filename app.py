@@ -620,7 +620,28 @@ def site_stats():
 # Template filters
 @app.template_filter("tag_display")
 def tag_display(tag):
-    return tag.replace("_", " ").title()
+    """Human label for an enum value.
+
+    UNKNOWN is rendered as "Not recorded", not "Unknown". The distinction
+    matters: this data comes from RIDB, and a missing value means the
+    managing agency never published it -- not that the campground has no
+    road or no fire policy. Saying "Unknown" invites the reader to think we
+    looked and couldn't tell.
+
+    None-tolerant: several condition columns are genuinely NULL rather than
+    the literal string, and this filter used to raise AttributeError on them.
+    """
+    if not tag:
+        return "Not recorded"
+    if tag == "UNKNOWN":
+        return "Not recorded"
+    words = tag.replace("_", " ").title().split()
+    # .title() mangles the acronyms this vocabulary is full of: 4WD_REQUIRED
+    # became "4Wd Required", OHV became "Ohv".
+    fixed = {"4Wd": "4WD", "Rv": "RV", "Ohv": "OHV", "Atv": "ATV",
+             "Blm": "BLM", "Nps": "NPS", "Usfs": "USFS", "Usace": "USACE",
+             "Fws": "FWS", "Bor": "BOR", "Amp": "amp", "Ada": "ADA"}
+    return " ".join(fixed.get(w, w) for w in words)
 
 
 # Acronyms / abbreviations to preserve when title-casing ALL-CAPS names

@@ -117,9 +117,13 @@
     <div class="conditions-grid">
         <div class="condition-item">
             <small class="condition-label">Road Access</small>
+            {% if f.road_access and f.road_access != 'UNKNOWN' %}
             <span class="condition-pill" style="background:{{ f.road_access | condition_color }}">
                 {{ f.road_access | tag_display }}
             </span>
+            {% else %}
+            <span class="condition-pill condition-pill-unrecorded">Not recorded</span>
+            {% endif %}
         </div>
         {% if f.driveway_surface and f.driveway_surface != 'UNKNOWN' %}
         <div class="condition-item">
@@ -131,15 +135,23 @@
         {% endif %}
         <div class="condition-item">
             <small class="condition-label">Season</small>
+            {% if f.seasonal_status and f.seasonal_status != 'UNKNOWN' %}
             <span class="condition-pill" style="background:{{ f.seasonal_status | condition_color }}">
                 {{ f.seasonal_status | tag_display }}
             </span>
+            {% else %}
+            <span class="condition-pill condition-pill-unrecorded">Not recorded</span>
+            {% endif %}
         </div>
         <div class="condition-item">
             <small class="condition-label">Campfires</small>
+            {% if f.fire_status and f.fire_status != 'UNKNOWN' %}
             <span class="condition-pill" style="background:{{ f.fire_status | condition_color }}">
                 {{ f.fire_status | tag_display }}
             </span>
+            {% else %}
+            <span class="condition-pill condition-pill-unrecorded">Not recorded</span>
+            {% endif %}
         </div>
         {% if f.elevation_ft %}
         <div class="condition-item">
@@ -156,9 +168,13 @@
         {% if f.boondock_accessibility %}
         <div class="condition-item">
             <small class="condition-label">Boondock Access</small>
+            {% if f.boondock_accessibility != 'UNKNOWN' %}
             <span class="condition-pill" style="background:{{ f.boondock_accessibility | condition_color }}">
                 {{ f.boondock_accessibility | title }}
             </span>
+            {% else %}
+            <span class="condition-pill condition-pill-unrecorded">Not recorded</span>
+            {% endif %}
             {% if f.boondock_accessibility == 'ROUGH' %}
             <small>High clearance or 4WD may be required</small>
             {% elif f.boondock_accessibility == 'MODERATE' %}
@@ -169,6 +185,23 @@
         </div>
         {% endif %}
     </div>
+
+    {#- Only shown when something is actually missing. The description is
+        where the answer usually lives when the structured field is empty --
+        the pipeline already extracts every road and fire signal it can parse
+        from it, so anything left really is unstated rather than overlooked. -#}
+    {%- set unrecorded = [] -%}
+    {%- if not f.road_access or f.road_access == 'UNKNOWN' %}{% if unrecorded.append('road access') %}{% endif %}{% endif -%}
+    {%- if not f.seasonal_status or f.seasonal_status == 'UNKNOWN' %}{% if unrecorded.append('season') %}{% endif %}{% endif -%}
+    {%- if not f.fire_status or f.fire_status == 'UNKNOWN' %}{% if unrecorded.append('campfire rules') %}{% endif %}{% endif -%}
+    {% if unrecorded %}
+    <p class="data-gap-note">
+        The managing agency hasn't published
+        {% for u in unrecorded %}{{ u }}{% if not loop.last %}{% if loop.revindex == 2 %} or {% else %}, {% endif %}{% endif %}{% endfor %}
+        for this campground. The description and directions below often mention it
+        &mdash; and it's worth calling the agency before a long drive.
+    </p>
+    {% endif %}
 </article>
 
 {# ---- Tags ---- #}
