@@ -2,6 +2,16 @@
 
 All notable changes to the Campdex (formerly RV Camping Finder) project.
 
+## [0.11.0] — 2026-08-03
+
+### Added
+- **Exclusion filters.** Road Access, Season, Campfires and Agency are now tri-state chips: click once to require a value, twice to exclude it, a third time to clear. Exclusion deliberately *keeps* facilities with unknown data, which is the whole point — 75% of facilities have `road_access = 'UNKNOWN'`, 71% an unknown season and 79% an unknown fire status, so "not known to be 4WD" and "known to be something else" are wildly different sets. For Oregon, requiring Paved + Gravel + Dirt returns 283 campgrounds; excluding High Clearance + 4WD returns 581 (and 581 + the 23 known-bad = 604, the full state total). Exclusions apply to state search, radius search, the result count, and map pins.
+- Query parameters are the `not_`-prefixed twins of the existing ones: `not_road_access`, `not_seasonal_status`, `not_fire_status`, `not_agency`, each repeatable. They work on `/search`, `/api/search` and `/api/pins`, and can be mixed with the positive filters.
+
+### Changed
+- Condition filters moved from checkboxes to chips in both the results drawer and Advanced Search. Chips are 44px tall, replacing 14px checkboxes that were well under the touch-target minimum. The trade-off is a taller filter drawer.
+- Filter state round-trips entirely through the URL, so an exclusion search is shareable and the back button behaves. Only the click-to-cycle needs JavaScript; the server renders the correct state from the query string.
+
 ## [0.10.10] — 2026-08-03
 
 ### Fixed

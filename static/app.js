@@ -173,3 +173,31 @@ function validateSearch() {
     }
     return true;
 }
+
+/* ---------------------------------------------------------------
+   Tri-state filter chips: neutral -> include -> exclude -> neutral.
+
+   Each chip has a sibling hidden input. Neutral disables it (disabled
+   inputs are not submitted); include submits `param`; exclude submits
+   `not_param`. The server renders the initial state, so filters survive
+   in the URL — only the cycling needs JS.
+   --------------------------------------------------------------- */
+document.addEventListener('click', function (e) {
+    var btn = e.target.closest('.tri-chip');
+    if (!btn || btn.classList.contains('tri-demo')) return;
+    var input = btn.nextElementSibling;
+    if (!input || !input.classList.contains('tri-input')) return;
+
+    var state = (parseInt(btn.dataset.state, 10) + 1) % 3;
+    var param = btn.dataset.param;
+    btn.dataset.state = state;
+    btn.setAttribute('aria-pressed', state === 1 ? 'true' : 'false');
+    btn.title = state === 0 ? 'Click to require'
+              : state === 1 ? 'Click to exclude'
+              : 'Click to clear';
+    var sr = btn.querySelector('.tri-sr');
+    if (sr) sr.textContent = state === 1 ? '(required)'
+                           : state === 2 ? '(excluded)' : '';
+    input.disabled = (state === 0);
+    input.name = (state === 2) ? 'not_' + param : param;
+});

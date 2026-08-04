@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_tri_filter.html" import tri_group %}
 {% block title %}Advanced Search — Campdex{% endblock %}
 
 {% block content %}
@@ -70,34 +71,20 @@
     </article>
 
     <article>
-        <header><strong>Conditions</strong> <small>(leave unchecked for all)</small></header>
+        <header><strong>Conditions</strong> <small>(leave blank for all)</small></header>
+        <p class="tri-hint">Click once to <strong>require</strong>, twice to <strong>exclude</strong>. Excluding still shows campgrounds with unknown data.</p>
         <div class="grid">
             <div>
                 <label><strong>Road Access</strong></label>
-                {% for val, label in road_access_options %}
-                <label>
-                    <input type="checkbox" name="road_access" value="{{ val }}">
-                    {{ label }}
-                </label>
-                {% endfor %}
+                {{ tri_group(road_access_options, 'road_access', [], []) }}
             </div>
             <div>
                 <label><strong>Season</strong></label>
-                {% for val, label in seasonal_options %}
-                <label>
-                    <input type="checkbox" name="seasonal_status" value="{{ val }}">
-                    {{ label }}
-                </label>
-                {% endfor %}
+                {{ tri_group(seasonal_options, 'seasonal_status', [], []) }}
             </div>
             <div>
                 <label><strong>Campfires</strong></label>
-                {% for val, label in fire_options %}
-                <label>
-                    <input type="checkbox" name="fire_status" value="{{ val }}">
-                    {{ label }}
-                </label>
-                {% endfor %}
+                {{ tri_group(fire_options, 'fire_status', [], []) }}
             </div>
         </div>
     </article>

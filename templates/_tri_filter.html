@@ -1,0 +1,30 @@
+{#-
+  Tri-state filter group: neutral -> include -> exclude -> neutral.
+
+  Include means "known to be X". Exclude means "not known to be X", which
+  KEEPS unknown values — that's the whole point, since ~75% of facilities have
+  road_access = UNKNOWN. Filtering to Paved+Gravel+Dirt returns 283 Oregon
+  campgrounds; excluding High Clearance + 4WD returns 581.
+
+  Each chip carries a sibling hidden input. Neutral disables it (disabled
+  inputs aren't submitted); include submits `param`; exclude submits
+  `not_param`. The server renders the correct state, so filters round-trip
+  through the URL; only the click-to-cycle needs JavaScript.
+-#}
+{% macro tri_group(options, param, included, excluded) %}
+<div class="tri-group">
+    {% for val, label in options %}
+    {%- set state = 2 if val in excluded else (1 if val in included else 0) -%}
+    <button type="button" class="tri-chip" data-state="{{ state }}"
+            data-param="{{ param }}"
+            aria-pressed="{{ 'true' if state == 1 else 'false' }}"
+            title="{% if state == 0 %}Click to require{% elif state == 1 %}Click to exclude{% else %}Click to clear{% endif %}">
+        <span class="tri-mark" aria-hidden="true"></span>{{ label }}
+        <span class="tri-sr">{% if state == 1 %}(required){% elif state == 2 %}(excluded){% endif %}</span>
+    </button>
+    <input type="hidden" class="tri-input"
+           name="{{ ('not_' ~ param) if state == 2 else param }}"
+           value="{{ val }}"{% if state == 0 %} disabled{% endif %}>
+    {% endfor %}
+</div>
+{% endmacro %}

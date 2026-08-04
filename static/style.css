@@ -855,3 +855,64 @@ a.leaflet-control-zoom-out {
     text-align: center;
     margin: 1rem 0;
 }
+
+/* --- Tri-state filter chips (neutral / include / exclude) --- */
+.tri-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .4rem;
+    margin-bottom: 1rem;
+}
+.tri-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+    /* 44px min target for touch */
+    min-height: 44px;
+    padding: .35rem .7rem;
+    font-size: .85rem;
+    line-height: 1.2;
+    width: auto;
+    border: 1px solid var(--pico-muted-border-color, #ccc);
+    border-radius: 999px;
+    background: transparent;
+    /* Not var(--pico-color): Pico redefines that to the primary *inverse*
+       (white) on button elements, which renders neutral chips invisible
+       against the drawer. */
+    color: #374151;
+    cursor: pointer;
+}
+.tri-chip[data-state="1"] {
+    background: #2d7d46;
+    border-color: #2d7d46;
+    color: #fff;
+}
+.tri-chip[data-state="2"] {
+    background: #7f1d1d;
+    border-color: #7f1d1d;
+    color: #fff;
+    text-decoration: line-through;
+    text-decoration-thickness: 1px;
+}
+.tri-chip[data-state="1"] .tri-mark::before { content: "\2713"; }  /* check */
+.tri-chip[data-state="2"] .tri-mark::before { content: "\2298"; }  /* no entry */
+.tri-mark { font-size: .9em; }
+.tri-sr {
+    position: absolute;
+    width: 1px; height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
+.tri-hint {
+    font-size: .8rem;
+    color: var(--pico-muted-color, #666);
+    margin: .25rem 0 .75rem;
+}
+.tri-chip.tri-demo {
+    min-height: 0;
+    padding: .05rem .4rem;
+    font-size: .75rem;
+    cursor: default;
+    vertical-align: middle;
+}

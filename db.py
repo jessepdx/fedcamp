@@ -45,6 +45,38 @@ PREFERRED_ADDRESS_JOIN = """
 """
 
 
+# Columns that exclusion filters can target, keyed by the request parameter.
+_EXCLUDABLE = {
+    "road_access": "c.road_access",
+    "seasonal_status": "c.seasonal_status",
+    "fire_status": "c.fire_status",
+    "agencies": "r.org_abbrev",
+}
+
+
+def _exclude_sql(excludes):
+    """Build "NOT" filter clauses from {param: [values]}.
+
+    Returns (sql, params). Unknown rows are deliberately KEPT: three quarters
+    of facilities have road_access = 'UNKNOWN' and 77% have a NULL
+    boondock_accessibility, so "exclude 4WD" has to mean "not known to be 4WD",
+    not "known to be something else" — otherwise excluding two values would
+    throw away 11,000+ facilities that simply have no data. Literal 'UNKNOWN'
+    survives NOT IN on its own; the IS NULL arm is needed because
+    `NULL NOT IN (...)` evaluates to NULL, which would drop the row.
+    """
+    sql, params = "", []
+    for key, values in (excludes or {}).items():
+        column = _EXCLUDABLE.get(key)
+        if not column or not values:
+            continue
+        placeholders = ",".join("?" * len(values))
+        sql += (f"  AND ({column} IS NULL OR "
+                f"{column} NOT IN ({placeholders}))\n")
+        params.extend(values)
+    return sql, params
+
+
 def get_connection():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
@@ -73,7 +105,7 @@ def get_states(conn):
 def search_by_state(conn, state_codes, camping_types=None,
                     tag_filters=None, agencies=None,
                     road_access=None, seasonal_status=None, fire_status=None,
-                    min_rv_length=None,
+                    min_rv_length=None, excludes=None,
                     limit=25, offset=0):
     if isinstance(state_codes, str):
         state_codes = [state_codes]
@@ -127,6 +159,11 @@ def search_by_state(conn, state_codes, camping_types=None,
         sql += "  AND (r.max_rv_length >= ? OR r.max_rv_length IS NULL)\n"
         params.append(min_rv_length)
 
+    # Exclusion ("not") filters — keep unknowns, see _exclude_sql
+    ex_sql, ex_params = _exclude_sql(excludes)
+    sql += ex_sql
+    params.extend(ex_params)
+
     # Tag filters
     if tag_filters:
         for tag in tag_filters:
@@ -159,7 +196,7 @@ def search_by_location(conn, lat, lon, radius_miles=100,
                        camping_types=None, tag_filters=None,
                        agencies=None,
                        road_access=None, seasonal_status=None, fire_status=None,
-                       min_rv_length=None,
+                       min_rv_length=None, excludes=None,
                        limit=25, offset=0):
     if not camping_types:
         camping_types = ["DEVELOPED"]
@@ -229,6 +266,11 @@ def search_by_location(conn, lat, lon, radius_miles=100,
     if min_rv_length:
         sql += "  AND (r.max_rv_length >= ? OR r.max_rv_length IS NULL)\n"
         params.append(min_rv_length)
+
+    # Exclusion ("not") filters — keep unknowns, see _exclude_sql
+    ex_sql, ex_params = _exclude_sql(excludes)
+    sql += ex_sql
+    params.extend(ex_params)
 
     if tag_filters:
         for tag in tag_filters:
@@ -423,7 +465,7 @@ def _attach_top_tags(conn, results, max_tags=4):
 def search_pins_by_bounds(conn, south, north, west, east,
                           camping_types=None, agencies=None,
                           road_access=None, styles=None,
-                          hookups=None, min_rv_length=None):
+                          hookups=None, min_rv_length=None, excludes=None):
     """Lightweight bounding-box query for map pins. No LIMIT — bbox is the constraint."""
     if not camping_types:
         camping_types = ["DEVELOPED", "PRIMITIVE", "DISPERSED"]
@@ -479,6 +521,11 @@ def search_pins_by_bounds(conn, south, north, west, east,
         sql += "  AND (r.max_rv_length >= ? OR r.max_rv_length IS NULL)\n"
         params.append(min_rv_length)
 
+    # Exclusion ("not") filters — keep unknowns, see _exclude_sql
+    ex_sql, ex_params = _exclude_sql(excludes)
+    sql += ex_sql
+    params.extend(ex_params)
+
     rows = conn.execute(sql, params).fetchall()
     return [dict(r) for r in rows]
 
@@ -487,7 +534,7 @@ def get_search_count(conn, state_codes=None, lat=None, lon=None,
                      radius_miles=100, camping_types=None,
                      tag_filters=None, agencies=None,
                      road_access=None, seasonal_status=None, fire_status=None,
-                     min_rv_length=None):
+                     min_rv_length=None, excludes=None):
     """Get total count for pagination (without LIMIT/OFFSET)."""
     if isinstance(state_codes, str):
         state_codes = [state_codes]
@@ -541,6 +588,11 @@ def get_search_count(conn, state_codes=None, lat=None, lon=None,
     if min_rv_length:
         sql += "  AND (r.max_rv_length >= ? OR r.max_rv_length IS NULL)\n"
         params.append(min_rv_length)
+
+    # Exclusion ("not") filters — keep unknowns, see _exclude_sql
+    ex_sql, ex_params = _exclude_sql(excludes)
+    sql += ex_sql
+    params.extend(ex_params)
 
     if tag_filters:
         for tag in tag_filters:

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_tri_filter.html" import tri_group %}
 {% block title %}Search Results — Campdex{% endblock %}
 
 {% block content %}
@@ -36,49 +37,22 @@
             {% endfor %}
         </fieldset>
 
+        <p class="tri-hint">Click once to <strong>require</strong>, twice to <strong>exclude</strong>. Excluding still shows campgrounds with unknown data.</p>
         <label><strong>Road Access</strong></label>
-        <fieldset class="filter-fieldset">
-            {% for val, label in road_access_options %}
-            <label>
-                <input type="checkbox" name="road_access" value="{{ val }}"
-                       {{ 'checked' if val in selected_road_access else '' }}>
-                {{ label }}
-            </label>
-            {% endfor %}
-        </fieldset>
+        {{ tri_group(road_access_options, 'road_access',
+                     selected_road_access, excluded_road_access) }}
 
         <label><strong>Season</strong></label>
-        <fieldset class="filter-fieldset">
-            {% for val, label in seasonal_options %}
-            <label>
-                <input type="checkbox" name="seasonal_status" value="{{ val }}"
-                       {{ 'checked' if val in selected_seasonal else '' }}>
-                {{ label }}
-            </label>
-            {% endfor %}
-        </fieldset>
+        {{ tri_group(seasonal_options, 'seasonal_status',
+                     selected_seasonal, excluded_seasonal) }}
 
         <label><strong>Campfires</strong></label>
-        <fieldset class="filter-fieldset">
-            {% for val, label in fire_options %}
-            <label>
-                <input type="checkbox" name="fire_status" value="{{ val }}"
-                       {{ 'checked' if val in selected_fire else '' }}>
-                {{ label }}
-            </label>
-            {% endfor %}
-        </fieldset>
+        {{ tri_group(fire_options, 'fire_status',
+                     selected_fire, excluded_fire) }}
 
         <label><strong>Agency</strong></label>
-        <fieldset class="filter-fieldset">
-            {% for val, label in agency_options %}
-            <label>
-                <input type="checkbox" name="agency" value="{{ val }}"
-                       {{ 'checked' if val in selected_agencies else '' }}>
-                {{ val }} — {{ label }}
-            </label>
-            {% endfor %}
-        </fieldset>
+        {{ tri_group(agency_options, 'agency',
+                     selected_agencies, excluded_agencies) }}
 
         <label><strong>Amenities</strong></label>
         <fieldset class="filter-fieldset">

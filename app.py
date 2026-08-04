@@ -69,6 +69,23 @@ def _client_ip():
     return request.remote_addr
 
 
+def _parse_excludes():
+    """Read the "not_*" exclusion params into the shape db.py expects.
+
+    These are the negative half of the tri-state filters: `road_access=PAVED`
+    means "known to be paved", `not_road_access=4WD_REQUIRED` means "not known
+    to be 4WD" — which keeps the ~75% of facilities whose road access is
+    UNKNOWN. Empty groups are dropped so they add no SQL.
+    """
+    ex = {
+        "road_access": request.args.getlist("not_road_access"),
+        "seasonal_status": request.args.getlist("not_seasonal_status"),
+        "fire_status": request.args.getlist("not_fire_status"),
+        "agencies": request.args.getlist("not_agency"),
+    }
+    return {k: v for k, v in ex.items() if v}
+
+
 # Winter months where seasonal/winter-closure campgrounds are likely closed
 WINTER_MONTHS = {11, 12, 1, 2, 3, 4}  # Nov–Apr
 
@@ -213,6 +230,7 @@ def search():
         seasonal_status=seasonal or None,
         fire_status=fire or None,
         min_rv_length=rv_length,
+        excludes=_parse_excludes(),
     )
 
     if lat is not None and lon is not None:
@@ -255,6 +273,11 @@ def search():
         selected_road_access=road_access,
         selected_seasonal=seasonal,
         selected_fire=fire,
+        # Negative half of the tri-state filters, for re-rendering chip state
+        excluded_agencies=request.args.getlist("not_agency"),
+        excluded_road_access=request.args.getlist("not_road_access"),
+        excluded_seasonal=request.args.getlist("not_seasonal_status"),
+        excluded_fire=request.args.getlist("not_fire_status"),
         rv_length=rv_length,
         search_desc=search_desc,
         view=view,
@@ -313,7 +336,8 @@ def api_pins():
         g.conn, south, north, west, east,
         camping_types=ct, agencies=agencies,
         road_access=road_access, styles=styles,
-        hookups=hookups, min_rv_length=min_rv)
+        hookups=hookups, min_rv_length=min_rv,
+        excludes=_parse_excludes())
     return jsonify(pins)
 
 
@@ -342,6 +366,7 @@ def api_search():
         seasonal_status=seasonal or None,
         fire_status=fire or None,
         min_rv_length=rv_length,
+        excludes=_parse_excludes(),
     )
 
     if lat is not None and lon is not None:
