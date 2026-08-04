@@ -12,11 +12,12 @@
   through the URL; only the click-to-cycle needs JavaScript.
 -#}
 {% macro tri_group(options, param, included, excluded) %}
-<div class="tri-group">
+<div class="tri-group" data-filter="{{ param }}">
     {% for val, label in options %}
     {%- set state = 2 if val in excluded else (1 if val in included else 0) -%}
     <button type="button" class="tri-chip" data-state="{{ state }}"
             data-param="{{ param }}"
+            data-value="{{ val }}"
             aria-pressed="{{ 'true' if state == 1 else 'false' }}"
             title="{% if state == 0 %}Click to require{% elif state == 1 %}Click to exclude{% else %}Click to clear{% endif %}">
         <span class="tri-mark" aria-hidden="true"></span>{{ label }}

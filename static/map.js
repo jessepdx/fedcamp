@@ -11,13 +11,30 @@
 
     // ---------------------------------------------------------------
     // URL state. Grammar on /:
-    //   ?ll=<lat>,<lon>&z=<zoom>&ct=<csv>&ag=<csv>&rd=<csv>&st=<csv>
-    //    &hk=<csv>&rv=<int>&v=list
+    //   ?ll=<lat>,<lon>&z=<zoom>&ct=<csv>&ag=<csv>&st=<csv>
+    //    &rd=<signed csv>&sn=<signed csv>&fr=<signed csv>&rs=1
+    //    &rv=<int>&v=list
+    // Signed CSV (tri-state groups): bare value = require, leading
+    // "-" = exclude — e.g. rd=PAVED,-4WD_REQUIRED. rd/sn/fr map to the
+    // road_access / seasonal_status / fire_status params.
     // Parsed BEFORE the map is created so the first pin fetch already
     // uses the restored viewport. Garbage values degrade silently to
-    // defaults (CSV values that match no control are simply dropped).
+    // defaults (CSV values that match no control are simply dropped;
+    // unknown keys — e.g. the retired hk= — are ignored).
     // Written with replaceState ONLY — panning must not spam history.
     // ---------------------------------------------------------------
+
+    // Tri-state URL key -> the chips' data-param (also the server param).
+    var TRI_PARAMS = { rd: 'road_access', sn: 'seasonal_status', fr: 'fire_status' };
+
+    // #mf-reservable may be the checkbox itself or a wrapper around it —
+    // tolerate both, and its absence (markup may not carry it yet).
+    function reservableInput() {
+        var el = document.getElementById('mf-reservable');
+        if (!el) return null;
+        return el.tagName === 'INPUT' ? el : el.querySelector('input[type="checkbox"]');
+    }
+
     var urlState = (function() {
         var out = { center: null, zoom: null, list: false };
         var q = new URLSearchParams(window.location.search);
@@ -38,14 +55,33 @@
             var b = document.querySelector('#mf-type-group .mf-toggle[data-key="' + CSS.escape(v) + '"]');
             if (b) { b.classList.add('active'); b.setAttribute('aria-pressed', 'true'); }
         });
-        [['ag', 'mf-agency'], ['rd', 'mf-road'], ['st', 'mf-style'], ['hk', 'mf-hookups']].forEach(function(pair) {
+        [['ag', 'mf-agency'], ['st', 'mf-style']].forEach(function(pair) {
             csv(pair[0]).forEach(function(v) {
                 var cb = document.querySelector('#' + pair[1] + ' input[value="' + CSS.escape(v) + '"]');
                 if (cb) cb.checked = true;
             });
         });
+        // Tri-state chips: find the chip and drive it through campdexTriSet
+        // (defined in app.js, loaded first). A value with no matching chip
+        // (rd=-BOGUS) simply finds nothing and is dropped.
+        Object.keys(TRI_PARAMS).forEach(function(key) {
+            csv(key).forEach(function(tok) {
+                var state = tok.charAt(0) === '-' ? 2 : 1;
+                var val = state === 2 ? tok.slice(1) : tok;
+                if (!val) return;
+                var btn = document.querySelector(
+                    '#map-filter-panel .tri-chip[data-param="' + TRI_PARAMS[key] + '"]'
+                    + '[data-value="' + CSS.escape(val) + '"]');
+                if (btn && window.campdexTriSet) window.campdexTriSet(btn, state);
+            });
+        });
+        if (q.get('rs') === '1') {
+            var rsCb = reservableInput();
+            if (rsCb) rsCb.checked = true;
+        }
         var rv = parseInt(q.get('rv'), 10);
-        if (rv > 0) document.getElementById('mf-rv-input').value = rv;
+        var rvEl = document.getElementById('mf-rv-input');
+        if (rv > 0 && rvEl) rvEl.value = rv;
         return out;
     })();
 
@@ -121,11 +157,26 @@
     var filters = {
         camping_types: [],
         agencies: [],
-        road_access: [],
+        road_access: { include: [], exclude: [] },
+        seasonal: { include: [], exclude: [] },
+        fire: { include: [], exclude: [] },
         styles: [],
-        hookups: [],
+        reservable: false,
         min_rv_length: null
     };
+
+    // Read one tri-state group off the chip BUTTONS (data-state is the
+    // source of truth; the sibling hidden inputs exist for the drawer's
+    // GET form and are inert here). Absent markup reads as empty.
+    function readTri(param) {
+        var out = { include: [], exclude: [] };
+        document.querySelectorAll('#map-filter-panel .tri-chip[data-param="' + param + '"][data-value]')
+            .forEach(function(b) {
+                if (b.dataset.state === '1') out.include.push(b.dataset.value);
+                else if (b.dataset.state === '2') out.exclude.push(b.dataset.value);
+            });
+        return out;
+    }
 
     function readFilters() {
         filters.camping_types = [];
@@ -134,13 +185,15 @@
         });
         filters.agencies = [];
         document.querySelectorAll('#mf-agency input:checked').forEach(function(c) { filters.agencies.push(c.value); });
-        filters.road_access = [];
-        document.querySelectorAll('#mf-road input:checked').forEach(function(c) { filters.road_access.push(c.value); });
+        filters.road_access = readTri('road_access');
+        filters.seasonal = readTri('seasonal_status');
+        filters.fire = readTri('fire_status');
         filters.styles = [];
         document.querySelectorAll('#mf-style input:checked').forEach(function(c) { filters.styles.push(c.value); });
-        filters.hookups = [];
-        document.querySelectorAll('#mf-hookups input:checked').forEach(function(c) { filters.hookups.push(c.value); });
-        var val = parseInt(document.getElementById('mf-rv-input').value, 10);
+        var rs = reservableInput();
+        filters.reservable = !!(rs && rs.checked);
+        var rvEl = document.getElementById('mf-rv-input');
+        var val = rvEl ? parseInt(rvEl.value, 10) : NaN;
         filters.min_rv_length = val > 0 ? val : null;
     }
     readFilters();   // pick up state restored from the URL
@@ -162,12 +215,20 @@
         };
     });
 
-    // Checkbox groups
-    ['mf-agency', 'mf-road', 'mf-style', 'mf-hookups'].forEach(function(id) {
-        document.querySelectorAll('#' + id + ' input').forEach(function(cb) {
-            cb.onchange = function() { readFiltersAndReload(); };
+    // Checkbox groups + tri-state chips, delegated on the panel so any
+    // checkbox (agency, style, reservable) reloads without per-group
+    // wiring. tri:change fires only on user clicks (app.js), never on
+    // the programmatic campdexTriSet calls used by URL restore/reset.
+    var panelEl = document.getElementById('map-filter-panel');
+    if (panelEl) {
+        panelEl.addEventListener('change', function(e) {
+            if (e.target && e.target.type === 'checkbox') readFiltersAndReload();
         });
-    });
+        panelEl.addEventListener('tri:change', function() {
+            readFiltersAndReload();
+            updateFilterCount();
+        });
+    }
 
     // RV length (debounced)
     var rvDebounce;
@@ -185,7 +246,11 @@
             b.setAttribute('aria-pressed', 'false');
         });
         document.querySelectorAll('#map-filter-panel input[type=checkbox]').forEach(function(cb) { cb.checked = false; });
-        document.getElementById('mf-rv-input').value = '';
+        document.querySelectorAll('#map-filter-panel .tri-chip').forEach(function(b) {
+            if (window.campdexTriSet) window.campdexTriSet(b, 0);
+        });
+        var rvEl = document.getElementById('mf-rv-input');
+        if (rvEl) rvEl.value = '';
         readFiltersAndReload();
     };
 
@@ -203,9 +268,17 @@
         ];
         if (filters.camping_types.length) parts.push('ct=' + filters.camping_types.join(','));
         if (filters.agencies.length) parts.push('ag=' + filters.agencies.join(','));
-        if (filters.road_access.length) parts.push('rd=' + filters.road_access.join(','));
+        // Tri-state groups as signed CSV: bare = require, "-" = exclude.
+        function signedCsv(tri) {
+            return tri.include.concat(tri.exclude.map(function(v) { return '-' + v; })).join(',');
+        }
+        [['rd', filters.road_access], ['sn', filters.seasonal], ['fr', filters.fire]]
+            .forEach(function(pair) {
+                if (pair[1].include.length || pair[1].exclude.length)
+                    parts.push(pair[0] + '=' + signedCsv(pair[1]));
+            });
         if (filters.styles.length) parts.push('st=' + filters.styles.join(','));
-        if (filters.hookups.length) parts.push('hk=' + filters.hookups.join(','));
+        if (filters.reservable) parts.push('rs=1');
         if (filters.min_rv_length) parts.push('rv=' + filters.min_rv_length);
         if (document.body.classList.contains('panel-open')) parts.push('v=list');
         history.replaceState(null, '', window.location.pathname + '?' + parts.join('&'));
@@ -282,9 +355,16 @@
             + '&east=' + b.getEast().toFixed(4);
         filters.camping_types.forEach(function(v) { params += '&camping_type=' + v; });
         filters.agencies.forEach(function(v) { params += '&agency=' + v; });
-        filters.road_access.forEach(function(v) { params += '&road_access=' + v; });
+        // Tri-state: include -> param, exclude -> not_param (the same
+        // vocabulary the drawer's GET form submits).
+        [['road_access', filters.road_access],
+         ['seasonal_status', filters.seasonal],
+         ['fire_status', filters.fire]].forEach(function(pair) {
+            pair[1].include.forEach(function(v) { params += '&' + pair[0] + '=' + v; });
+            pair[1].exclude.forEach(function(v) { params += '&not_' + pair[0] + '=' + v; });
+        });
         filters.styles.forEach(function(v) { params += '&style=' + v; });
-        filters.hookups.forEach(function(v) { params += '&hookup=' + v; });
+        if (filters.reservable) params += '&reservable=1';
         if (filters.min_rv_length) params += '&' + rvParam + '=' + filters.min_rv_length;
         return params;
     }
@@ -485,7 +565,9 @@
     // one and the result count seems wrong.
     function updateFilterCount() {
         var n = filterPanel.querySelectorAll('input[type="checkbox"]:checked').length;
-        if (document.getElementById('mf-rv-input').value) n++;
+        n += filterPanel.querySelectorAll('.tri-chip[data-state="1"], .tri-chip[data-state="2"]').length;
+        var rvEl = document.getElementById('mf-rv-input');
+        if (rvEl && rvEl.value) n++;
         if (n) { filterCount.textContent = n; filterCount.removeAttribute('hidden'); }
         else { filterCount.setAttribute('hidden', ''); }
     }

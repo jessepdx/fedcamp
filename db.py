@@ -85,6 +85,88 @@ def _exclude_sql(excludes):
     return sql, params
 
 
+def _filter_sql(agencies=None, road_access=None, seasonal_status=None,
+                fire_status=None, styles=None, hookups=None, reservable=None,
+                min_rv_length=None, excludes=None, tag_filters=None):
+    """Shared filter clauses for every search/count/pins query.
+
+    This logic used to be copy-pasted across six query functions, which is
+    exactly how the map and the results list drifted into speaking different
+    filter vocabularies (the bounds paths grew style/hookup filters the state
+    path never got, and vice versa for season/fire). One builder, one
+    vocabulary.
+
+    Requires n_facility_rollup aliased as "r" and n_facility_conditions as
+    "c" in the calling query. Emits clauses in a fixed order and extends
+    params in the same order. Returns (sql, params).
+
+    `reservable` is deliberately require-only (no exclude): r.reservable has
+    zero NULLs because RIDB conflates "not reservable" with "no data", so a
+    "not reservable" filter would promise a distinction the data can't make.
+    """
+    sql, params = "", []
+
+    if agencies:
+        sql += "  AND r.org_abbrev IN ({})\n".format(','.join('?' * len(agencies)))
+        params.extend(agencies)
+
+    if road_access:
+        sql += "  AND c.road_access IN ({})\n".format(','.join('?' * len(road_access)))
+        params.extend(road_access)
+
+    if seasonal_status:
+        sql += "  AND c.seasonal_status IN ({})\n".format(','.join('?' * len(seasonal_status)))
+        params.extend(seasonal_status)
+
+    if fire_status:
+        sql += "  AND c.fire_status IN ({})\n".format(','.join('?' * len(fire_status)))
+        params.extend(fire_status)
+
+    if styles:
+        for s in styles:
+            if s == 'rv':
+                sql += "  AND r.sites_accepting_rv > 0\n"
+            elif s == 'tent':
+                sql += "  AND r.sites_accepting_tent > 0\n"
+            elif s == 'walkin':
+                sql += "  AND (r.walk_in_sites > 0 OR r.hike_in_sites > 0)\n"
+            elif s == 'boatin':
+                sql += "  AND r.boat_in_sites > 0\n"
+            elif s == 'equestrian':
+                sql += "  AND r.equestrian_sites > 0\n"
+
+    if hookups:
+        for h in hookups:
+            if h == 'electric':
+                sql += "  AND r.has_electric_hookup = 1\n"
+            elif h == 'water':
+                sql += "  AND r.has_water_hookup = 1\n"
+            elif h == 'sewer':
+                sql += "  AND r.has_sewer_hookup = 1\n"
+
+    if reservable:
+        sql += "  AND r.reservable = 1\n"
+
+    if min_rv_length:
+        sql += "  AND (r.max_rv_length >= ? OR r.max_rv_length IS NULL)\n"
+        params.append(min_rv_length)
+
+    # Exclusion ("not") filters — keep unknowns, see _exclude_sql
+    ex_sql, ex_params = _exclude_sql(excludes)
+    sql += ex_sql
+    params.extend(ex_params)
+
+    if tag_filters:
+        for tag in tag_filters:
+            sql += """
+          AND EXISTS (SELECT 1 FROM n_facility_tags t
+                      WHERE t.facility_id = r.facility_id AND t.tag = ?)
+            """
+            params.append(tag)
+
+    return sql, params
+
+
 def get_connection():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
@@ -113,6 +195,7 @@ def get_states(conn):
 def search_by_state(conn, state_codes, camping_types=None,
                     tag_filters=None, agencies=None,
                     road_access=None, seasonal_status=None, fire_status=None,
+                    styles=None, hookups=None, reservable=None,
                     min_rv_length=None, excludes=None,
                     limit=25, offset=0):
     if isinstance(state_codes, str):
@@ -145,41 +228,14 @@ def search_by_state(conn, state_codes, camping_types=None,
                addr_join=PREFERRED_ADDRESS_JOIN)
     params = list(state_codes) + camping_types
 
-    # Agency filter
-    if agencies:
-        sql += "  AND r.org_abbrev IN ({})\n".format(','.join('?' * len(agencies)))
-        params.extend(agencies)
-
-    # Condition filters
-    if road_access:
-        sql += "  AND c.road_access IN ({})\n".format(','.join('?' * len(road_access)))
-        params.extend(road_access)
-
-    if seasonal_status:
-        sql += "  AND c.seasonal_status IN ({})\n".format(','.join('?' * len(seasonal_status)))
-        params.extend(seasonal_status)
-
-    if fire_status:
-        sql += "  AND c.fire_status IN ({})\n".format(','.join('?' * len(fire_status)))
-        params.extend(fire_status)
-
-    if min_rv_length:
-        sql += "  AND (r.max_rv_length >= ? OR r.max_rv_length IS NULL)\n"
-        params.append(min_rv_length)
-
-    # Exclusion ("not") filters — keep unknowns, see _exclude_sql
-    ex_sql, ex_params = _exclude_sql(excludes)
-    sql += ex_sql
-    params.extend(ex_params)
-
-    # Tag filters
-    if tag_filters:
-        for tag in tag_filters:
-            sql += """
-          AND EXISTS (SELECT 1 FROM n_facility_tags t
-                      WHERE t.facility_id = r.facility_id AND t.tag = ?)
-            """
-            params.append(tag)
+    f_sql, f_params = _filter_sql(
+        agencies=agencies, road_access=road_access,
+        seasonal_status=seasonal_status, fire_status=fire_status,
+        styles=styles, hookups=hookups, reservable=reservable,
+        min_rv_length=min_rv_length, excludes=excludes,
+        tag_filters=tag_filters)
+    sql += f_sql
+    params.extend(f_params)
 
     sql += """
         ORDER BY r.total_campsites DESC
@@ -204,6 +260,7 @@ def search_by_location(conn, lat, lon, radius_miles=100,
                        camping_types=None, tag_filters=None,
                        agencies=None,
                        road_access=None, seasonal_status=None, fire_status=None,
+                       styles=None, hookups=None, reservable=None,
                        min_rv_length=None, excludes=None,
                        limit=25, offset=0):
     if not camping_types:
@@ -253,40 +310,14 @@ def search_by_location(conn, lat, lon, radius_miles=100,
                addr_join=PREFERRED_ADDRESS_JOIN)
     params = hav_params + [lat_min, lat_max, lon_min, lon_max] + camping_types + hav_params + [radius_miles]
 
-    # Agency filter
-    if agencies:
-        sql += "  AND r.org_abbrev IN ({})\n".format(','.join('?' * len(agencies)))
-        params.extend(agencies)
-
-    # Condition filters
-    if road_access:
-        sql += "  AND c.road_access IN ({})\n".format(','.join('?' * len(road_access)))
-        params.extend(road_access)
-
-    if seasonal_status:
-        sql += "  AND c.seasonal_status IN ({})\n".format(','.join('?' * len(seasonal_status)))
-        params.extend(seasonal_status)
-
-    if fire_status:
-        sql += "  AND c.fire_status IN ({})\n".format(','.join('?' * len(fire_status)))
-        params.extend(fire_status)
-
-    if min_rv_length:
-        sql += "  AND (r.max_rv_length >= ? OR r.max_rv_length IS NULL)\n"
-        params.append(min_rv_length)
-
-    # Exclusion ("not") filters — keep unknowns, see _exclude_sql
-    ex_sql, ex_params = _exclude_sql(excludes)
-    sql += ex_sql
-    params.extend(ex_params)
-
-    if tag_filters:
-        for tag in tag_filters:
-            sql += """
-          AND EXISTS (SELECT 1 FROM n_facility_tags t
-                      WHERE t.facility_id = r.facility_id AND t.tag = ?)
-            """
-            params.append(tag)
+    f_sql, f_params = _filter_sql(
+        agencies=agencies, road_access=road_access,
+        seasonal_status=seasonal_status, fire_status=fire_status,
+        styles=styles, hookups=hookups, reservable=reservable,
+        min_rv_length=min_rv_length, excludes=excludes,
+        tag_filters=tag_filters)
+    sql += f_sql
+    params.extend(f_params)
 
     sql += """
         ORDER BY distance_miles ASC
@@ -473,10 +504,18 @@ def _attach_top_tags(conn, results, max_tags=4):
 def search_pins_by_bounds(conn, south, north, west, east,
                           camping_types=None, agencies=None,
                           road_access=None, styles=None,
-                          hookups=None, min_rv_length=None, excludes=None):
+                          hookups=None, min_rv_length=None, excludes=None,
+                          seasonal_status=None, fire_status=None,
+                          reservable=None, tag_filters=None):
     """Lightweight bounding-box query for map pins. No LIMIT — bbox is the constraint."""
     if not camping_types:
         camping_types = list(DEFAULT_CAMPING_TYPES)
+
+    where_sql, params = _bounds_where(
+        south, north, west, east, camping_types, agencies,
+        road_access, styles, hookups, min_rv_length, excludes,
+        seasonal_status=seasonal_status, fire_status=fire_status,
+        reservable=reservable, tag_filters=tag_filters)
 
     # Only what the map renders. The hookup flags and road_access rode along in
     # every pin and were used by nothing -- the map's hookup and road filters
@@ -489,65 +528,23 @@ def search_pins_by_bounds(conn, south, north, west, east,
             c.seasonal_status
         FROM n_facility_rollup r
         JOIN n_facility_conditions c ON r.facility_id = c.facility_id
-        WHERE r.coords_valid = 1
-          AND r.facility_name IS NOT NULL AND r.facility_name <> ''
-          AND r.latitude BETWEEN ? AND ?
-          AND r.longitude BETWEEN ? AND ?
-          AND r.camping_type IN ({})
-    """.format(','.join('?' * len(camping_types)))
-    params = [south, north, west, east] + camping_types
-
-    if agencies:
-        sql += "  AND r.org_abbrev IN ({})\n".format(','.join('?' * len(agencies)))
-        params.extend(agencies)
-
-    if road_access:
-        sql += "  AND c.road_access IN ({})\n".format(','.join('?' * len(road_access)))
-        params.extend(road_access)
-
-    if styles:
-        for s in styles:
-            if s == 'rv':
-                sql += "  AND r.sites_accepting_rv > 0\n"
-            elif s == 'tent':
-                sql += "  AND r.sites_accepting_tent > 0\n"
-            elif s == 'walkin':
-                sql += "  AND (r.walk_in_sites > 0 OR r.hike_in_sites > 0)\n"
-            elif s == 'boatin':
-                sql += "  AND r.boat_in_sites > 0\n"
-            elif s == 'equestrian':
-                sql += "  AND r.equestrian_sites > 0\n"
-
-    if hookups:
-        for h in hookups:
-            if h == 'electric':
-                sql += "  AND r.has_electric_hookup = 1\n"
-            elif h == 'water':
-                sql += "  AND r.has_water_hookup = 1\n"
-            elif h == 'sewer':
-                sql += "  AND r.has_sewer_hookup = 1\n"
-
-    if min_rv_length:
-        sql += "  AND (r.max_rv_length >= ? OR r.max_rv_length IS NULL)\n"
-        params.append(min_rv_length)
-
-    # Exclusion ("not") filters — keep unknowns, see _exclude_sql
-    ex_sql, ex_params = _exclude_sql(excludes)
-    sql += ex_sql
-    params.extend(ex_params)
+    """ + where_sql
 
     rows = conn.execute(sql, params).fetchall()
     return [dict(r) for r in rows]
 
 
 def _bounds_where(south, north, west, east, camping_types, agencies,
-                  road_access, styles, hookups, min_rv_length, excludes):
-    """Shared WHERE clause for the bbox list/count queries.
+                  road_access, styles, hookups, min_rv_length, excludes,
+                  seasonal_status=None, fire_status=None,
+                  reservable=None, tag_filters=None):
+    """Shared WHERE clause for the bbox pins/list/count queries.
 
-    Every clause here is copied verbatim from search_pins_by_bounds so the
-    map pins, the results list, and the count pill always agree. Requires
-    n_facility_rollup aliased as "r" and n_facility_conditions as "c".
-    Returns (sql, params).
+    Used by search_pins_by_bounds, search_by_bounds, and get_bounds_count so
+    the map pins, the results list, and the count pill always agree. Filters
+    come from _filter_sql, the one vocabulary shared with the state and
+    location paths. Requires n_facility_rollup aliased as "r" and
+    n_facility_conditions as "c". Returns (sql, params).
     """
     sql = """
         WHERE r.coords_valid = 1
@@ -558,44 +555,14 @@ def _bounds_where(south, north, west, east, camping_types, agencies,
     """.format(','.join('?' * len(camping_types)))
     params = [south, north, west, east] + list(camping_types)
 
-    if agencies:
-        sql += "  AND r.org_abbrev IN ({})\n".format(','.join('?' * len(agencies)))
-        params.extend(agencies)
-
-    if road_access:
-        sql += "  AND c.road_access IN ({})\n".format(','.join('?' * len(road_access)))
-        params.extend(road_access)
-
-    if styles:
-        for s in styles:
-            if s == 'rv':
-                sql += "  AND r.sites_accepting_rv > 0\n"
-            elif s == 'tent':
-                sql += "  AND r.sites_accepting_tent > 0\n"
-            elif s == 'walkin':
-                sql += "  AND (r.walk_in_sites > 0 OR r.hike_in_sites > 0)\n"
-            elif s == 'boatin':
-                sql += "  AND r.boat_in_sites > 0\n"
-            elif s == 'equestrian':
-                sql += "  AND r.equestrian_sites > 0\n"
-
-    if hookups:
-        for h in hookups:
-            if h == 'electric':
-                sql += "  AND r.has_electric_hookup = 1\n"
-            elif h == 'water':
-                sql += "  AND r.has_water_hookup = 1\n"
-            elif h == 'sewer':
-                sql += "  AND r.has_sewer_hookup = 1\n"
-
-    if min_rv_length:
-        sql += "  AND (r.max_rv_length >= ? OR r.max_rv_length IS NULL)\n"
-        params.append(min_rv_length)
-
-    # Exclusion ("not") filters — keep unknowns, see _exclude_sql
-    ex_sql, ex_params = _exclude_sql(excludes)
-    sql += ex_sql
-    params.extend(ex_params)
+    f_sql, f_params = _filter_sql(
+        agencies=agencies, road_access=road_access,
+        seasonal_status=seasonal_status, fire_status=fire_status,
+        styles=styles, hookups=hookups, reservable=reservable,
+        min_rv_length=min_rv_length, excludes=excludes,
+        tag_filters=tag_filters)
+    sql += f_sql
+    params.extend(f_params)
 
     return sql, params
 
@@ -603,7 +570,8 @@ def _bounds_where(south, north, west, east, camping_types, agencies,
 def search_by_bounds(conn, south, north, west, east,
                      camping_types=None, agencies=None, road_access=None,
                      styles=None, hookups=None, min_rv_length=None,
-                     excludes=None, limit=25, offset=0):
+                     excludes=None, seasonal_status=None, fire_status=None,
+                     reservable=None, tag_filters=None, limit=25, offset=0):
     """Card-shaped results for the map's viewport list.
 
     Same column list as search_by_state, filtered by the same WHERE clause
@@ -617,7 +585,9 @@ def search_by_bounds(conn, south, north, west, east,
 
     where_sql, params = _bounds_where(
         south, north, west, east, camping_types, agencies,
-        road_access, styles, hookups, min_rv_length, excludes)
+        road_access, styles, hookups, min_rv_length, excludes,
+        seasonal_status=seasonal_status, fire_status=fire_status,
+        reservable=reservable, tag_filters=tag_filters)
 
     sql = """
         SELECT
@@ -652,7 +622,8 @@ def search_by_bounds(conn, south, north, west, east,
 def get_bounds_count(conn, south, north, west, east,
                      camping_types=None, agencies=None, road_access=None,
                      styles=None, hookups=None, min_rv_length=None,
-                     excludes=None):
+                     excludes=None, seasonal_status=None, fire_status=None,
+                     reservable=None, tag_filters=None):
     """Unpaginated total for a bbox search.
 
     WHERE clause is identical to search_pins_by_bounds (via _bounds_where),
@@ -663,7 +634,9 @@ def get_bounds_count(conn, south, north, west, east,
 
     where_sql, params = _bounds_where(
         south, north, west, east, camping_types, agencies,
-        road_access, styles, hookups, min_rv_length, excludes)
+        road_access, styles, hookups, min_rv_length, excludes,
+        seasonal_status=seasonal_status, fire_status=fire_status,
+        reservable=reservable, tag_filters=tag_filters)
 
     sql = """
         SELECT COUNT(*)
@@ -678,6 +651,7 @@ def get_search_count(conn, state_codes=None, lat=None, lon=None,
                      radius_miles=100, camping_types=None,
                      tag_filters=None, agencies=None,
                      road_access=None, seasonal_status=None, fire_status=None,
+                     styles=None, hookups=None, reservable=None,
                      min_rv_length=None, excludes=None):
     """Get total count for pagination (without LIMIT/OFFSET)."""
     if isinstance(state_codes, str):
@@ -713,37 +687,13 @@ def get_search_count(conn, state_codes=None, lat=None, lon=None,
     else:
         return 0
 
-    if agencies:
-        sql += "  AND r.org_abbrev IN ({})\n".format(','.join('?' * len(agencies)))
-        params.extend(agencies)
-
-    if road_access:
-        sql += "  AND c.road_access IN ({})\n".format(','.join('?' * len(road_access)))
-        params.extend(road_access)
-
-    if seasonal_status:
-        sql += "  AND c.seasonal_status IN ({})\n".format(','.join('?' * len(seasonal_status)))
-        params.extend(seasonal_status)
-
-    if fire_status:
-        sql += "  AND c.fire_status IN ({})\n".format(','.join('?' * len(fire_status)))
-        params.extend(fire_status)
-
-    if min_rv_length:
-        sql += "  AND (r.max_rv_length >= ? OR r.max_rv_length IS NULL)\n"
-        params.append(min_rv_length)
-
-    # Exclusion ("not") filters — keep unknowns, see _exclude_sql
-    ex_sql, ex_params = _exclude_sql(excludes)
-    sql += ex_sql
-    params.extend(ex_params)
-
-    if tag_filters:
-        for tag in tag_filters:
-            sql += """
-          AND EXISTS (SELECT 1 FROM n_facility_tags t
-                      WHERE t.facility_id = r.facility_id AND t.tag = ?)
-            """
-            params.append(tag)
+    f_sql, f_params = _filter_sql(
+        agencies=agencies, road_access=road_access,
+        seasonal_status=seasonal_status, fire_status=fire_status,
+        styles=styles, hookups=hookups, reservable=reservable,
+        min_rv_length=min_rv_length, excludes=excludes,
+        tag_filters=tag_filters)
+    sql += f_sql
+    params.extend(f_params)
 
     return conn.execute(sql, params).fetchone()[0]

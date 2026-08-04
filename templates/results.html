@@ -22,6 +22,14 @@
         <input type="hidden" name="lon" value="{{ lon }}">
         <input type="hidden" name="radius" value="{{ radius }}">
         {% endif %}
+        {# A bbox search (map "Search this area") must survive a filter apply,
+           or the drawer silently resets the search to the whole state. #}
+        {% if south is not none and north is not none and west is not none and east is not none %}
+        <input type="hidden" name="south" value="{{ south }}">
+        <input type="hidden" name="north" value="{{ north }}">
+        <input type="hidden" name="west" value="{{ west }}">
+        <input type="hidden" name="east" value="{{ east }}">
+        {% endif %}
 
         <label><strong>Camping Type</strong></label>
         <fieldset class="filter-fieldset">
@@ -47,18 +55,50 @@
         {{ tri_group(fire_options, 'fire_status',
                      selected_fire, excluded_fire) }}
 
+        {# Agency is plain checkboxes, not tri-state: only 4.5% of facilities
+           have unknown agency, so "exclude BLM" is just "include the other
+           five". Old not_agency= URLs still work server-side. #}
         <label><strong>Agency</strong></label>
-        {{ tri_group(agency_options, 'agency',
-                     selected_agencies, excluded_agencies) }}
+        <fieldset class="filter-fieldset">
+            {% for val, label in agency_options %}
+            <label>
+                <input type="checkbox" name="agency" value="{{ val }}"
+                       {{ 'checked' if val in selected_agencies else '' }}>
+                {{ val }}
+            </label>
+            {% endfor %}
+        </fieldset>
+
+        <label><strong>Style</strong></label>
+        <fieldset class="filter-fieldset">
+            {% for val, label in style_options %}
+            <label>
+                <input type="checkbox" name="style" value="{{ val }}"
+                       {{ 'checked' if val in selected_styles else '' }}>
+                {{ label }}
+            </label>
+            {% endfor %}
+        </fieldset>
+
+        <label><strong>Reservable</strong></label>
+        <fieldset class="filter-fieldset">
+            <label>
+                <input type="checkbox" name="reservable" value="1"
+                       {{ 'checked' if selected_reservable else '' }}>
+                Reservable only
+            </label>
+        </fieldset>
 
         <label><strong>Amenities</strong></label>
         <fieldset class="filter-fieldset">
             {% for val, label in amenity_filters %}
+            {% if val != 'RESERVABLE' %}{# promoted to its own checkbox above #}
             <label>
                 <input type="checkbox" name="tag" value="{{ val }}"
                        {{ 'checked' if val in tag_filters else '' }}>
                 {{ label }}
             </label>
+            {% endif %}
             {% endfor %}
         </fieldset>
 

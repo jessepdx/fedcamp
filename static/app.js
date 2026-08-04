@@ -123,14 +123,13 @@ function validateSearch() {
    inputs are not submitted); include submits `param`; exclude submits
    `not_param`. The server renders the initial state, so filters survive
    in the URL — only the cycling needs JS.
-   --------------------------------------------------------------- */
-document.addEventListener('click', function (e) {
-    var btn = e.target.closest('.tri-chip');
-    if (!btn || btn.classList.contains('tri-demo')) return;
-    var input = btn.nextElementSibling;
-    if (!input || !input.classList.contains('tri-input')) return;
 
-    var state = (parseInt(btn.dataset.state, 10) + 1) % 3;
+   campdexTriSet is the single mutation path: the click-cycle handler
+   below uses it, and map.js calls it directly for URL restore and reset.
+   It deliberately does NOT dispatch `tri:change` — restore/reset must
+   not trigger a reload loop; only a real user click dispatches.
+   --------------------------------------------------------------- */
+window.campdexTriSet = function (btn, state) {
     var param = btn.dataset.param;
     btn.dataset.state = state;
     btn.setAttribute('aria-pressed', state === 1 ? 'true' : 'false');
@@ -140,6 +139,20 @@ document.addEventListener('click', function (e) {
     var sr = btn.querySelector('.tri-sr');
     if (sr) sr.textContent = state === 1 ? '(required)'
                            : state === 2 ? '(excluded)' : '';
-    input.disabled = (state === 0);
-    input.name = (state === 2) ? 'not_' + param : param;
+    var input = btn.nextElementSibling;
+    if (input && input.classList.contains('tri-input')) {
+        input.disabled = (state === 0);
+        input.name = (state === 2) ? 'not_' + param : param;
+    }
+};
+
+document.addEventListener('click', function (e) {
+    var btn = e.target.closest('.tri-chip');
+    if (!btn || btn.classList.contains('tri-demo')) return;
+    var cur = parseInt(btn.dataset.state, 10);
+    if (isNaN(cur)) cur = 0;
+    window.campdexTriSet(btn, (cur + 1) % 3);
+    // User-initiated only: listeners (the map page) react to clicks,
+    // never to programmatic campdexTriSet calls.
+    btn.dispatchEvent(new CustomEvent('tri:change', {bubbles: true}));
 });

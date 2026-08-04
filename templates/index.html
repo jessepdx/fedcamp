@@ -60,7 +60,7 @@
     <article>
         <header><strong>Camping Type</strong></header>
         <fieldset>
-            {% for val, label in camping_types %}
+            {% for val, label in camping_type_options %}
             <label>
                 <input type="checkbox" name="camping_type" value="{{ val }}"
                        {{ 'checked' if val in default_camping_types else '' }}>
@@ -97,7 +97,7 @@
     <article>
         <header><strong>Agency</strong> <small>(leave unchecked for all)</small></header>
         <div class="tag-grid">
-            {% for val, label in agencies %}
+            {% for val, label in agency_options %}
             <label>
                 <input type="checkbox" name="agency" value="{{ val }}">
                 {{ val }} — {{ label }}
@@ -107,13 +107,35 @@
     </article>
 
     <article>
+        <header><strong>Style</strong> <small>(leave unchecked for all)</small></header>
+        <div class="tag-grid">
+            {% for val, label in style_options %}
+            <label>
+                <input type="checkbox" name="style" value="{{ val }}">
+                {{ label }}
+            </label>
+            {% endfor %}
+        </div>
+    </article>
+
+    <article>
+        <header><strong>Reservable</strong></header>
+        <label>
+            <input type="checkbox" name="reservable" value="1">
+            Reservable only
+        </label>
+    </article>
+
+    <article>
         <header><strong>Amenities</strong></header>
         <div class="tag-grid">
             {% for val, label in amenity_filters %}
+            {% if val != 'RESERVABLE' %}{# promoted to its own checkbox above #}
             <label>
                 <input type="checkbox" name="tag" value="{{ val }}">
                 {{ label }}
             </label>
+            {% endif %}
             {% endfor %}
         </div>
     </article>

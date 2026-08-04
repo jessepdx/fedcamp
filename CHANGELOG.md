@@ -2,6 +2,21 @@
 
 All notable changes to the Campdex (formerly RV Camping Finder) project.
 
+## [0.14.0] — 2026-08-03
+
+### Changed
+- **One filter vocabulary across the whole site.** The map and the results list had drifted into different languages: the map offered Style and Hookups but could not express exclusion; the drawer offered Season, Campfires and require/exclude chips but no Style. The map now carries require/exclude chips for Road, Season and Campfires, so it can finally express "paved, not 4WD, not permanently closed" — the query this product exists to answer. The drawer gains Style and Reservable.
+- Mode was chosen per field by how often the data is unknown, not for uniformity. Require/exclude only earns its complexity where `UNKNOWN` is common — excluding keeps unknowns, requiring discards them. Road (51% unknown), Season (40%), Campfires (57%) are tri-state. Camping type (0% unknown) and Agency (4.5%) stay simple checkboxes, because at that coverage "exclude BLM" is just "include the other five". **Agency exclusion is therefore removed from the UI**; existing `not_agency=` URLs keep working.
+- **Reservable** is promoted out of Amenities into a first-class filter, as a single positive checkbox. It is deliberately not require/exclude: the column has zero NULLs, so RIDB conflates "not reservable" with "not recorded", and a "first-come, first-served" option would claim knowledge the data does not contain.
+- **Hookups removed from the map panel.** Only 13.5% of campable facilities have an electric hookup recorded — too thin to hold prime space, and Amenities already covers it. The `hookup=` parameter still works for API callers.
+- Map URL grammar extends to signed CSV: `rd=PAVED,-4WD_REQUIRED` (bare requires, leading `-` excludes), plus `sn=`, `fr=` and `rs=1`. Old URLs still load; `hk=` is silently ignored.
+- Filter option lists are exposed to every template through a context processor. The map page previously rendered with no context, so its panel hardcoded its options in markup while the drawer looped over the constants — which is precisely how the two vocabularies drifted apart.
+
+### Fixed
+- `/search` in bbox mode silently discarded `seasonal_status`, `fire_status` and `tag` filters: the bbox branch built its own kwargs dict and never passed them. All three search paths now share one filter vocabulary.
+- The results drawer preserved state and lat/lon context but not the bounding box, so applying a filter on a map-derived URL silently threw the map area away.
+- `db.py` had the same filter logic copy-pasted across six query functions, two of them byte-identical. That duplication is *how* the two vocabularies came to exist — each copy grew filters the others never got. One `_filter_sql()` builder now serves all six, ~170 lines lighter, verified behaviour-neutral against a 23-case matrix across every query path.
+
 ## [0.13.0] — 2026-08-03
 
 ### Added

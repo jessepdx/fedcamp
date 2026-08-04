@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_tri_filter.html" import tri_group %}
 {% block title %}Campdex — Federal Campground Search{% endblock %}
 
 {% block head %}
@@ -91,40 +92,35 @@
             <div class="mf-group">
                 <span class="mf-label">Agency</span>
                 <div id="mf-agency" class="mf-check-row">
-                    <label><input type="checkbox" value="FS"> FS</label>
-                    <label><input type="checkbox" value="BLM"> BLM</label>
-                    <label><input type="checkbox" value="USACE"> USACE</label>
-                    <label><input type="checkbox" value="NPS"> NPS</label>
-                    <label><input type="checkbox" value="BOR"> BOR</label>
-                    <label><input type="checkbox" value="FWS"> FWS</label>
+                    {% for val, label in agency_options %}
+                    <label><input type="checkbox" value="{{ val }}"> {{ val }}</label>
+                    {% endfor %}
                 </div>
             </div>
             <div class="mf-group">
                 <span class="mf-label">Road</span>
-                <div id="mf-road" class="mf-check-row">
-                    <label><input type="checkbox" value="PAVED"> Paved</label>
-                    <label><input type="checkbox" value="GRAVEL"> Gravel</label>
-                    <label><input type="checkbox" value="DIRT"> Dirt</label>
-                    <label><input type="checkbox" value="HIGH_CLEARANCE"> High Clr</label>
-                    <label><input type="checkbox" value="4WD_REQUIRED"> 4WD</label>
+                {{ tri_group(road_access_options, 'road_access', [], []) }}
+            </div>
+            <div class="mf-group">
+                <span class="mf-label">Season</span>
+                {{ tri_group(seasonal_options, 'seasonal_status', [], []) }}
+            </div>
+            <div class="mf-group">
+                <span class="mf-label">Campfires</span>
+                {{ tri_group(fire_options, 'fire_status', [], []) }}
+            </div>
+            <div class="mf-group">
+                <span class="mf-label">Reservable</span>
+                <div id="mf-reservable" class="mf-check-row">
+                    <label><input type="checkbox" value="1"> Reservable only</label>
                 </div>
             </div>
             <div class="mf-group">
                 <span class="mf-label">Style</span>
                 <div id="mf-style" class="mf-check-row">
-                    <label><input type="checkbox" value="rv"> RV</label>
-                    <label><input type="checkbox" value="tent"> Tent</label>
-                    <label><input type="checkbox" value="walkin"> Walk/Hike-in</label>
-                    <label><input type="checkbox" value="boatin"> Boat</label>
-                    <label><input type="checkbox" value="equestrian"> Equestrian</label>
-                </div>
-            </div>
-            <div class="mf-group">
-                <span class="mf-label">Hookups</span>
-                <div id="mf-hookups" class="mf-check-row">
-                    <label><input type="checkbox" value="electric"> Electric</label>
-                    <label><input type="checkbox" value="water"> Water</label>
-                    <label><input type="checkbox" value="sewer"> Sewer</label>
+                    {% for val, label in style_options %}
+                    <label><input type="checkbox" value="{{ val }}"> {{ label }}</label>
+                    {% endfor %}
                 </div>
             </div>
             <div class="mf-group mf-group-inline">

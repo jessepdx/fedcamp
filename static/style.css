@@ -1194,6 +1194,22 @@ body.map-page .map-filter-panel .mf-label { display: block; margin-bottom: .35re
 body.map-page .map-filter-panel .mf-check-row { gap: .3rem 1rem; }
 body.map-page .map-filter-panel .mf-check-row label { font-size: .85rem; }
 body.map-page .map-filter-panel .mf-check-row input[type="checkbox"] { width: 16px; height: 16px; }
+
+/* Tri-state chips inside the map panel: denser variants of the drawer
+   chips so a full group fits the 400px panel / mobile sheet. Height
+   comes from the --ctl-h token like every other overlay control (36px
+   desktop, 44px on touch via the mobile token block) — only density
+   (padding, font, gap) is restyled here. */
+body.map-page .map-filter-panel .tri-group {
+    gap: .3rem .35rem;
+    margin-bottom: 0;
+}
+body.map-page .map-filter-panel .tri-chip {
+    min-height: var(--ctl-h);
+    padding: .15rem .6rem;
+    font-size: .8rem;
+}
+
 body.map-page .map-filter-panel .mf-group-inline {
     display: flex;
     align-items: center;

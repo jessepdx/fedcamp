@@ -118,7 +118,6 @@ AMENITY_FILTERS = [
     ("PAVED_ACCESS",     "Paved Access"),
     ("DUMP_STATION",     "Dump Station"),
     ("POTABLE_WATER",    "Potable Water"),
-    ("RESERVABLE",       "Reservable"),
 ]
 
 ROAD_ACCESS_OPTIONS = [
@@ -253,6 +252,9 @@ def search():
     fire = request.args.getlist("fire_status")
     styles = request.args.getlist("style")
     hookups = request.args.getlist("hookup")
+    # Require-only filter: 1 means "reservable only", anything else is off.
+    # Not tri-state — RIDB conflates "not reservable" with "no data".
+    reservable = 1 if request.args.get("reservable", type=int) == 1 else None
     rv_length = request.args.get("rv_length", type=int)
     page = request.args.get("page", 1, type=int)
     view = request.args.get("view", "list")
@@ -270,29 +272,29 @@ def search():
     # Bbox mode activates only when all four bounds are present
     bbox_active = None not in (south, north, west, east)
 
+    # One vocabulary for all three search paths. The bbox branch used to
+    # build its own reduced kwargs that silently dropped seasonal_status,
+    # fire_status, and tags — filters the user had set simply vanished when
+    # the search was scoped to the map area.
     filter_kwargs = dict(
         camping_types=ct, tag_filters=tags, agencies=agencies,
         road_access=road_access or None,
         seasonal_status=seasonal or None,
         fire_status=fire or None,
+        styles=styles or None,
+        hookups=hookups or None,
+        reservable=reservable,
         min_rv_length=rv_length,
         excludes=_parse_excludes(),
     )
 
     # Precedence: bbox > lat/lon > state
     if bbox_active:
-        bounds_kwargs = dict(
-            camping_types=ct, agencies=agencies or None,
-            road_access=road_access or None,
-            styles=styles or None, hookups=hookups or None,
-            min_rv_length=rv_length,
-            excludes=_parse_excludes(),
-        )
         results = db.search_by_bounds(
             g.conn, south, north, west, east,
-            limit=25, offset=offset, **bounds_kwargs)
+            limit=25, offset=offset, **filter_kwargs)
         total = db.get_bounds_count(
-            g.conn, south, north, west, east, **bounds_kwargs)
+            g.conn, south, north, west, east, **filter_kwargs)
         search_desc = "In map area"
     elif lat is not None and lon is not None:
         results = db.search_by_location(
@@ -345,6 +347,7 @@ def search():
         south=south, north=north, west=west, east=east,
         selected_styles=styles,
         selected_hookups=hookups,
+        selected_reservable=reservable,
         amenity_filters=AMENITY_FILTERS,
         camping_type_options=CAMPING_TYPES,
         agency_options=AGENCIES,
@@ -396,15 +399,25 @@ def api_pins():
     ct = request.args.getlist("camping_type") or None
     agencies = request.args.getlist("agency") or None
     road_access = request.args.getlist("road_access") or None
+    seasonal = request.args.getlist("seasonal_status") or None
+    fire = request.args.getlist("fire_status") or None
     styles = request.args.getlist("style") or None
     hookups = request.args.getlist("hookup") or None
+    tags = request.args.getlist("tag") or None
+    reservable = 1 if request.args.get("reservable", type=int) == 1 else None
+    # `rv_length` is the name the search form uses; accept it as an alias so
+    # the map and the results drawer can share one query string.
     min_rv = request.args.get("min_rv_length", type=int)
+    if min_rv is None:
+        min_rv = request.args.get("rv_length", type=int)
 
     pins = db.search_pins_by_bounds(
         g.conn, south, north, west, east,
         camping_types=ct, agencies=agencies,
-        road_access=road_access, styles=styles,
-        hookups=hookups, min_rv_length=min_rv,
+        road_access=road_access, seasonal_status=seasonal,
+        fire_status=fire, styles=styles,
+        hookups=hookups, reservable=reservable,
+        tag_filters=tags, min_rv_length=min_rv,
         excludes=_parse_excludes())
     return jsonify(pins)
 
@@ -421,6 +434,9 @@ def api_search():
     road_access = request.args.getlist("road_access")
     seasonal = request.args.getlist("seasonal_status")
     fire = request.args.getlist("fire_status")
+    styles = request.args.getlist("style")
+    hookups = request.args.getlist("hookup")
+    reservable = 1 if request.args.get("reservable", type=int) == 1 else None
     rv_length = request.args.get("rv_length", type=int)
     limit = min(request.args.get("limit", 25, type=int), 100)
     offset = request.args.get("offset", 0, type=int)
@@ -433,6 +449,9 @@ def api_search():
         road_access=road_access or None,
         seasonal_status=seasonal or None,
         fire_status=fire or None,
+        styles=styles or None,
+        hookups=hookups or None,
+        reservable=reservable,
         min_rv_length=rv_length,
         excludes=_parse_excludes(),
     )
