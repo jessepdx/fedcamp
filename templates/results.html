@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Search Results — RV Camping Finder{% endblock %}
+{% block title %}Search Results — Campdex{% endblock %}
 
 {% block content %}
 <!-- Filter overlay -->
@@ -101,17 +101,15 @@
 
 <div class="results-header">
     <hgroup>
-        <h2>
-            <button onclick="toggleFilterDrawer()" class="filter-toggle-btn outline" title="Open filters">
-                &#9776; Filters
-            </button>
-            Search Results
-        </h2>
+        <h2>Search Results</h2>
         <p>{{ search_desc }}
            &middot; <strong>{{ total }}</strong> campground{{ 's' if total != 1 else '' }} found
         </p>
     </hgroup>
     <div class="results-actions">
+        <button onclick="toggleFilterDrawer()" class="filter-toggle-btn outline" title="Open filters">
+            &#9776; Filters
+        </button>
         <a href="/" role="button" class="outline">New Search</a>
         {% if results and view == 'list' %}
         <a href="{{ request.url }}&view=map" role="button" class="outline secondary">Map View</a>
@@ -131,6 +129,15 @@
 {% if not results %}
 <article>
     <p>No campgrounds found matching your criteria. Try broadening your search — remove condition filters, add more camping types, or remove amenity filters.</p>
+    {%- set clear_params = [] -%}
+    {%- for s in states %}{% if clear_params.append('state=' ~ (s | urlencode)) %}{% endif %}{% endfor -%}
+    {%- if lat is not none and lon is not none -%}
+        {%- if clear_params.append('lat=' ~ lat) %}{% endif -%}
+        {%- if clear_params.append('lon=' ~ lon) %}{% endif -%}
+        {%- if clear_params.append('radius=' ~ radius) %}{% endif -%}
+    {%- endif -%}
+    {%- if view == 'map' %}{% if clear_params.append('view=map') %}{% endif %}{% endif -%}
+    <p><a href="/search?{{ clear_params | join('&') }}" role="button" class="outline">Clear all filters</a></p>
 </article>
 {% else %}
 

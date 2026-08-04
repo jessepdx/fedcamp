@@ -1,10 +1,10 @@
-# FedCamp
+# Campdex
 
 Search and explore campgrounds on federal public lands. Built on the [Recreation Information Database (RIDB)](https://ridb.recreation.gov/), the official federal database covering campgrounds managed by the Forest Service, BLM, National Park Service, Army Corps of Engineers, Bureau of Reclamation, and Fish & Wildlife Service.
 
 ## What It Does
 
-FedCamp takes the raw RIDB data (132K campsites across 15K+ facilities), normalizes and enriches it through a multi-phase pipeline, then serves it through a Flask web app with an interactive map.
+Campdex takes the raw RIDB data (133K+ campsites across 15K+ facilities), normalizes and enriches it through a multi-phase pipeline, then serves it through a Flask web app with an interactive map.
 
 **Map homepage** — Auto-detects your location and loads campground pins for the current viewport. Pan and zoom to explore freely — pins update automatically. Filter bar below the map narrows results by camping type, agency, road access, hookups, and RV length.
 
@@ -59,6 +59,11 @@ Public API for integration with chatbots and custom tools:
 
 Rate limited to 60 requests/minute per IP.
 
+Notes:
+
+- `/api/search` defaults to `camping_type=DEVELOPED` when no `camping_type` params are given. Pass the param repeatedly (`&camping_type=DEVELOPED&camping_type=PRIMITIVE&camping_type=DISPERSED`) to search all camping types — the counts in `/api/states` cover all three.
+- Each facility is assigned exactly one preferred address (see `PREFERRED_ADDRESS_JOIN` in `db.py`), so state search returns each campground once. `/api/states` counts are cached per address row, so they can read slightly high for facilities with addresses in multiple states.
+
 ### Data Collection Scripts
 
 The scripts in `scripts/` pull data from the RIDB API. They require an API key set as the `RIDB_API_KEY` environment variable. Get a free key at [ridb.recreation.gov](https://ridb.recreation.gov/).
@@ -104,19 +109,19 @@ This takes several hours due to API rate limits (50 req/min).
 
 ## Data Coverage
 
-- **15,449** facilities across **50** states and territories
-- **132,974** campsites with typed attributes
-- **6,356** campable facilities (Developed + Primitive + Dispersed)
+- **15,573** facilities across **50** states and territories
+- **133,814** campsites with typed attributes
+- **7,201** campable facilities (Developed + Primitive + Dispersed)
 - **2,523** facilities with photos
 - **~94%** of campable facilities have valid coordinates
 - **6 federal agencies**: Forest Service, BLM, NPS, Army Corps, Bureau of Reclamation, Fish & Wildlife
 
 ## Deployment
 
-Live at **https://fedcamp.cloudromeo.com**
+Live at **https://campdex.com**
 
 - AWS Lightsail nano instance (Ubuntu 24.04, us-west-2)
-- Caddy (auto HTTPS via Let's Encrypt) → gunicorn (2 workers) → Flask
+- Cloudflare → Caddy → gunicorn (2 workers) → Flask
 - Deploy with `./deploy.sh` (code only) or `./deploy.sh --db` (with database)
 
 ## Tech Stack

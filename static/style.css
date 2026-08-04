@@ -1,4 +1,50 @@
-/* RV Camping Finder — Custom Styles */
+/* Campdex — Custom Styles */
+
+/* Brand color: forest green, matching map pins and condition pills.
+   Contrast (computed): #2d7d46 on white 5.08:1, white on #2d7d46 5.08:1,
+   #256a3b on white 6.56:1, #1f5c33 on white 7.96:1 — all pass WCAG AA. */
+:root,
+:root:not([data-theme=dark]),
+[data-theme=light] {
+    --pico-primary: #2d7d46;
+    --pico-primary-background: #2d7d46;
+    --pico-primary-border: #2d7d46;
+    --pico-primary-hover: #1f5c33;
+    --pico-primary-hover-background: #256a3b;
+    --pico-primary-hover-border: #256a3b;
+    --pico-primary-underline: rgba(45, 125, 70, 0.5);
+    --pico-primary-focus: rgba(45, 125, 70, 0.35);
+    --pico-primary-inverse: #fff;
+}
+
+/* Section headings (facility page): real h2s for the document outline,
+   visually matching the old <strong> header style */
+.section-heading {
+    font-size: 1rem;
+    line-height: 1.4;
+    margin-bottom: 0;
+    --pico-color: inherit;
+}
+
+/* Scope down headings inside RIDB-injected HTML (descriptions, directions)
+   so they don't outrank the page's own section headings */
+.ridb-html h1,
+.ridb-html h2,
+.ridb-html h3,
+.ridb-html h4,
+.ridb-html h5,
+.ridb-html h6 {
+    font-size: 1.05rem;
+    line-height: 1.4;
+    margin-bottom: 0.5rem;
+    margin-top: 0.75rem;
+}
+
+.ridb-html h1:first-child,
+.ridb-html h2:first-child,
+.ridb-html h3:first-child {
+    margin-top: 0;
+}
 
 /* Leaflet overrides — prevent Pico CSS from styling map elements,
    allow vertical page scroll through map on touch devices */
@@ -277,7 +323,7 @@ a.leaflet-control-zoom-out {
 /* Seasonal / closure warning notice */
 .closure-notice {
     background: #fff8e1;
-    border-left: 4px solid #d4782f;
+    border-left: 4px solid #a85a1e;
     padding: 0.75rem 1rem;
     margin-bottom: 1rem;
 }
@@ -652,7 +698,7 @@ a.leaflet-control-zoom-out {
 }
 
 .bar-fill-green { background: #2d7d46; }
-.bar-fill-orange { background: #d4782f; }
+.bar-fill-orange { background: #a85a1e; }
 .bar-fill-slate { background: #64748b; }
 
 .bar-count {

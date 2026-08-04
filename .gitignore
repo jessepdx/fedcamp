@@ -15,3 +15,7 @@ ridb_full.db
 *_log.txt
 scripts/seasonal_cache.json
 scripts/coords_cache.json
+
+# SQLite sidecars for .bak files (*.bak is ignored, these slip past it)
+*.bak-shm
+*.bak-wal

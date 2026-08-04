@@ -1,6 +1,31 @@
 # Changelog
 
-All notable changes to the RV Camping Finder project.
+All notable changes to the Campdex (formerly RV Camping Finder) project.
+
+## [0.10.9] — 2026-08-03
+
+### Fixed
+- State search returned ~2% of the results it should have: `/api/states` advertised Oregon at 604 campgrounds while searching by state returned 12. Two compounding causes, both in `db.py`. First, every address join filtered on `fa.address_type = 'Physical'`, but `Physical` is the *rarest* address type in the data — 1,812 rows vs 12,796 `Default` and 1,820 `Mailing` (Oregon: 46 facilities with a `Physical` row vs 867 with `Default`) — so the filter alone discarded ~85% of facilities. Second, the `WHERE fa.state_code IN (...)` predicate on the LEFT-JOINed table silently degraded it to an INNER JOIN (NULLs from unmatched rows never satisfy the predicate), so every facility without a `Physical` address row was dropped outright instead of surviving with a NULL state. Replaced with a shared `PREFERRED_ADDRESS_JOIN` fragment: a correlated subquery that selects exactly one address row per facility, ranked by (has non-empty `state_code`) → `Physical` → `Default` → `Mailing` → other, tie-broken on `facility_address_id` so the choice is deterministic. Applied at all five join sites: `search_by_state`, `search_by_location`, `get_facility`, `get_nearby`, and `get_search_count`. Verified: Oregon now returns 604 of 604, with no duplicate rows (the original reason the `Physical` filter existed).
+
+### Changed
+- Site name standardized to **Campdex** everywhere: page titles, nav brand link, meta tags, About page, and source file headers. Replaces the inconsistent mix of "RV Camping Finder", "FedCamp", and "Federal Camping Search".
+- Condition pill, map legend, and bar chart colors darkened to meet WCAG AA contrast (≥ 4.5:1 against white text): mustard `#c49f17` → `#8a6d10` (4.91:1), orange `#d4782f` → `#a85a1e` (5.06:1), gray `#95a5a6` → `#5f6e6f` (5.32:1).
+- Pico CSS primary color changed from default blue to forest green `#2d7d46`, matching the map pins and condition pills (hover/focus variants also pass WCAG AA).
+- Facility page section headers ("Conditions", "Features", "Photos", etc.) are now real `<h2>` elements for the document outline, styled to match the old `<strong>` look. RIDB-injected description/directions HTML is scoped with a `.ridb-html` class so its own headings can't outrank the page structure.
+- The Recreation.gov button on facility pages renders as a solid primary CTA when the facility is reservable (outline otherwise), giving reservable campgrounds a clear primary action.
+- Filters button on the results page moved out of the "Search Results" `<h2>` into the actions row — a button inside a heading was semantically wrong and read badly in screen readers.
+- External links now carry `rel="noopener"`.
+- Feature tag category labels are formatted for display (e.g. "RIG_SIZE" → "Rig Size").
+
+### Added
+- `smart_title` Jinja filter: title-cases the ALL-CAPS facility names RIDB ships (search cards, facility pages, nearby lists, stats, map popup) while preserving agency acronyms (BLM, USFS, RV, …), state codes in trailing or post-comma position, small words (of, the, at, …), and hyphen/slash/apostrophe compounds (WALK-IN → Walk-in, O'BRIEN → O'Brien). Mixed-case names pass through untouched.
+- Meta description, OpenGraph, and Twitter card tags on every page, with per-facility descriptions (agency, location, site count, max RV length) on facility pages; `theme-color` set to the brand green.
+- "Clear all filters" action on the zero-results page — re-runs the same state or location search with every condition/amenity filter removed.
+
+### Known Issues
+- State dropdown counts read slightly high for cross-state facilities: `n_state_cache` (built in `prepare_db.py`) counts a facility in *every* state it has an address row for, while search now assigns each facility exactly one preferred address. CA advertises 857 but 820 are reachable via search; WA 262 vs 249. The proper fix belongs in `prepare_db.py` and requires regenerating the production database, so it was deliberately deferred.
+- `/api/search` defaults `camping_type` to `DEVELOPED`, so a bare `/api/search?state=OR` returns 237 while the dropdown advertises 604 (which counts all three camping types). Pass `camping_type` repeatedly (`&camping_type=DEVELOPED&camping_type=PRIMITIVE&camping_type=DISPERSED`) to match the advertised number.
+- Recommended long-term fix for both: precompute `city`/`state_code` into `n_facility_rollup` during `prepare_db.py` using the preferred-address ranking, and derive the state cache from that single per-facility value.
 
 ## [0.10.8] — 2026-08-03
 

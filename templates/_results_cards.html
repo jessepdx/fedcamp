@@ -4,7 +4,7 @@
         <div class="card-main">
             <div class="card-header-row">
                 <h3 class="card-title">
-                    <a href="/facility/{{ r.facility_id }}">{{ r.facility_name or 'Unnamed Facility' }}</a>
+                    <a href="/facility/{{ r.facility_id }}">{{ (r.facility_name | smart_title) or 'Unnamed Facility' }}</a>
                 </h3>
                 <div class="condition-pills">
                     {% if r.road_access and r.road_access != 'UNKNOWN' %}
@@ -82,14 +82,14 @@
 
             <div class="card-links">
                 <small>
-                    <a href="https://www.recreation.gov/camping/campgrounds/{{ r.facility_id }}" target="_blank">Recreation.gov</a>
+                    <a href="https://www.recreation.gov/camping/campgrounds/{{ r.facility_id }}" target="_blank" rel="noopener">Recreation.gov</a>
                 </small>
             </div>
         </div>
 
         {% if r.photo_url %}
         <div class="card-photo">
-            <img src="{{ r.photo_url }}" alt="{{ r.facility_name }}" loading="lazy">
+            <img src="{{ r.photo_url }}" alt="{{ r.facility_name | smart_title }}" loading="lazy">
         </div>
         {% endif %}
     </div>

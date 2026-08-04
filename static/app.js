@@ -1,4 +1,4 @@
-/* RV Camping Finder — JavaScript */
+/* Campdex — JavaScript */
 
 /* Fix Leaflet default marker icon path for CDN usage */
 delete L.Icon.Default.prototype._getIconUrl;
@@ -108,10 +108,10 @@ function initResultsMap(facilities) {
 function getCampingTypeColor(type) {
     var colors = {
         'DEVELOPED': '#2d7d46',
-        'PRIMITIVE': '#c49f17',
+        'PRIMITIVE': '#8a6d10',
         'DISPERSED': '#6c5ce7'
     };
-    return colors[type] || '#95a5a6';
+    return colors[type] || '#5f6e6f';
 }
 
 function escapeHtml(text) {

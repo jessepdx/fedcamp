@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Federal Camping Search{% endblock %}
+{% block title %}Campdex — Federal Campground Search{% endblock %}
 
 {% block head %}
 <style>
@@ -47,7 +47,7 @@
 
 {% block content %}
 <hgroup>
-    <h1>Federal Camping Search</h1>
+    <h1>Campdex</h1>
     <p>6,300+ federal campgrounds from the Forest Service, BLM, NPS, and more. Tap a pin for details.</p>
 </hgroup>
 
@@ -148,9 +148,9 @@
         var div = L.DomUtil.create('div', 'map-legend');
         div.innerHTML =
             '<i style="background:#2d7d46"></i>Developed<br>' +
-            '<i style="background:#c49f17"></i>Primitive<br>' +
+            '<i style="background:#8a6d10"></i>Primitive<br>' +
             '<i style="background:#6c5ce7"></i>Dispersed<br>' +
-            '<i style="background:#d4782f"></i>Seasonal<br>' +
+            '<i style="background:#a85a1e"></i>Seasonal<br>' +
             '<i style="background:#c0392b"></i>Closed';
         return div;
     };
@@ -227,9 +227,9 @@
         if (seasonal === 'PERMANENTLY_CLOSED' || seasonal === 'TEMPORARILY_CLOSED')
             return '#c0392b';
         if (seasonal === 'WINTER_CLOSURE' || seasonal === 'SEASONAL_CLOSURE')
-            return '#d4782f';
-        var colors = { 'DEVELOPED': '#2d7d46', 'PRIMITIVE': '#c49f17', 'DISPERSED': '#6c5ce7' };
-        return colors[type] || '#95a5a6';
+            return '#a85a1e';
+        var colors = { 'DEVELOPED': '#2d7d46', 'PRIMITIVE': '#8a6d10', 'DISPERSED': '#6c5ce7' };
+        return colors[type] || '#5f6e6f';
     }
 
     var pinIconCache = {};
@@ -291,7 +291,7 @@
                         bubblingMouseEvents: false
                     }).addTo(pinLayer);
 
-                    var tgt = ('ontouchstart' in window) ? '' : ' target="_blank"';
+                    var tgt = ('ontouchstart' in window) ? '' : ' target="_blank" rel="noopener"';
                     var html = '<strong><a href="/facility/' + p.facility_id + '"' + tgt + '>'
                         + escapeHtml(p.facility_name) + '</a></strong>';
                     if (p.total_campsites) html += '<br>' + p.total_campsites + ' sites';

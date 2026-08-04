@@ -11,6 +11,39 @@ import sqlite3
 
 DB_PATH = "ridb.db"
 
+# ------------------------------------------------------------------
+# Preferred-address join fragment
+# ------------------------------------------------------------------
+# A facility can have several facility_addresses rows (Physical /
+# Default / Mailing, sometimes duplicates of the same type), so a bare
+# join duplicates result rows -- but filtering on address_type =
+# 'Physical' drops the ~85% of facilities whose only row is 'Default'.
+# Instead, LEFT JOIN exactly one row per facility: rows that actually
+# carry a state_code beat empty ones (some facilities have a blank
+# 'Physical' row shadowing a filled-in 'Default'/'Mailing' row), then
+# Physical > Default > Mailing > anything else, then primary key so
+# the choice is deterministic.  Facilities with no address row at all
+# are kept (city/state_code come back NULL).
+# Requires the query to alias n_facility_rollup as "r"; the address
+# row is exposed as "fa".  Uses idx_fa_facility(facility_id, ...).
+PREFERRED_ADDRESS_JOIN = """
+        LEFT JOIN facility_addresses fa
+            ON fa.facility_address_id = (
+                SELECT fa2.facility_address_id
+                FROM facility_addresses fa2
+                WHERE fa2.facility_id = r.facility_id
+                ORDER BY fa2.state_code IS NULL OR fa2.state_code = '',
+                         CASE fa2.address_type
+                             WHEN 'Physical' THEN 0
+                             WHEN 'Default'  THEN 1
+                             WHEN 'Mailing'  THEN 2
+                             ELSE 3
+                         END,
+                         fa2.facility_address_id
+                LIMIT 1
+            )
+"""
+
 
 def get_connection():
     conn = sqlite3.connect(DB_PATH)
@@ -63,13 +96,13 @@ def search_by_state(conn, state_codes, camping_types=None,
             p.photo_url
         FROM n_facility_rollup r
         JOIN n_facility_conditions c ON r.facility_id = c.facility_id
-        LEFT JOIN facility_addresses fa
-            ON r.facility_id = fa.facility_id AND fa.address_type = 'Physical'
+        {addr_join}
         LEFT JOIN n_facility_photo p ON r.facility_id = p.facility_id
         WHERE r.facility_name IS NOT NULL AND r.facility_name <> ''
           AND fa.state_code IN ({})
           AND r.camping_type IN ({})
-    """.format(','.join('?' * len(state_codes)), ','.join('?' * len(camping_types)))
+    """.format(','.join('?' * len(state_codes)), ','.join('?' * len(camping_types)),
+               addr_join=PREFERRED_ADDRESS_JOIN)
     params = list(state_codes) + camping_types
 
     # Agency filter
@@ -163,8 +196,7 @@ def search_by_location(conn, lat, lon, radius_miles=100,
             {} AS distance_miles
         FROM n_facility_rollup r
         JOIN n_facility_conditions c ON r.facility_id = c.facility_id
-        LEFT JOIN facility_addresses fa
-            ON r.facility_id = fa.facility_id AND fa.address_type = 'Physical'
+        {addr_join}
         LEFT JOIN n_facility_photo p ON r.facility_id = p.facility_id
         WHERE r.coords_valid = 1
           AND r.facility_name IS NOT NULL AND r.facility_name <> ''
@@ -172,7 +204,8 @@ def search_by_location(conn, lat, lon, radius_miles=100,
           AND r.longitude BETWEEN ? AND ?
           AND r.camping_type IN ({})
           AND {} <= ?
-    """.format(haversine, ','.join('?' * len(camping_types)), haversine)
+    """.format(haversine, ','.join('?' * len(camping_types)), haversine,
+               addr_join=PREFERRED_ADDRESS_JOIN)
     params = hav_params + [lat_min, lat_max, lon_min, lon_max] + camping_types + hav_params + [radius_miles]
 
     # Agency filter
@@ -237,11 +270,10 @@ def get_facility(conn, facility_id):
         FROM n_facility_rollup r
         JOIN n_facility_conditions c ON r.facility_id = c.facility_id
         LEFT JOIN facilities f ON r.facility_id = f.facility_id
-        LEFT JOIN facility_addresses fa
-            ON r.facility_id = fa.facility_id AND fa.address_type = 'Physical'
+        {addr_join}
         LEFT JOIN n_facility_photo p ON r.facility_id = p.facility_id
         WHERE r.facility_id = ?
-    """, (facility_id,)).fetchone()
+    """.format(addr_join=PREFERRED_ADDRESS_JOIN), (facility_id,)).fetchone()
 
     if not row:
         return None
@@ -331,8 +363,7 @@ def get_nearby(conn, facility_id, lat, lon, radius_miles=50, limit=8):
             {} AS distance_miles
         FROM n_facility_rollup r
         JOIN n_facility_conditions c ON r.facility_id = c.facility_id
-        LEFT JOIN facility_addresses fa
-            ON r.facility_id = fa.facility_id AND fa.address_type = 'Physical'
+        {addr_join}
         WHERE r.facility_id != ?
           AND r.coords_valid = 1
           AND r.facility_name IS NOT NULL AND r.facility_name <> ''
@@ -342,7 +373,7 @@ def get_nearby(conn, facility_id, lat, lon, radius_miles=50, limit=8):
           AND {} <= ?
         ORDER BY distance_miles ASC
         LIMIT ?
-    """.format(haversine, haversine),
+    """.format(haversine, haversine, addr_join=PREFERRED_ADDRESS_JOIN),
         (lat, lon, lat,
          facility_id,
          lat - lat_delta, lat + lat_delta,
@@ -468,11 +499,11 @@ def get_search_count(conn, state_codes=None, lat=None, lon=None,
             SELECT COUNT(DISTINCT r.facility_id)
             FROM n_facility_rollup r
             JOIN n_facility_conditions c ON r.facility_id = c.facility_id
-            LEFT JOIN facility_addresses fa
-                ON r.facility_id = fa.facility_id AND fa.address_type = 'Physical'
+            {addr_join}
             WHERE fa.state_code IN ({})
               AND r.camping_type IN ({})
-        """.format(','.join('?' * len(state_codes)), ','.join('?' * len(camping_types)))
+        """.format(','.join('?' * len(state_codes)), ','.join('?' * len(camping_types)),
+                   addr_join=PREFERRED_ADDRESS_JOIN)
         params = list(state_codes) + camping_types
     elif lat is not None and lon is not None:
         lat_delta = radius_miles / 69.0

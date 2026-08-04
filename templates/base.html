@@ -3,7 +3,15 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{% block title %}RV Camping Finder{% endblock %}</title>
+    <title>{% block title %}Campdex — Federal Campground Search{% endblock %}</title>
+    <meta name="description" content="{% block meta_description %}Search 6,300+ federal campgrounds from the Forest Service, BLM, NPS, and more — with road access, seasonal closures, hookups, and RV length data.{% endblock %}">
+    <meta property="og:site_name" content="Campdex">
+    <meta property="og:title" content="{{ self.title() }}">
+    <meta property="og:description" content="{{ self.meta_description() }}">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ request.url }}">
+    <meta name="twitter:card" content="summary">
+    <meta name="theme-color" content="#2d7d46">
     <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css" integrity="sha384-L1dWfspMTHU/ApYnFiMz2QID/PlP1xCW9visvBdbEkOLkSSWsP6ZJWhPw6apiXxU" crossorigin="anonymous">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha384-sHL9NAb7lN7rfvG5lfHpm643Xkcjzp4jFvuavGOndn6pjVqS6ny56CAt3nsEVT4H" crossorigin="anonymous">
@@ -21,7 +29,7 @@
 <body>
     <nav class="container-fluid">
         <ul>
-            <li><a href="/" class="brand"><strong>Home</strong></a></li>
+            <li><a href="/" class="brand"><strong>Campdex</strong></a></li>
         </ul>
         <ul>
             <li><a href="/search-form">Advanced Search</a></li>
@@ -35,9 +43,9 @@
     </main>
 
     <footer class="container">
-        <small>Data from <a href="https://ridb.recreation.gov" target="_blank">RIDB</a> (Recreation.gov).
+        <small>Data from <a href="https://ridb.recreation.gov" target="_blank" rel="noopener">RIDB</a> (Recreation.gov).
         Conditions are based on available data — always verify before traveling.
-        <a href="https://github.com/jessepdx/fedcamp" target="_blank">Contribute on GitHub</a>.</small>
+        <a href="https://github.com/jessepdx/fedcamp" target="_blank" rel="noopener">Contribute on GitHub</a>.</small>
     </footer>
 
     <script src="https://unpkg.com/htmx.org@2.0.4" integrity="sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+" crossorigin="anonymous"></script>

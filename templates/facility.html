@@ -1,11 +1,12 @@
 {% extends "base.html" %}
-{% block title %}{{ f.facility_name }} — RV Camping Finder{% endblock %}
+{% block title %}{{ f.facility_name | smart_title }} — Campdex{% endblock %}
+{% block meta_description %}{{ f.facility_name | smart_title }}{% if f.org_name %} — {{ f.org_name }} campground{% endif %}{% if f.city and f.state_code %} near {{ f.city }}, {{ f.state_code }}{% elif f.state_code %} in {{ f.state_code }}{% endif %}.{% if f.total_campsites %} {{ f.total_campsites }} campsites.{% endif %}{% if f.max_rv_length %} Max RV length {{ f.max_rv_length }} ft.{% endif %} Road access, seasonal, and hookup details on Campdex.{% endblock %}
 
 {% block content %}
 <nav aria-label="breadcrumb">
     <ul>
         <li><a href="/search-form">Search</a></li>
-        <li>{{ f.facility_name }}</li>
+        <li>{{ f.facility_name | smart_title }}</li>
     </ul>
 </nav>
 
@@ -13,7 +14,7 @@
 <div class="facility-header">
     <div>
         <hgroup>
-            <h1>{{ f.facility_name }}</h1>
+            <h1>{{ f.facility_name | smart_title }}</h1>
             <p>
                 {% if f.org_abbrev %}<span class="org-badge">{{ f.org_abbrev }}</span>{% endif %}
                 {% if f.org_name %}{{ f.org_name }}{% endif %}
@@ -23,12 +24,12 @@
         </hgroup>
     </div>
     <div class="header-links">
-        <a href="https://www.recreation.gov/camping/campgrounds/{{ f.facility_id }}" role="button" class="outline" target="_blank">View on Recreation.gov</a>
+        <a href="https://www.recreation.gov/camping/campgrounds/{{ f.facility_id }}" role="button" {% if not f.reservable %}class="outline" {% endif %}target="_blank" rel="noopener">View on Recreation.gov</a>
         {% if f.latitude and f.longitude and f.coords_valid %}
-        <a href="https://www.google.com/maps/search/?api=1&query={{ f.latitude }},{{ f.longitude }}" role="button" class="outline" target="_blank" id="maps-link">Google Maps</a>
+        <a href="https://www.google.com/maps/search/?api=1&query={{ f.latitude }},{{ f.longitude }}" role="button" class="outline" target="_blank" rel="noopener" id="maps-link">Google Maps</a>
         {% endif %}
         {% if f.facility_reservation_url %}
-        <a href="{{ f.facility_reservation_url }}" role="button" target="_blank">Reserve</a>
+        <a href="{{ f.facility_reservation_url }}" role="button" target="_blank" rel="noopener">Reserve</a>
         {% endif %}
     </div>
 </div>
@@ -42,7 +43,7 @@
         <strong>Permanently closed.</strong> This campground is no longer operational.
         {% elif f.seasonal_status == 'TEMPORARILY_CLOSED' %}
         <strong>Temporarily closed.</strong> This campground is currently closed. Check
-        <a href="https://www.recreation.gov/camping/campgrounds/{{ f.facility_id }}" target="_blank">Recreation.gov</a> for updates.
+        <a href="https://www.recreation.gov/camping/campgrounds/{{ f.facility_id }}" target="_blank" rel="noopener">Recreation.gov</a> for updates.
         {% elif f.seasonal_status == 'WINTER_CLOSURE' %}
         <strong>Winter closure.</strong> This campground closes during winter months.
         {% if is_open %}
@@ -56,7 +57,7 @@
         Likely <strong>open now</strong> ({{ now_pst.strftime('%B') }}).
         {% else %}
         Likely <strong>closed now</strong> ({{ now_pst.strftime('%B') }}). Check
-        <a href="https://www.recreation.gov/camping/campgrounds/{{ f.facility_id }}" target="_blank">Recreation.gov</a> for current dates.
+        <a href="https://www.recreation.gov/camping/campgrounds/{{ f.facility_id }}" target="_blank" rel="noopener">Recreation.gov</a> for current dates.
         {% endif %}
         {% endif %}
     </p>
@@ -69,14 +70,14 @@
     <p>
         <strong>Limited data.</strong> The National Park Service manages campground details separately from RIDB.
         For site counts, availability, and reservations visit
-        <a href="https://www.recreation.gov/camping/campgrounds/{{ f.facility_id }}" target="_blank">this campground on Recreation.gov</a>.
+        <a href="https://www.recreation.gov/camping/campgrounds/{{ f.facility_id }}" target="_blank" rel="noopener">this campground on Recreation.gov</a>.
     </p>
 </article>
 {% endif %}
 
 {# ---- Conditions Panel ---- #}
 <article>
-    <header><strong>Conditions</strong></header>
+    <header><h2 class="section-heading">Conditions</h2></header>
     <div class="conditions-grid">
         <div class="condition-item">
             <small class="condition-label">Road Access</small>
@@ -137,10 +138,10 @@
 {# ---- Tags ---- #}
 {% if f.tags %}
 <article>
-    <header><strong>Features</strong></header>
+    <header><h2 class="section-heading">Features</h2></header>
     {% for cat, tag_list in f.tags.items() %}
     <div class="tag-group">
-        <small class="tag-category">{{ cat }}</small>
+        <small class="tag-category">{{ cat | tag_display }}</small>
         {% for tag in tag_list %}
         <span class="tag {% if cat == 'WARNING' %}tag-warning{% endif %}">{{ tag | tag_display }}</span>
         {% endfor %}
@@ -151,7 +152,7 @@
 
 {# ---- Stats ---- #}
 <article>
-    <header><strong>Campground Stats</strong></header>
+    <header><h2 class="section-heading">Campground Stats</h2></header>
     <div class="grid stats-grid">
         <div>
             <table>
@@ -180,7 +181,7 @@
 {# ---- Map ---- #}
 {% if f.latitude and f.longitude and f.coords_valid %}
 <article>
-    <header><strong>Location</strong></header>
+    <header><h2 class="section-heading">Location</h2></header>
     <div id="facility-map" class="facility-map"></div>
     <small>
         {{ f.latitude }}, {{ f.longitude }}
@@ -195,7 +196,7 @@
 {# ---- Photos ---- #}
 {% if f.photos %}
 <article>
-    <header><strong>Photos</strong></header>
+    <header><h2 class="section-heading">Photos</h2></header>
     <div class="photo-gallery">
         {% for ph in f.photos %}
         <img src="{{ ph.url }}" alt="{{ ph.title or f.facility_name }}" loading="lazy"
@@ -218,23 +219,23 @@
 {# ---- Description ---- #}
 {% if f.facility_description %}
 <article>
-    <header><strong>Description</strong></header>
-    <div class="facility-description">{{ f.facility_description | safe }}</div>
+    <header><h2 class="section-heading">Description</h2></header>
+    <div class="facility-description ridb-html">{{ f.facility_description | safe }}</div>
 </article>
 {% endif %}
 
 {# ---- Directions ---- #}
 {% if f.facility_directions %}
 <article>
-    <header><strong>Directions</strong></header>
-    <div>{{ f.facility_directions | safe }}</div>
+    <header><h2 class="section-heading">Directions</h2></header>
+    <div class="ridb-html">{{ f.facility_directions | safe }}</div>
 </article>
 {% endif %}
 
 {# ---- Activities ---- #}
 {% if f.activities %}
 <article>
-    <header><strong>Activities</strong></header>
+    <header><h2 class="section-heading">Activities</h2></header>
     <div class="activity-list">
         {% for a in f.activities %}
         <span class="tag">{{ a }}</span>
@@ -245,7 +246,7 @@
 
 {# ---- Details ---- #}
 <article>
-    <header><strong>Details</strong></header>
+    <header><h2 class="section-heading">Details</h2></header>
     <table>
         {% if f.facility_use_fee %}<tr><td>Fee</td><td>{{ f.facility_use_fee }}</td></tr>{% endif %}
         {% if f.stay_limit %}<tr><td>Stay Limit</td><td>{{ f.stay_limit }}</td></tr>{% endif %}
@@ -259,11 +260,11 @@
 {# ---- Nearby ---- #}
 {% if nearby %}
 <article>
-    <header><strong>Nearby Campgrounds</strong></header>
+    <header><h2 class="section-heading">Nearby Campgrounds</h2></header>
     <div class="nearby-list">
         {% for n in nearby %}
         <div class="nearby-item">
-            <a href="/facility/{{ n.facility_id }}">{{ n.facility_name }}</a>
+            <a href="/facility/{{ n.facility_id }}">{{ n.facility_name | smart_title }}</a>
             <small>
                 {{ "%.1f" | format(n.distance_miles) }} mi
                 {% if n.org_abbrev %}&middot; {{ n.org_abbrev }}{% endif %}
@@ -306,7 +307,7 @@
     }).addTo(map);
     L.marker([{{ f.latitude }}, {{ f.longitude }}])
         .addTo(map)
-        .bindPopup('<strong>{{ f.facility_name | e }}</strong>');
+        .bindPopup('<strong>{{ f.facility_name | smart_title | e }}</strong>');
 </script>
 {% endif %}
 {% endblock %}

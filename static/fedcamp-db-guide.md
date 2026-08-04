@@ -1,4 +1,4 @@
-# FedCamp Database Guide
+# Campdex Database Guide
 
 SQLite database of federal campgrounds in the United States, sourced from the [Recreation Information Database (RIDB)](https://ridb.recreation.gov).
 
@@ -11,13 +11,25 @@ Covers campgrounds managed by USDA Forest Service (FS), Bureau of Land Managemen
 ```sql
 sqlite3 fedcamp.db
 
--- All developed campgrounds in Oregon with full hookups
+-- All developed campgrounds in Oregon with full hookups.
+-- Note the address join: it picks ONE preferred address per facility.
+-- Do NOT filter on address_type = 'Physical' — see the
+-- facility_addresses section below for why.
 SELECT r.facility_name, r.total_campsites, r.max_rv_length,
        fa.city, c.road_access, c.seasonal_status
 FROM n_facility_rollup r
 JOIN n_facility_conditions c ON r.facility_id = c.facility_id
-LEFT JOIN facility_addresses fa
-    ON r.facility_id = fa.facility_id AND fa.address_type = 'Physical'
+LEFT JOIN facility_addresses fa ON fa.facility_address_id = (
+    SELECT fa2.facility_address_id
+    FROM facility_addresses fa2
+    WHERE fa2.facility_id = r.facility_id
+    ORDER BY fa2.state_code IS NULL OR fa2.state_code = '',
+             CASE fa2.address_type
+                 WHEN 'Physical' THEN 0 WHEN 'Default' THEN 1
+                 WHEN 'Mailing' THEN 2 ELSE 3 END,
+             fa2.facility_address_id
+    LIMIT 1
+)
 JOIN n_facility_tags t ON r.facility_id = t.facility_id AND t.tag = 'FULL_HOOKUPS'
 WHERE fa.state_code = 'OR' AND r.camping_type = 'DEVELOPED'
 ORDER BY r.total_campsites DESC;
@@ -27,7 +39,7 @@ ORDER BY r.total_campsites DESC;
 
 ## Tables
 
-### n_facility_rollup (15,449 rows)
+### n_facility_rollup (15,573 rows)
 
 The main table. One row per facility with aggregated campsite stats.
 
@@ -60,7 +72,7 @@ The main table. One row per facility with aggregated campsite stats.
 | `desc_*` | Boolean flags parsed from facility descriptions (hookups, road type, dispersed, primitive, seasonal, fire, elevation, etc.) |
 | `campfire_yes_sites`, `campfire_no_sites` | Site counts allowing/disallowing campfires |
 
-### n_facility_conditions (15,449 rows)
+### n_facility_conditions (15,573 rows)
 
 Classified conditions for each facility, derived from campsite data and description parsing.
 
@@ -75,7 +87,7 @@ Classified conditions for each facility, derived from campsite data and descript
 | `boondock_accessibility` | For primitive/dispersed: EASY, MODERATE, ROUGH, or UNKNOWN |
 | `max_rv_length` | Max RV length from conditions analysis |
 
-### n_facility_tags (27,958 rows)
+### n_facility_tags (29,154 rows)
 
 Feature tags assigned to facilities. A facility can have many tags.
 
@@ -99,7 +111,7 @@ Best campsite photo for each facility (not all facilities have photos).
 | `photo_title` | Photo caption |
 | `photo_source` | Source attribution |
 
-### facilities (15,061 rows)
+### facilities (15,220 rows)
 
 Raw RIDB facility records with descriptions and contact info.
 
@@ -115,18 +127,37 @@ Raw RIDB facility records with descriptions and contact info.
 | `stay_limit` | Maximum stay in days |
 | `facility_ada_access` | ADA accessibility notes |
 
-### facility_addresses (16,328 rows)
+### facility_addresses (16,428 rows)
 
-Physical and mailing addresses. **Always filter on `address_type = 'Physical'`** to avoid duplicates.
+Facility addresses. A facility can have several rows — `address_type` is `Default`, `Mailing`, or `Physical`, sometimes with duplicates of the same type — so a bare join duplicates result rows.
+
+**Do not filter on `address_type = 'Physical'` to dedupe.** Despite the name, `Physical` is the *rarest* type (~1,800 rows vs ~12,800 `Default` — in Oregon, only 46 facilities have a `Physical` row vs 867 with `Default`), so that filter silently drops ~85% of facilities. Worse, a condition like `fa.state_code = 'OR'` in the `WHERE` clause of a LEFT JOIN turns it into an inner join (NULLs never match), which discards every facility without a `Physical` row entirely.
+
+Instead, select one preferred address per facility with a correlated subquery — prefer rows that actually carry a `state_code`, then `Physical` > `Default` > `Mailing`:
+
+```sql
+LEFT JOIN facility_addresses fa ON fa.facility_address_id = (
+    SELECT fa2.facility_address_id
+    FROM facility_addresses fa2
+    WHERE fa2.facility_id = r.facility_id
+    ORDER BY fa2.state_code IS NULL OR fa2.state_code = '',
+             CASE fa2.address_type
+                 WHEN 'Physical' THEN 0 WHEN 'Default' THEN 1
+                 WHEN 'Mailing' THEN 2 ELSE 3 END,
+             fa2.facility_address_id
+    LIMIT 1
+)
+```
 
 | Column | Description |
 |--------|-------------|
+| `facility_address_id` | Primary key |
 | `facility_id` | Foreign key to facilities |
-| `address_type` | **Physical** or Mailing |
+| `address_type` | Default, Mailing, or Physical |
 | `city`, `state_code`, `postal_code` | Location |
 | `street1` | Street address |
 
-### facility_activities (48,795 rows)
+### facility_activities (49,330 rows)
 
 Activities available at each facility.
 
@@ -135,7 +166,7 @@ Activities available at each facility.
 | `facility_id` | Foreign key to facilities |
 | `activity_name` | e.g. "Camping", "Fishing", "Hiking" |
 
-### campsites (132,974 rows)
+### campsites (133,814 rows)
 
 Individual campsite records. Linked to facilities.
 
@@ -148,14 +179,14 @@ Individual campsite records. Linked to facilities.
 | `type_of_use` | Overnight or Day |
 | `loop` | Loop name within campground |
 
-### media (32,500 rows)
+### media (35,105 rows)
 
 Photos linked to campsites (not facilities directly).
 
 | Column | Description |
 |--------|-------------|
 | `entity_id` | campsite_id (when entity_type = 'Campsite') |
-| `entity_type` | Always 'Campsite' in this dataset |
+| `entity_type` | Campsite (24,654), Asset (7,271), Facility (3,011), or Tour (169) |
 | `media_type` | Image |
 | `url` | Full image URL |
 | `title`, `description` | Caption and description |
@@ -172,7 +203,7 @@ Federal agencies that manage facilities.
 
 ### n_state_cache (50 rows)
 
-Pre-computed campground counts per state.
+Pre-computed campground counts per state. Note: a facility is counted in *every* state it has an address row for, so these totals can read slightly higher than what a preferred-address query returns (which assigns each facility exactly one state).
 
 | Column | Description |
 |--------|-------------|
@@ -189,10 +220,20 @@ SQLite doesn't have trig functions built in. Register them first if using a scri
 
 ```sql
 -- Bounding box: campgrounds within ~50 miles of Portland, OR
+-- (uses the preferred-address join from the facility_addresses section)
 SELECT r.facility_name, fa.city, fa.state_code, r.total_campsites
 FROM n_facility_rollup r
-JOIN facility_addresses fa
-    ON r.facility_id = fa.facility_id AND fa.address_type = 'Physical'
+LEFT JOIN facility_addresses fa ON fa.facility_address_id = (
+    SELECT fa2.facility_address_id
+    FROM facility_addresses fa2
+    WHERE fa2.facility_id = r.facility_id
+    ORDER BY fa2.state_code IS NULL OR fa2.state_code = '',
+             CASE fa2.address_type
+                 WHEN 'Physical' THEN 0 WHEN 'Default' THEN 1
+                 WHEN 'Mailing' THEN 2 ELSE 3 END,
+             fa2.facility_address_id
+    LIMIT 1
+)
 WHERE r.camping_type IN ('DEVELOPED', 'PRIMITIVE', 'DISPERSED')
   AND r.latitude BETWEEN 44.78 AND 46.22
   AND r.longitude BETWEEN -123.67 AND -121.53
@@ -206,8 +247,17 @@ SELECT r.facility_name, r.max_rv_length, r.pullthrough_sites,
        r.full_hookup_sites, fa.state_code
 FROM n_facility_rollup r
 JOIN n_facility_conditions c ON r.facility_id = c.facility_id
-JOIN facility_addresses fa
-    ON r.facility_id = fa.facility_id AND fa.address_type = 'Physical'
+LEFT JOIN facility_addresses fa ON fa.facility_address_id = (
+    SELECT fa2.facility_address_id
+    FROM facility_addresses fa2
+    WHERE fa2.facility_id = r.facility_id
+    ORDER BY fa2.state_code IS NULL OR fa2.state_code = '',
+             CASE fa2.address_type
+                 WHEN 'Physical' THEN 0 WHEN 'Default' THEN 1
+                 WHEN 'Mailing' THEN 2 ELSE 3 END,
+             fa2.facility_address_id
+    LIMIT 1
+)
 WHERE r.camping_type = 'DEVELOPED'
   AND r.max_rv_length >= 40
   AND c.road_access = 'PAVED'
@@ -222,8 +272,17 @@ SELECT r.facility_name, c.boondock_accessibility, c.road_access,
        fa.city, fa.state_code
 FROM n_facility_rollup r
 JOIN n_facility_conditions c ON r.facility_id = c.facility_id
-LEFT JOIN facility_addresses fa
-    ON r.facility_id = fa.facility_id AND fa.address_type = 'Physical'
+LEFT JOIN facility_addresses fa ON fa.facility_address_id = (
+    SELECT fa2.facility_address_id
+    FROM facility_addresses fa2
+    WHERE fa2.facility_id = r.facility_id
+    ORDER BY fa2.state_code IS NULL OR fa2.state_code = '',
+             CASE fa2.address_type
+                 WHEN 'Physical' THEN 0 WHEN 'Default' THEN 1
+                 WHEN 'Mailing' THEN 2 ELSE 3 END,
+             fa2.facility_address_id
+    LIMIT 1
+)
 WHERE r.camping_type = 'DISPERSED'
   AND r.org_abbrev = 'BLM'
 ORDER BY fa.state_code, r.facility_name;
@@ -235,8 +294,17 @@ ORDER BY fa.state_code, r.facility_name;
 -- Campgrounds with both electric hookups and dump stations
 SELECT r.facility_name, fa.state_code
 FROM n_facility_rollup r
-JOIN facility_addresses fa
-    ON r.facility_id = fa.facility_id AND fa.address_type = 'Physical'
+LEFT JOIN facility_addresses fa ON fa.facility_address_id = (
+    SELECT fa2.facility_address_id
+    FROM facility_addresses fa2
+    WHERE fa2.facility_id = r.facility_id
+    ORDER BY fa2.state_code IS NULL OR fa2.state_code = '',
+             CASE fa2.address_type
+                 WHEN 'Physical' THEN 0 WHEN 'Default' THEN 1
+                 WHEN 'Mailing' THEN 2 ELSE 3 END,
+             fa2.facility_address_id
+    LIMIT 1
+)
 WHERE r.facility_id IN (
     SELECT facility_id FROM n_facility_tags WHERE tag = 'ELECTRIC_HOOKUP'
 )
@@ -250,7 +318,7 @@ ORDER BY fa.state_code, r.facility_name;
 
 ## Notes
 
-- **Campable facilities** (DEVELOPED + PRIMITIVE + DISPERSED): 6,356 of 15,449 total
+- **Campable facilities** (DEVELOPED + PRIMITIVE + DISPERSED): 7,201 of 15,573 total
 - About 20% of facilities lack valid coordinates
 - 819 NPS/FS/BLM/USACE campgrounds have 0 campsite records in RIDB but are classified as DEVELOPED (low confidence)
 - `facility_description` and `facility_directions` contain HTML

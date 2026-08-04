@@ -1,5 +1,5 @@
 """
-RV Camping Finder — Flask Web Application
+Campdex — Flask Web Application
 
 Usage:
     python app.py
@@ -387,25 +387,127 @@ def tag_display(tag):
     return tag.replace("_", " ").title()
 
 
+# Acronyms / abbreviations to preserve when title-casing ALL-CAPS names
+_TITLE_KEEP_UPPER = {
+    "US", "USA", "BLM", "NPS", "FS", "USFS", "USACE", "BOR", "FWS",
+    "RV", "ATV", "OHV", "NF", "NP", "NRA", "NWR", "SP", "CG", "II", "III",
+    "IV", "VI", "VII", "VIII", "IX", "XI", "XII",
+    "CCC",  # Civilian Conservation Corps — appears in several camp names
+}
+
+# Two-letter state codes that are also ordinary English words. In trailing
+# position these are far more often the word than the state: real names include
+# "JARVIES FAMILY BOAT IN" (boat-in, not Indiana) and "JOHN SPALDING REC AR"
+# (Rec Area, not Arkansas). Still honoured inside parens, e.g. "NORTH FORK (WY)".
+_AMBIGUOUS_STATE_CODES = {"IN", "OR", "AR", "ME", "HI", "OK", "LA", "PA", "DE"}
+
+# State codes: only kept uppercase as the final word or right after a comma,
+# so "WALK-IN" / "DRIVE IN" don't become "Walk-IN" / "Drive IN"
+_STATE_CODES = {
+    "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", "HI", "ID",
+    "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS",
+    "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK",
+    "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV",
+    "WI", "WY", "DC",
+}
+
+_TITLE_KEEP_LOWER = {"a", "an", "and", "at", "by", "de", "del", "for", "in",
+                     "la", "of", "on", "or", "the", "to"}
+
+
+@app.template_filter("smart_title")
+def smart_title(name):
+    """Title-case ALL-CAPS strings, preserving acronyms and state codes.
+
+    Mixed-case strings are returned untouched.
+    """
+    if not name or not isinstance(name, str):
+        return name
+    letters = [c for c in name if c.isalpha()]
+    if not letters or not all(c.isupper() for c in letters):
+        return name  # already mixed-case (or no letters) — leave alone
+
+    def fix_word(word, is_first, is_last, keep_state):
+        # Core word without surrounding punctuation like ( ) , . / -
+        core = word.strip("()[],.&/-'\"")
+        if not core:
+            return word
+        if core in _TITLE_KEEP_UPPER:
+            return word
+        in_parens = word.startswith("(")
+        if core in _STATE_CODES and (in_parens or
+                                     (keep_state and
+                                      core not in _AMBIGUOUS_STATE_CODES)):
+            return word
+        # Small words stay lowercase in the middle only — never as the first or
+        # last word, or "BOAT IN" would render "Boat in".
+        if not is_first and not is_last and core.lower() in _TITLE_KEEP_LOWER:
+            return word.lower()
+        # Handle hyphen/slash compounds (e.g. WALK-IN, PINE/OAK) and names
+        # glued to an opening paren (BLUFF VIEW(CLEARWATER LAKE)). The
+        # startswith guard keeps a standalone "(WY)" intact for the state
+        # check above rather than splitting it into an empty first part.
+        # Only the leading part inherits is_first, so WALK-IN -> Walk-in.
+        for sep in ("-", "/", "("):
+            if sep in word and not word.startswith(sep):
+                parts = word.split(sep)
+                return sep.join(
+                    fix_word(p, is_first and i == 0,
+                             is_last and i == len(parts) - 1, False)
+                    for i, p in enumerate(parts))
+        # O'BRIEN -> O'Brien (leading single letter + apostrophe)
+        if "'" in word:
+            head, _, tail = word.partition("'")
+            if len(head) == 1 and len(tail) > 1:
+                return head.upper() + "'" + fix_word(tail, False, is_last, False)
+        # Capitalize first alphabetic char, lowercase the rest
+        out, seen_alpha = [], False
+        for c in word:
+            if c.isalpha() and not seen_alpha:
+                out.append(c.upper())
+                seen_alpha = True
+            else:
+                out.append(c.lower())
+        result = "".join(out)
+        # McDonald, not Mcdonald. Every MC* word in the data (20 of them) is a
+        # genuine surname. Mac is deliberately NOT handled: the only MAC* word
+        # present is MACKINAW, which is correctly "Mackinaw", not "MacKinaw".
+        if len(result) > 3 and result[:2] == "Mc" and result[2].isalpha():
+            result = "Mc" + result[2].upper() + result[3:]
+        return result
+
+    words = name.split()
+    fixed = []
+    for i, w in enumerate(words):
+        after_comma = i > 0 and words[i - 1].endswith(",")
+        is_last = i == len(words) - 1
+        keep_state = is_last or after_comma
+        fixed.append(fix_word(w, i == 0, is_last, keep_state))
+    return " ".join(fixed)
+
+
 @app.template_filter("condition_color")
 def condition_color(value):
     """Color for condition pills."""
+    # All backgrounds meet WCAG AA (>= 4.5:1) against white pill text:
+    #   #2d7d46 5.08:1, #6c757d 4.69:1, #a85a1e 5.06:1, #c0392b 5.44:1,
+    #   #8a6d10 4.91:1, #7f1d1d 10.02:1, #5f6e6f 5.32:1
     colors = {
         # Road access
-        'PAVED': '#2d7d46', 'GRAVEL': '#6c757d', 'DIRT': '#d4782f',
+        'PAVED': '#2d7d46', 'GRAVEL': '#6c757d', 'DIRT': '#a85a1e',
         'HIGH_CLEARANCE': '#c0392b', '4WD_REQUIRED': '#c0392b',
         # Seasonal
-        'OPEN_YEAR_ROUND': '#2d7d46', 'SEASONAL_CLOSURE': '#c49f17',
-        'WINTER_CLOSURE': '#d4782f',
+        'OPEN_YEAR_ROUND': '#2d7d46', 'SEASONAL_CLOSURE': '#8a6d10',
+        'WINTER_CLOSURE': '#a85a1e',
         'TEMPORARILY_CLOSED': '#c0392b', 'PERMANENTLY_CLOSED': '#7f1d1d',
         # Fire
-        'CAMPFIRES_ALLOWED': '#2d7d46', 'RESTRICTIONS': '#c49f17',
+        'CAMPFIRES_ALLOWED': '#2d7d46', 'RESTRICTIONS': '#8a6d10',
         'NO_CAMPFIRES': '#c0392b',
         # Boondock
-        'EASY': '#2d7d46', 'MODERATE': '#c49f17', 'ROUGH': '#c0392b',
-        'UNKNOWN': '#95a5a6',
+        'EASY': '#2d7d46', 'MODERATE': '#8a6d10', 'ROUGH': '#c0392b',
+        'UNKNOWN': '#5f6e6f',
     }
-    return colors.get(value, '#95a5a6')
+    return colors.get(value, '#5f6e6f')
 
 
 @app.template_filter("likely_open")

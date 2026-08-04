@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Site Stats — RV Camping Finder{% endblock %}
+{% block title %}Site Stats — Campdex{% endblock %}
 
 {% block content %}
 <h1>Site Stats</h1>
@@ -53,7 +53,7 @@
     {% set max_fac = stats.top_facilities[0].count %}
     {% for f in stats.top_facilities %}
     <div class="bar-row">
-        <div class="bar-label"><a href="/facility/{{ f.facility_id }}">{{ f.facility_name }}</a></div>
+        <div class="bar-label"><a href="/facility/{{ f.facility_id }}">{{ f.facility_name | smart_title }}</a></div>
         <div class="bar-track">
             <div class="bar-fill" style="width: {{ (f.count / max_fac * 100) | round }}%"></div>
         </div>
