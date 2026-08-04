@@ -2,6 +2,11 @@
 
 All notable changes to the RV Camping Finder project.
 
+## [0.10.6] — 2026-08-03
+
+### Fixed
+- `/stats` returned 500 on every request except the first after a restart. `get_stats()` returns a `deepcopy` on a cache hit but handed back the cached object itself on a miss, and `app.py` assigns `data["top_facilities"] = resolve_facility_names(...)` in place — so the first request rewrote the cached `(facility_id, count)` tuples into dicts, and every request for the rest of the 5-minute TTL died on `KeyError: 0` in `resolve_facility_names`. Now copies on the miss path too. The bug was masked by deploys: each gunicorn restart cleared the cache, so the first check after any deploy always passed.
+
 ## [0.10.5] — 2026-08-03
 
 ### Fixed

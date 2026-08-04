@@ -50,7 +50,10 @@ def get_stats():
     data = _parse_logs()
     _cache["data"] = data
     _cache["ts"] = now
-    return data
+    # Copy on the miss path too. Callers mutate the returned dict in place
+    # (app.py replaces top_facilities with resolved names), which would
+    # otherwise poison the cache and 500 every request until the TTL expires.
+    return copy.deepcopy(data)
 
 
 def resolve_facility_names(conn, facility_counts):
