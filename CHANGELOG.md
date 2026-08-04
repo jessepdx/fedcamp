@@ -2,6 +2,18 @@
 
 All notable changes to the Campdex (formerly RV Camping Finder) project.
 
+## [0.15.0] — 2026-08-03
+
+### Added
+- **A crawlable path to the campground pages.** A search engine could previously reach exactly four pages: the homepage links only to `/`, `/about`, `/search-form` and `/stats`, the map is JavaScript, and the state picker is a `<select>` rather than links. Meanwhile ~6,900 facility pages carrying several hundred words each of road access, seasonal, campsite and directions detail sat entirely undiscoverable. New `/campgrounds` (state index) and `/campgrounds/<state>` (full facility list) pages, linked from the footer of every page, connect them: **656+ pages are now reachable from the homepage with JavaScript disabled, against 4 before**, and every facility is two clicks from the front door.
+- `sitemap.xml` — 6,927 URLs (6,873 facilities, 50 states, static pages), built from the database and cached for 24 hours so a 2-vCPU box isn't rebuilding 800KB of XML per crawler request.
+- `robots.txt` is now served by the app so it can carry a `Sitemap:` directive. Cloudflare had been serving a default file that never mentioned the sitemap. Filtered `/search?…` permutations are disallowed — they're effectively infinite and duplicate the canonical facility pages, so they'd burn crawl budget that should go to real content.
+- `schema.org/Campground` JSON-LD on facility pages, with coordinates, address and managing agency. Only fields the agency actually recorded are emitted — claiming an amenity we have no data for would be exactly the overclaiming this site exists to avoid.
+- `rel="canonical"` on every page, overridable per template.
+
+### Fixed
+- The map homepage had no `<h1>` at all — the map-first rebuild replaced the heading block with a strap line, leaving the site's most important page with no heading for the document outline or for search engines. Restored as a heading sized to the layout rather than to a display scale.
+
 ## [0.14.0] — 2026-08-03
 
 ### Changed

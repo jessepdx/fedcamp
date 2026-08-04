@@ -492,6 +492,118 @@ def api_download():
     return send_file(db.DB_PATH, as_attachment=True, download_name="fedcamp.db")
 
 
+STATE_NAMES = {
+    "AL": "Alabama", "AK": "Alaska", "AZ": "Arizona", "AR": "Arkansas",
+    "CA": "California", "CO": "Colorado", "CT": "Connecticut",
+    "DE": "Delaware", "DC": "District of Columbia", "FL": "Florida",
+    "GA": "Georgia", "HI": "Hawaii", "ID": "Idaho", "IL": "Illinois",
+    "IN": "Indiana", "IA": "Iowa", "KS": "Kansas", "KY": "Kentucky",
+    "LA": "Louisiana", "ME": "Maine", "MD": "Maryland",
+    "MA": "Massachusetts", "MI": "Michigan", "MN": "Minnesota",
+    "MS": "Mississippi", "MO": "Missouri", "MT": "Montana",
+    "NE": "Nebraska", "NV": "Nevada", "NH": "New Hampshire",
+    "NJ": "New Jersey", "NM": "New Mexico", "NY": "New York",
+    "NC": "North Carolina", "ND": "North Dakota", "OH": "Ohio",
+    "OK": "Oklahoma", "OR": "Oregon", "PA": "Pennsylvania",
+    "RI": "Rhode Island", "SC": "South Carolina", "SD": "South Dakota",
+    "TN": "Tennessee", "TX": "Texas", "UT": "Utah", "VT": "Vermont",
+    "VA": "Virginia", "WA": "Washington", "WV": "West Virginia",
+    "WI": "Wisconsin", "WY": "Wyoming", "PR": "Puerto Rico",
+    "VI": "US Virgin Islands", "GU": "Guam",
+}
+
+
+@app.route("/campgrounds")
+def campgrounds_index():
+    """State index — the entry point to the crawlable page graph.
+
+    Without this the only links on the site were /, /about, /search-form and
+    /stats: the map is JavaScript and the state picker is a <select>, so a
+    crawler could reach four pages while ~6,900 facility pages of unique
+    content sat undiscoverable. This gives every one of them a path.
+    """
+    states = db.get_states(g.conn)
+    for s in states:
+        s["name"] = STATE_NAMES.get(s["state_code"], s["state_code"])
+    states.sort(key=lambda s: s["name"])
+    return render_template("campgrounds_index.html", states=states)
+
+
+@app.route("/campgrounds/<state_code>")
+def campgrounds_state(state_code):
+    code = state_code.upper()
+    if code not in STATE_NAMES:
+        return render_template("404.html"), 404
+    facilities = db.facilities_for_state(g.conn, code)
+    if not facilities:
+        return render_template("404.html"), 404
+    return render_template("campgrounds_state.html",
+                           state_code=code,
+                           state_name=STATE_NAMES[code],
+                           facilities=facilities)
+
+
+# The sitemap is ~6,900 URLs built from a query; rebuilding it per request
+# would be wasteful on a 2-vCPU box, and crawlers re-fetch it often.
+_sitemap_cache = {"xml": None, "ts": 0}
+SITEMAP_TTL = 86400
+
+
+@app.route("/sitemap.xml")
+def sitemap():
+    now = time.time()
+    if _sitemap_cache["xml"] and (now - _sitemap_cache["ts"]) < SITEMAP_TTL:
+        xml = _sitemap_cache["xml"]
+    else:
+        base = request.url_root.rstrip("/")
+        parts = ['<?xml version="1.0" encoding="UTF-8"?>',
+                 '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
+
+        def url(loc, priority, freq):
+            parts.append(f"<url><loc>{base}{loc}</loc>"
+                         f"<changefreq>{freq}</changefreq>"
+                         f"<priority>{priority}</priority></url>")
+
+        url("/", "1.0", "daily")
+        url("/campgrounds", "0.9", "weekly")
+        url("/search-form", "0.5", "monthly")
+        url("/about", "0.3", "yearly")
+        for s in db.get_states(g.conn):
+            url(f"/campgrounds/{s['state_code']}", "0.8", "weekly")
+        for fid in db.all_facility_ids(g.conn):
+            url(f"/facility/{fid}", "0.6", "monthly")
+        parts.append("</urlset>")
+        xml = "".join(parts)
+        _sitemap_cache["xml"] = xml
+        _sitemap_cache["ts"] = now
+
+    resp = make_response(xml)
+    resp.headers["Content-Type"] = "application/xml"
+    return resp
+
+
+@app.route("/robots.txt")
+def robots():
+    """Served by the app so it can point at the sitemap.
+
+    Cloudflare was serving a default file with no Sitemap: directive, so
+    nothing told a crawler the ~6,900 facility pages existed.
+    """
+    base = request.url_root.rstrip("/")
+    body = (
+        "User-agent: *\n"
+        "Allow: /\n"
+        # Filtered permutations are effectively infinite and duplicate the
+        # canonical facility pages; keep crawl budget on real content.
+        "Disallow: /api/\n"
+        "Disallow: /search?\n"
+        f"\nSitemap: {base}/sitemap.xml\n"
+    )
+    resp = make_response(body)
+    resp.headers["Content-Type"] = "text/plain"
+    return resp
+
+
 @app.route("/about")
 def about():
     return render_template("about.html")

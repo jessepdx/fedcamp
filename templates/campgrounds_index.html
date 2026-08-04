@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Federal Campgrounds by State — Campdex{% endblock %}
+{% block meta_description %}Browse {{ states | sum(attribute='facility_count') }} federal campgrounds by state — Forest Service, BLM, National Park Service, Army Corps and more, with road access, seasonal closures and RV length limits.{% endblock %}
+
+{% block content %}
+<hgroup>
+    <h1>Federal campgrounds by state</h1>
+    <p>Every campground in the Recreation Information Database that allows overnight
+       camping, grouped by state. Each listing shows road access, seasonal closures,
+       campfire status and maximum RV length where the agency has recorded them.</p>
+</hgroup>
+
+<p><a href="/">Search the map</a> · <a href="/search-form">Advanced search</a></p>
+
+<div class="state-index">
+    {% for s in states %}
+    <a href="/campgrounds/{{ s.state_code }}" class="state-index-item">
+        <strong>{{ s.name }}</strong>
+        <small>{{ "{:,}".format(s.facility_count) }} campgrounds</small>
+    </a>
+    {% endfor %}
+</div>
+{% endblock %}

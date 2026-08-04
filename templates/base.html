@@ -24,7 +24,8 @@
         gtag('js', new Date());
         gtag('config', 'G-TS0RQX5617');
     </script>
-    {% block head %}{% endblock %}
+        <link rel="canonical" href="{% block canonical %}https://campdex.com{{ request.path }}{% endblock %}">
+{% block head %}{% endblock %}
 </head>
 <body class="{% block body_class %}{% endblock %}">
     <nav class="container-fluid">
@@ -43,7 +44,8 @@
     </main>
 
     <footer class="container">
-        <small>Data from <a href="https://ridb.recreation.gov" target="_blank" rel="noopener">RIDB</a> (Recreation.gov).
+        <small><a href="/campgrounds">Campgrounds by state</a> · <a href="/search-form">Advanced search</a> · <a href="/about">About</a><br>
+        Data from <a href="https://ridb.recreation.gov" target="_blank" rel="noopener">RIDB</a> (Recreation.gov).
         Conditions are based on available data — always verify before traveling.
         <a href="https://github.com/jessepdx/fedcamp" target="_blank" rel="noopener">Contribute on GitHub</a>.</small>
     </footer>

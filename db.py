@@ -697,3 +697,42 @@ def get_search_count(conn, state_codes=None, lat=None, lon=None,
     params.extend(f_params)
 
     return conn.execute(sql, params).fetchone()[0]
+
+
+# ------------------------------------------------------------------
+# Sitemap / crawlable index helpers
+# ------------------------------------------------------------------
+
+def all_facility_ids(conn):
+    """Every campable, named facility id — the sitemap's long tail.
+
+    These pages are the site's entire SEO surface (~850 words each of
+    conditions, campsite detail and directions), and until there was a
+    crawlable path to them a search engine could reach four pages total.
+    """
+    rows = conn.execute("""
+        SELECT r.facility_id
+        FROM n_facility_rollup r
+        WHERE r.facility_name IS NOT NULL AND r.facility_name <> ''
+          AND r.camping_type IN ({})
+        ORDER BY r.total_campsites DESC, r.facility_id
+    """.format(",".join("'%s'" % t for t in DEFAULT_CAMPING_TYPES))).fetchall()
+    return [r[0] for r in rows]
+
+
+def facilities_for_state(conn, state_code, limit=2000):
+    """Named campable facilities in one state, for the state index page."""
+    sql = """
+        SELECT r.facility_id, r.facility_name, r.org_abbrev, r.camping_type,
+               r.total_campsites, r.max_rv_length, fa.city
+        FROM n_facility_rollup r
+        {addr_join}
+        WHERE r.facility_name IS NOT NULL AND r.facility_name <> ''
+          AND r.camping_type IN ({types})
+          AND fa.state_code = ?
+        ORDER BY r.facility_name
+        LIMIT ?
+    """.format(addr_join=PREFERRED_ADDRESS_JOIN,
+               types=",".join("'%s'" % t for t in DEFAULT_CAMPING_TYPES))
+    rows = conn.execute(sql, (state_code, limit)).fetchall()
+    return [dict(r) for r in rows]

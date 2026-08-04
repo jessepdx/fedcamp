@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}{{ state_name }} Federal Campgrounds ({{ facilities | length }}) — Campdex{% endblock %}
+{% block meta_description %}All {{ facilities | length }} federal campgrounds in {{ state_name }} — Forest Service, BLM, National Park Service and more, with road access, seasonal closures, campfire status and RV length limits.{% endblock %}
+
+{% block content %}
+<nav aria-label="Breadcrumb">
+    <small><a href="/campgrounds">Campgrounds by state</a> › {{ state_name }}</small>
+</nav>
+
+<hgroup>
+    <h1>{{ state_name }} federal campgrounds</h1>
+    <p>{{ "{:,}".format(facilities | length) }} campgrounds on federal public land in
+       {{ state_name }}, from the Recreation Information Database.
+       <a href="/search?state={{ state_code }}&camping_type=DEVELOPED&camping_type=PRIMITIVE&camping_type=DISPERSED">Filter these results</a>
+       or <a href="/">find them on the map</a>.</p>
+</hgroup>
+
+{#- A plain list, not cards: this page exists to be crawled and scanned, and
+    ~600 cards would be a heavy page on a slow rural connection. -#}
+<ul class="state-facility-list">
+    {% for f in facilities %}
+    <li>
+        <a href="/facility/{{ f.facility_id }}">{{ f.facility_name | smart_title }}</a>
+        <small>
+            {%- if f.org_abbrev %} {{ f.org_abbrev }}{% endif -%}
+            {%- if f.city %} · {{ f.city | smart_title }}{% endif -%}
+            {%- if f.total_campsites %} · {{ f.total_campsites }} sites{% endif -%}
+            {%- if f.max_rv_length %} · max {{ f.max_rv_length }} ft{% endif -%}
+        </small>
+    </li>
+    {% endfor %}
+</ul>
+{% endblock %}

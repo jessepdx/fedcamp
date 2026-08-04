@@ -2,6 +2,42 @@
 {% block title %}{{ f.facility_name | smart_title }} — Campdex{% endblock %}
 {% block meta_description %}{{ f.facility_name | smart_title }}{% if f.org_name %} — {{ f.org_name }} campground{% endif %}{% if f.city and f.state_code %} near {{ f.city }}, {{ f.state_code }}{% elif f.state_code %} in {{ f.state_code }}{% endif %}.{% if f.total_campsites %} {{ f.total_campsites }} campsites.{% endif %}{% if f.max_rv_length %} Max RV length {{ f.max_rv_length }} ft.{% endif %} Road access, seasonal, and hookup details on Campdex.{% endblock %}
 
+{# Structured data so a search engine understands this is a campground
+   with a location, not an arbitrary page. Only fields the agency actually
+   recorded are emitted -- claiming an amenity we don't have data for would
+   be exactly the overclaiming this site exists to avoid. #}
+{% block head %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Campground",
+  "name": {{ (f.facility_name | smart_title) | tojson }},
+  "url": "https://campdex.com/facility/{{ f.facility_id }}",
+  {% if f.description %}"description": {{ (f.description | striptags | truncate(300)) | tojson }},{% endif %}
+  {% if f.latitude and f.longitude %}"geo": {
+    "@type": "GeoCoordinates",
+    "latitude": {{ f.latitude }},
+    "longitude": {{ f.longitude }}
+  },{% endif %}
+  {% if f.city or f.state_code %}"address": {
+    "@type": "PostalAddress",
+    {% if f.city %}"addressLocality": {{ (f.city | smart_title) | tojson }},{% endif %}
+    {% if f.state_code %}"addressRegion": {{ f.state_code | tojson }},{% endif %}
+    "addressCountry": "US"
+  },{% endif %}
+  {% if f.photo_url %}"image": {{ f.photo_url | tojson }},{% endif %}
+  {% if f.org_name %}"publicAccess": true,
+  "amenityFeature": [
+    {% if f.has_electric_hookup %}{"@type":"LocationFeatureSpecification","name":"Electric hookup","value":true},{% endif %}
+    {% if f.has_water_hookup %}{"@type":"LocationFeatureSpecification","name":"Water hookup","value":true},{% endif %}
+    {% if f.has_sewer_hookup %}{"@type":"LocationFeatureSpecification","name":"Sewer hookup","value":true},{% endif %}
+    {"@type":"LocationFeatureSpecification","name":"Managed by","value":{{ f.org_name | tojson }}}
+  ],{% endif %}
+  "isAccessibleForFree": {{ 'false' if f.reservable else 'true' }}
+}
+</script>
+{% endblock %}
+
 {% block content %}
 <nav aria-label="breadcrumb">
     <ul>
