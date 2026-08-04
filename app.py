@@ -158,11 +158,41 @@ AGENCIES = [
     ("FWS",   "US Fish & Wildlife Service"),
 ]
 
+STYLE_OPTIONS = [
+    ("rv",         "RV"),
+    ("tent",       "Tent"),
+    ("walkin",     "Walk/Hike-in"),
+    ("boatin",     "Boat"),
+    ("equestrian", "Equestrian"),
+]
+
 
 @app.context_processor
 def inject_now():
     now = datetime.now(PST)
     return {"now_pst": now, "current_month": now.month}
+
+
+@app.context_processor
+def inject_filter_options():
+    """Expose the filter vocabularies to every template.
+
+    The map page renders with no context of its own, so its filter panel
+    hardcoded its options in markup while the results drawer looped over
+    these constants. That is how the two surfaces drifted into different
+    filter vocabularies -- the map grew Style and Hookups, the drawer grew
+    Season and Campfires, and neither knew about the other. One definition,
+    reachable from every template, so a filter added here can appear on both.
+    """
+    return {
+        "camping_type_options": CAMPING_TYPES,
+        "agency_options": AGENCIES,
+        "road_access_options": ROAD_ACCESS_OPTIONS,
+        "seasonal_options": SEASONAL_OPTIONS,
+        "fire_options": FIRE_OPTIONS,
+        "amenity_filters": AMENITY_FILTERS,
+        "style_options": STYLE_OPTIONS,
+    }
 
 
 @app.before_request
