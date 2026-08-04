@@ -615,6 +615,9 @@ def sitemap():
 
     resp = make_response(xml)
     resp.headers["Content-Type"] = "application/xml"
+    # An hour at the edge: long enough to spare the box, short enough that a
+    # data refresh reaches crawlers the same day.
+    resp.headers["Cache-Control"] = "public, max-age=3600"
     return resp
 
 
@@ -671,6 +674,10 @@ def robots():
 
     resp = make_response("\n".join(lines))
     resp.headers["Content-Type"] = "text/plain"
+    # Short TTL: these control files must be able to change quickly. Cloudflare
+    # cached the previous robots.txt for four hours, so a deploy that opened the
+    # API to crawlers kept serving the version that blocked it.
+    resp.headers["Cache-Control"] = "public, max-age=300"
     return resp
 
 
@@ -737,6 +744,7 @@ always tell people to verify with the managing agency before a long drive.
 """
     resp = make_response(body)
     resp.headers["Content-Type"] = "text/plain; charset=utf-8"
+    resp.headers["Cache-Control"] = "public, max-age=300"
     return resp
 
 
