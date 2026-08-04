@@ -10,6 +10,7 @@ import os
 import time
 import threading
 from datetime import datetime, timezone, timedelta
+from urllib.parse import urlencode
 from flask import Flask, render_template, request, g, jsonify, send_file
 import db
 import stats
@@ -235,8 +236,19 @@ def search():
 
     has_more = (offset + len(results)) < total
 
+    # Next-page URL for the htmx "Load More" button. `page` must be stripped
+    # from the incoming query string rather than appended to: an htmx request
+    # for page 2 already carries page=2, so appending would build
+    # "?page=2&page=3", and request.args.get("page") reads the first value —
+    # pinning Load More on page 2 forever.
+    next_args = request.args.to_dict(flat=False)
+    next_args.pop("page", None)
+    next_args["page"] = [page + 1]
+    next_page_url = "/search?" + urlencode(next_args, doseq=True)
+
     ctx = dict(
         results=results, total=total, page=page, has_more=has_more,
+        next_page_url=next_page_url,
         states=states, lat=lat, lon=lon,
         radius=radius, camping_types=ct, tag_filters=tags,
         selected_agencies=agencies,

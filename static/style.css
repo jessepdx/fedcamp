@@ -849,3 +849,9 @@ a.leaflet-control-zoom-out {
     .bar-count { flex: 0 0 40px; font-size: 0.8rem; }
     .sparkline { height: 80px; }
 }
+
+/* "Load More" control — lives inside #results-list and swaps itself out */
+.load-more {
+    text-align: center;
+    margin: 1rem 0;
+}

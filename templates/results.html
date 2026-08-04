@@ -145,19 +145,6 @@
     {% include "_results_cards.html" %}
 </div>
 
-{% if has_more %}
-<div id="load-more" style="text-align:center; margin:1rem 0;">
-    <button class="outline"
-            hx-get="/search?{{ request.query_string.decode() }}&page={{ page + 1 }}"
-            hx-target="#results-list"
-            hx-swap="beforeend"
-            hx-indicator="#loading">
-        Load More
-    </button>
-    <span id="loading" class="htmx-indicator">Loading...</span>
-</div>
-{% endif %}
-
 {% endif %}
 {% endblock %}
 

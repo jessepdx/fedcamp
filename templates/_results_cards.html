@@ -95,3 +95,21 @@
     </div>
 </article>
 {% endfor %}
+
+{#- The Load More control lives inside this partial, and replaces itself via
+    outerHTML, so each response carries the button for the *next* page. When it
+    lived in results.html it sat outside the swap target and was never updated,
+    so every click after the first re-requested page 2. When has_more is false
+    the partial emits nothing here and the button correctly disappears. -#}
+{% if has_more %}
+<div id="load-more" class="load-more">
+    <button class="outline"
+            hx-get="{{ next_page_url }}"
+            hx-target="#load-more"
+            hx-swap="outerHTML"
+            hx-indicator="#load-more-indicator">
+        Load More
+    </button>
+    <span id="load-more-indicator" class="htmx-indicator">Loading…</span>
+</div>
+{% endif %}

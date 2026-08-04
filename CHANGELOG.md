@@ -2,6 +2,11 @@
 
 All notable changes to the Campdex (formerly RV Camping Finder) project.
 
+## [0.10.10] — 2026-08-03
+
+### Fixed
+- "Load More" never advanced past page 2, capping every search at 50 results — so Oregon's 604 campgrounds were 92% unreachable even after the state-search fix. Two causes. The button lived in `results.html` *outside* `#results-list`, the element htmx swapped into, so it was never replaced: its `hx-get` stayed pinned to `page=2` and each click re-appended the same page. And its URL was built as `request.query_string + "&page=" + (page + 1)`, but an htmx request for page 2 already carries `page=2`, so the next URL became `?page=2&page=3` — and `request.args.get("page")` reads the first value, pinning it on page 2 regardless. The control now lives inside `_results_cards.html` and replaces itself via `hx-target="#load-more"` / `hx-swap="outerHTML"`, so every response carries the button for the *next* page and it disappears when results run out. The next-page URL is built server-side with `page` stripped from the incoming args rather than appended to them.
+
 ## [0.10.9] — 2026-08-03
 
 ### Fixed
