@@ -2,6 +2,13 @@
 
 All notable changes to the RV Camping Finder project.
 
+## [0.10.8] — 2026-08-03
+
+### Changed
+- `/api/download` is now served directly by Caddy instead of proxied through Flask. `send_file()` streamed the 77MB database through a sync gunicorn worker, occupying one of only two workers for the entire transfer and evicting the OS page cache on a 416MB box — a plausible cause of the intermittent ~1.2s page loads. Caddy serves it from `/var/www/fedcamp/fedcamp.db`, a hard link to the live `ridb.db` (same inode, so no extra disk and a shared page cache). Caddy cannot read `/home/ubuntu` (mode 0750), which is why the file is published under `/var/www` rather than served in place. Also gains HTTP range support, so downloads are resumable.
+- `deploy.sh` refreshes that hard link on every deploy, after the database swap — the swap replaces the inode, so a stale link would silently serve the previous database. The step is unconditional and idempotent, and the script aborts if the inodes don't match afterwards.
+- The Flask `/api/download` route is left in place. It is unreachable through Caddy now, but remains a working fallback.
+
 ## [0.10.7] — 2026-08-03
 
 ### Changed

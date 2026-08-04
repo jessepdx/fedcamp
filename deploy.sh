@@ -71,6 +71,20 @@ fi
 echo "==> Extracting release..."
 $SSH "$HOST" "cd $REMOTE_DIR && tar xzf ~/fedcamp.tar.gz"
 
+# Caddy serves /api/download straight from disk rather than proxying 77MB
+# through a sync gunicorn worker. It can't read $REMOTE_DIR (/home/ubuntu is
+# 0750), so the file is published as a hard link under /var/www. Same inode:
+# no extra disk, shared page cache. This MUST run after the database swap --
+# the swap replaces the inode, and a stale link would silently serve the old
+# database. Unconditional and idempotent, so a missing link self-heals.
+echo "==> Refreshing /api/download hard link..."
+$SSH "$HOST" "sudo mkdir -p /var/www/fedcamp \
+    && sudo ln -f $REMOTE_DIR/ridb.db /var/www/fedcamp/fedcamp.db \
+    && sudo chmod 755 /var/www/fedcamp"
+$SSH "$HOST" "test \"\$(stat -c %i $REMOTE_DIR/ridb.db)\" = \"\$(stat -c %i /var/www/fedcamp/fedcamp.db)\"" \
+    && echo "    link OK (same inode as live database)" \
+    || { echo "ERROR: /var/www/fedcamp/fedcamp.db is not linked to the live database." >&2; exit 1; }
+
 echo "==> Starting gunicorn..."
 $SSH "$HOST" "sudo systemctl start fedcamp"
 
