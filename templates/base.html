@@ -26,7 +26,7 @@
     </script>
     {% block head %}{% endblock %}
 </head>
-<body>
+<body class="{% block body_class %}{% endblock %}">
     <nav class="container-fluid">
         <ul>
             <li><a href="/" class="brand"><strong>Campdex</strong></a></li>
@@ -38,7 +38,7 @@
         </ul>
     </nav>
 
-    <main class="container">
+    <main class="{% block main_class %}container{% endblock %}">
         {% block content %}{% endblock %}
     </main>
 

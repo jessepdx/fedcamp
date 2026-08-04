@@ -8,36 +8,36 @@
     #state-map {
         height: 75vh;
         min-height: 300px;
-        border-radius: 8px;
-        border: 1px solid #ddd;
     }
+    /* Result count as a compact pill (bottom-left, above the zoom control).
+       The old two-line card competed with the chip row for the top-left
+       corner and covered the filter panel. */
     .map-status {
-        background: white;
-        padding: 8px 14px;
-        border-radius: 6px;
-        box-shadow: 0 1px 4px rgba(0,0,0,0.3);
-        font-size: 0.9rem;
-        min-width: 180px;
+        background: rgba(255,255,255,.95);
+        padding: 5px 12px;
+        border-radius: 999px;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+        font-size: 0.8rem;
+        line-height: 1.3;
+        color: #4b5563;
+        white-space: nowrap;
     }
     .map-status strong {
-        display: block;
-        margin-bottom: 2px;
-    }
-    .map-status small {
-        color: #666;
+        color: #1f2937;
     }
     .map-legend {
-        background: white;
-        padding: 8px 12px;
-        border-radius: 6px;
-        box-shadow: 0 1px 4px rgba(0,0,0,0.3);
-        font-size: 0.8rem;
-        line-height: 1.6;
+        background: rgba(255,255,255,.95);
+        padding: 6px 10px;
+        border-radius: 8px;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+        font-size: 0.75rem;
+        line-height: 1.55;
+        color: #374151;
     }
     .map-legend i {
         display: inline-block;
-        width: 12px;
-        height: 12px;
+        width: 11px;
+        height: 11px;
         border-radius: 50%;
         margin-right: 5px;
         vertical-align: middle;
@@ -47,68 +47,91 @@
 </style>
 {% endblock %}
 
+{% block body_class %}map-page{% endblock %}
+{% block main_class %}map-main{% endblock %}
+
 {% block content %}
-<hgroup>
-    <h1>Campdex</h1>
-    <p>6,300+ federal campgrounds from the Forest Service, BLM, NPS, and more. Tap a pin for details.</p>
-</hgroup>
+<p class="map-strap">
+    <strong>6,300+ federal campgrounds</strong> — road access, seasonal closures,
+    hookups and RV length. <a href="/search-form">Advanced search</a>
+</p>
 
-<div id="state-map"></div>
+<div class="map-shell">
+    <!-- Filters float over the map. Previously they sat in page flow below a
+         75vh map, which put them off-screen on every viewport we measured, so
+         most visitors never learned filters existed. The overlay comes BEFORE
+         the map div so keyboard users reach the filters without tabbing
+         through the map container and every marker in it. -->
+    <div class="map-overlay">
+        <div class="map-chiprow">
+            <div id="mf-type-group" class="mf-toggle-group">
+                <button type="button" class="mf-toggle" data-key="DEVELOPED" aria-pressed="false">Developed</button>
+                <button type="button" class="mf-toggle" data-key="PRIMITIVE" aria-pressed="false">Primitive</button>
+                <button type="button" class="mf-toggle" data-key="DISPERSED" aria-pressed="false">Dispersed</button>
+            </div>
+            <button type="button" id="map-filters-btn" class="map-filters-btn"
+                    aria-expanded="false" aria-controls="map-filter-panel">
+                Filters<span id="map-filter-count" class="map-filter-count" hidden></span>
+            </button>
+            <button type="button" id="mf-reset-btn" class="mf-reset-btn" title="Reset filters" aria-label="Reset filters">&#8634;</button>
+        </div>
 
-<div class="map-filters-bar">
-    <div class="mf-group">
-        <span class="mf-label">Type</span>
-        <div id="mf-type-group" class="mf-toggle-group">
-            <button class="mf-toggle" data-key="DEVELOPED">Developed</button>
-            <button class="mf-toggle" data-key="PRIMITIVE">Primitive</button>
-            <button class="mf-toggle" data-key="DISPERSED">Dispersed</button>
+        <div id="map-filter-panel" class="map-filter-panel" hidden>
+            <div class="mf-group">
+                <span class="mf-label">Agency</span>
+                <div id="mf-agency" class="mf-check-row">
+                    <label><input type="checkbox" value="FS"> FS</label>
+                    <label><input type="checkbox" value="BLM"> BLM</label>
+                    <label><input type="checkbox" value="USACE"> USACE</label>
+                    <label><input type="checkbox" value="NPS"> NPS</label>
+                    <label><input type="checkbox" value="BOR"> BOR</label>
+                    <label><input type="checkbox" value="FWS"> FWS</label>
+                </div>
+            </div>
+            <div class="mf-group">
+                <span class="mf-label">Road</span>
+                <div id="mf-road" class="mf-check-row">
+                    <label><input type="checkbox" value="PAVED"> Paved</label>
+                    <label><input type="checkbox" value="GRAVEL"> Gravel</label>
+                    <label><input type="checkbox" value="DIRT"> Dirt</label>
+                    <label><input type="checkbox" value="HIGH_CLEARANCE"> High Clr</label>
+                    <label><input type="checkbox" value="4WD_REQUIRED"> 4WD</label>
+                </div>
+            </div>
+            <div class="mf-group">
+                <span class="mf-label">Style</span>
+                <div id="mf-style" class="mf-check-row">
+                    <label><input type="checkbox" value="rv"> RV</label>
+                    <label><input type="checkbox" value="tent"> Tent</label>
+                    <label><input type="checkbox" value="walkin"> Walk/Hike-in</label>
+                    <label><input type="checkbox" value="boatin"> Boat</label>
+                    <label><input type="checkbox" value="equestrian"> Equestrian</label>
+                </div>
+            </div>
+            <div class="mf-group">
+                <span class="mf-label">Hookups</span>
+                <div id="mf-hookups" class="mf-check-row">
+                    <label><input type="checkbox" value="electric"> Electric</label>
+                    <label><input type="checkbox" value="water"> Water</label>
+                    <label><input type="checkbox" value="sewer"> Sewer</label>
+                </div>
+            </div>
+            <div class="mf-group mf-group-inline">
+                <span class="mf-label">Min RV length</span>
+                <input type="number" id="mf-rv-input" class="mf-rv-input" placeholder="ft"
+                       min="0" max="100" inputmode="numeric">
+            </div>
+            <!-- Mobile only: the sheet covers the result count, so echo it
+                 here as the "apply" affordance. Hidden on desktop. -->
+            <button type="button" class="mf-apply-btn" id="mf-apply-btn">
+                Show <span id="mf-apply-n">all</span> campgrounds
+            </button>
         </div>
     </div>
-    <div class="mf-group">
-        <span class="mf-label">Agency</span>
-        <div id="mf-agency" class="mf-check-row">
-            <label><input type="checkbox" value="FS"> FS</label>
-            <label><input type="checkbox" value="BLM"> BLM</label>
-            <label><input type="checkbox" value="USACE"> USACE</label>
-            <label><input type="checkbox" value="NPS"> NPS</label>
-            <label><input type="checkbox" value="BOR"> BOR</label>
-            <label><input type="checkbox" value="FWS"> FWS</label>
-        </div>
-    </div>
-    <div class="mf-group">
-        <span class="mf-label">Road</span>
-        <div id="mf-road" class="mf-check-row">
-            <label><input type="checkbox" value="PAVED"> Paved</label>
-            <label><input type="checkbox" value="GRAVEL"> Gravel</label>
-            <label><input type="checkbox" value="DIRT"> Dirt</label>
-            <label><input type="checkbox" value="HIGH_CLEARANCE"> High Clr</label>
-            <label><input type="checkbox" value="4WD_REQUIRED"> 4WD</label>
-        </div>
-    </div>
-    <div class="mf-group">
-        <span class="mf-label">Style</span>
-        <div id="mf-style" class="mf-check-row">
-            <label><input type="checkbox" value="rv"> RV</label>
-            <label><input type="checkbox" value="tent"> Tent</label>
-            <label><input type="checkbox" value="walkin"> Walk/Hike-in</label>
-            <label><input type="checkbox" value="boatin"> Boat</label>
-            <label><input type="checkbox" value="equestrian"> Equestrian</label>
-        </div>
-    </div>
-    <div class="mf-group">
-        <span class="mf-label">Hookups</span>
-        <div id="mf-hookups" class="mf-check-row">
-            <label><input type="checkbox" value="electric"> Electric</label>
-            <label><input type="checkbox" value="water"> Water</label>
-            <label><input type="checkbox" value="sewer"> Sewer</label>
-        </div>
-    </div>
-    <div class="mf-group">
-        <span class="mf-label">Min RV</span>
-        <input type="number" id="mf-rv-input" class="mf-rv-input" placeholder="ft" min="0" max="100">
-    </div>
-    <button id="mf-reset-btn" class="mf-reset-btn" title="Reset filters">&#8634;</button>
+
+    <div id="state-map"></div>
 </div>
+
 <noscript>
     <p>This page requires JavaScript to display the map. <a href="/search-form">Use the search form instead</a>.</p>
 </noscript>
@@ -125,25 +148,32 @@
         zoom: 7,
         minZoom: 3,
         maxZoom: 18,
-        preferCanvas: true
+        preferCanvas: true,
+        zoomControl: false     // re-added bottom-left, away from the chip row
     });
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors',
+        // The page footer is hidden on this layout, so the RIDB credit and
+        // the "verify before traveling" caveat live here instead.
+        attribution: '&copy; OpenStreetMap | Data: <a href="https://ridb.recreation.gov" target="_blank" rel="noopener">RIDB</a> — verify before traveling',
         maxZoom: 18
     }).addTo(map);
 
-    // Status control (top-left)
-    var status = L.control({position: 'topleft'});
+    // Result count pill (bottom-left, stacked above the zoom control so the
+    // top corners stay clear for the filter chips).
+    var status = L.control({position: 'bottomleft'});
     status.onAdd = function() {
         this._div = L.DomUtil.create('div', 'map-status');
-        this._div.innerHTML = '<strong>Loading...</strong>';
+        this._div.setAttribute('aria-live', 'polite');
+        this._div.innerHTML = 'Loading…';
         return this._div;
     };
     status.update = function(html) {
         this._div.innerHTML = html;
     };
     status.addTo(map);
+
+    L.control.zoom({position: 'bottomleft'}).addTo(map);
 
     // Legend control (bottom-right)
     var legend = L.control({position: 'bottomright'});
@@ -192,7 +222,8 @@
     // Camping type toggles
     document.querySelectorAll('#mf-type-group .mf-toggle').forEach(function(btn) {
         btn.onclick = function() {
-            btn.classList.toggle('active');
+            var on = btn.classList.toggle('active');
+            btn.setAttribute('aria-pressed', on ? 'true' : 'false');
             readFiltersAndReload();
         };
     });
@@ -211,10 +242,15 @@
         rvDebounce = setTimeout(readFiltersAndReload, 500);
     };
 
-    // Reset
+    // Reset. (The checkbox selector previously pointed at .map-filters-bar,
+    // a class that no longer exists in this markup, so reset silently left
+    // every checkbox checked.)
     document.getElementById('mf-reset-btn').onclick = function() {
-        document.querySelectorAll('#mf-type-group .mf-toggle.active').forEach(function(b) { b.classList.remove('active'); });
-        document.querySelectorAll('.map-filters-bar input[type=checkbox]').forEach(function(cb) { cb.checked = false; });
+        document.querySelectorAll('#mf-type-group .mf-toggle.active').forEach(function(b) {
+            b.classList.remove('active');
+            b.setAttribute('aria-pressed', 'false');
+        });
+        document.querySelectorAll('#map-filter-panel input[type=checkbox]').forEach(function(cb) { cb.checked = false; });
         document.getElementById('mf-rv-input').value = '';
         readFiltersAndReload();
     };
@@ -298,7 +334,7 @@
         if (currentRequest) { currentRequest.abort(); currentRequest = null; }
 
         var query = buildQuery();
-        status.update('<strong>Loading...</strong>');
+        status.update('Loading…');
 
         var controller = new AbortController();
         currentRequest = controller;
@@ -326,31 +362,134 @@
                     else if (p.seasonal_status === 'TEMPORARILY_CLOSED') html += '<br><em>Temporarily Closed</em>';
                     else if (p.seasonal_status === 'WINTER_CLOSURE') html += '<br><em>Winter Closure</em>';
                     else if (p.seasonal_status === 'SEASONAL_CLOSURE') html += '<br><em>Seasonal</em>';
-                    marker.bindPopup(html);
+                    // Auto-pan clear of the floating chip row (top) and the
+                    // status pill / attribution (bottom), which the default
+                    // padding knows nothing about.
+                    marker.bindPopup(html, {
+                        autoPanPaddingTopLeft: L.point(16, 88),
+                        autoPanPaddingBottomRight: L.point(16, 48)
+                    });
                     marker.bindTooltip(escapeHtml(p.facility_name));
                 });
                 // One bulk add is far cheaper than addTo() per marker.
                 pinLayer.addLayers(markers);
-                status.update('<strong>' + pins.length + ' campgrounds</strong><small>in view</small>');
+                var n = pins.length.toLocaleString();
+                status.update('<strong>' + n + '</strong> campground' + (pins.length === 1 ? '' : 's') + ' in view');
+                document.getElementById('mf-apply-n').textContent = n;
             })
             .catch(function(err) {
                 if (err.name !== 'AbortError') {
                     currentRequest = null;
-                    status.update('<strong>Error loading pins</strong>');
+                    status.update('Couldn’t load campgrounds — try moving the map');
                 }
             });
     }
 
-    // Debounced load on map move
+    // ---------------------------------------------------------------
+    // Filter panel (the map fills the viewport, so filters float over it)
+    // ---------------------------------------------------------------
+    var filtersBtn = document.getElementById('map-filters-btn');
+    var filterPanel = document.getElementById('map-filter-panel');
+    var filterCount = document.getElementById('map-filter-count');
+
+    function setPanelOpen(open) {
+        if (open) { filterPanel.removeAttribute('hidden'); }
+        else { filterPanel.setAttribute('hidden', ''); }
+        filtersBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+    filtersBtn.addEventListener('click', function() {
+        setPanelOpen(filterPanel.hasAttribute('hidden'));
+    });
+    // Mobile sheet's "Show N campgrounds" button: filters apply live, so
+    // this just dismisses the sheet.
+    document.getElementById('mf-apply-btn').addEventListener('click', function() {
+        setPanelOpen(false);
+    });
+
+    // Keep map gestures from firing while interacting with the overlay.
+    L.DomEvent.disableClickPropagation(document.querySelector('.map-overlay'));
+    L.DomEvent.disableScrollPropagation(filterPanel);
+
+    // A count on the button so active filters are visible while the panel
+    // is closed -- otherwise a filtered map looks identical to an unfiltered
+    // one and the result count seems wrong.
+    function updateFilterCount() {
+        var n = filterPanel.querySelectorAll('input[type="checkbox"]:checked').length;
+        if (document.getElementById('mf-rv-input').value) n++;
+        if (n) { filterCount.textContent = n; filterCount.removeAttribute('hidden'); }
+        else { filterCount.setAttribute('hidden', ''); }
+    }
+    filterPanel.addEventListener('change', updateFilterCount);
+    document.getElementById('mf-reset-btn').addEventListener('click', function() {
+        setTimeout(updateFilterCount, 0);
+    });
+    updateFilterCount();
+
+    // Fade the right edge of the chip row when it can scroll, so cut-off
+    // chips read as "more here" rather than a rendering bug.
+    var chiprow = document.querySelector('.map-chiprow');
+    function updateChipFade() {
+        chiprow.classList.toggle('is-scrollable',
+            chiprow.scrollWidth - chiprow.scrollLeft > chiprow.clientWidth + 2);
+    }
+    chiprow.addEventListener('scroll', updateChipFade);
+    window.addEventListener('resize', updateChipFade);
+    updateChipFade();
+
+    // The map is sized by flexbox now, so tell Leaflet once layout settles.
+    window.addEventListener('resize', function() { map.invalidateSize(); });
+
+    // Debounced load on map move. If a popup is open, hold the reload:
+    // opening a popup near the screen edge auto-pans the map, and the
+    // moveend reload would clearLayers() and destroy the popup the user
+    // just opened. Reload once the popup closes instead.
+    var reloadHeldByPopup = false;
+    function popupIsOpen() {
+        return !!(map._popup && map._popup.isOpen());
+    }
+    // The popup check runs inside the timeout, not just when scheduling:
+    // a popup opened during the 300ms debounce window must also hold the
+    // reload, or it gets destroyed the moment the timer fires.
+    function scheduleLoad() {
+        clearTimeout(loadDebounce);
+        loadDebounce = setTimeout(function() {
+            if (popupIsOpen()) { reloadHeldByPopup = true; return; }
+            loadPins();
+        }, 300);
+    }
     map.on('moveend', function() {
         clearTimeout(loadDebounce);
-        loadDebounce = setTimeout(loadPins, 300);
+        if (popupIsOpen()) {
+            reloadHeldByPopup = true;
+            return;
+        }
+        scheduleLoad();
+    });
+    map.on('popupclose', function() {
+        L.DomUtil.removeClass(map.getContainer(), 'popup-open');
+        if (reloadHeldByPopup) {
+            reloadHeldByPopup = false;
+            scheduleLoad();
+        }
+    });
+    // Leaflet stacks controls above the popup pane, so a popup near a
+    // corner slides underneath the legend / count pill. Fade them out
+    // while a popup is open instead of letting them cover it.
+    map.on('popupopen', function() {
+        L.DomUtil.addClass(map.getContainer(), 'popup-open');
     });
 
     // ---------------------------------------------------------------
-    // Initial load — default to Oregon region (no auto-geolocation prompt)
+    // Initial load — default to Oregon region (no auto-geolocation prompt).
+    // Wait for layout to settle before reading bounds: loading immediately
+    // fired a request with zero-area bounds, then two more on resize.
     // ---------------------------------------------------------------
-    loadPins();
+    setTimeout(function() {
+        map.invalidateSize();
+        clearTimeout(loadDebounce);   // drop any moveend queued by the resize
+        loadPins();
+        updateChipFade();
+    }, 0);
 
     } catch(e) {
         document.getElementById('state-map').innerHTML =

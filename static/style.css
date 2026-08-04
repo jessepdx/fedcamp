@@ -917,20 +917,49 @@ a.leaflet-control-zoom-out {
     vertical-align: middle;
 }
 
-/* --- Map marker clusters --------------------------------------------
-   Overrides MarkerCluster.Default.css, whose green/yellow/red ramp reads
-   as a severity scale here (this site already uses red for "excluded"
-   and closures). One brand green at three sizes instead: bigger circle
-   = more campgrounds, no implied judgement.
 
-   Styling goes on the marker element itself rather than an inner wrapper:
-   Leaflet sizes the marker inline, and a nested div with width:100% does
-   not resolve against it. */
+/* ====================================================================
+   MAP PAGE
+   --------------------------------------------------------------------
+   One block owns the map page. It replaced four sections that were
+   appended in sequence and fought each other -- three competing
+   min-heights at three specificities, four separate 640px media queries
+   setting the same properties, and per-element margins that pushed
+   controls out of alignment.
+
+   The rule that keeps it that way: control sizing comes from custom
+   properties on body.map-page, so the mobile override is one value
+   change, not a re-declaration of every selector at higher specificity.
+   If a control needs a different size, change the token.
+   ==================================================================== */
+
+body.map-page {
+    --ctl-h: 36px;              /* every overlay control is this tall */
+    --ctl-gap: .3rem;
+    --overlay-inset: .6rem;
+    --panel-pad-x: 1rem;
+    --brand: #2d7d46;
+    --brand-dark: #14532d;
+
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    height: 100dvh;             /* dvh accounts for mobile browser chrome */
+    overflow: hidden;
+    margin: 0;
+}
+
+/* --- Marker clusters -------------------------------------------------
+   Needs !important and the .leaflet-marker-icon qualifier to beat
+   `.leaflet-marker-icon { background: none !important }` earlier in this
+   file, which exists because Pico styles [role="button"] and every
+   Leaflet marker carries that role.
+
+   One brand green at three sizes, not the library's green/yellow/red
+   ramp: on a site that already uses red for closures and excluded
+   filters, that ramp reads as a severity scale. Bigger circle means more
+   campgrounds, not worse. */
 .leaflet-marker-icon.campdex-cluster {
-    /* !important because Pico styles [role="button"], which every Leaflet
-       marker carries -- without it the clusters render as Pico buttons:
-       grey rounded squares. Same reason the touch-action rule above needs
-       it. */
     display: flex !important;
     align-items: center;
     justify-content: center;
@@ -948,3 +977,332 @@ a.leaflet-control-zoom-out {
 .leaflet-marker-icon.campdex-cluster-md { font-size: .85rem; background: rgba(37, 106, 59, .9) !important; }
 .leaflet-marker-icon.campdex-cluster-lg { font-size: .9rem;  background: rgba(31, 92, 51, .95) !important; }
 .leaflet-marker-icon.campdex-cluster:hover { background: rgba(31, 92, 51, 1) !important; }
+
+/* --- Page shell ------------------------------------------------------ */
+body.map-page > nav {
+    flex: 0 0 auto;
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+body.map-page > footer { display: none; }   /* attribution moves into the map */
+
+body.map-page .map-main {
+    flex: 1 1 auto;
+    min-height: 0;              /* lets the flex child actually shrink */
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    margin: 0;
+    max-width: none;
+}
+
+/* One slim line so a bare map still says what this site is. */
+body.map-page .map-strap {
+    flex: 0 0 auto;
+    margin: 0;
+    padding: .4rem 1rem .5rem;
+    font-size: .82rem;
+    line-height: 1.3;
+    color: #4b5563;
+}
+body.map-page .map-strap strong { color: #1f2937; }
+
+body.map-page .map-shell {
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 0;
+}
+body.map-page #state-map {
+    position: absolute;
+    inset: 0;
+    height: auto;
+    min-height: 0;
+    margin: 0;
+    border-radius: 0;
+}
+
+/* The page itself doesn't scroll here, so the map owns every gesture.
+   The global pan-y override exists for the map embedded in the scrolling
+   results page; on this page it just breaks one-finger panning. */
+body.map-page .leaflet-container,
+body.map-page .leaflet-container * {
+    touch-action: none !important;
+}
+
+/* Leaflet controls default to z-1000 and covered the overlay. Keep them
+   above the map panes but below the filters. */
+body.map-page .leaflet-top,
+body.map-page .leaflet-bottom { z-index: 450; }
+
+/* Popups stack above the count pill and legend and can't be layered
+   under them (Leaflet stacking context), so fade those while one is open. */
+body.map-page .map-status,
+body.map-page .map-legend { transition: opacity .15s ease; }
+body.map-page .leaflet-container.popup-open .map-status,
+body.map-page .leaflet-container.popup-open .map-legend {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* --- Filter overlay -------------------------------------------------- */
+body.map-page .map-overlay {
+    position: absolute;
+    top: var(--overlay-inset);
+    left: var(--overlay-inset);
+    right: var(--overlay-inset);
+    z-index: 500;               /* above tiles/markers, below popups (700) */
+    pointer-events: none;       /* only the controls themselves catch clicks */
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: .5rem;
+    max-height: calc(100% - (2 * var(--overlay-inset)));
+}
+
+body.map-page .map-chiprow {
+    pointer-events: auto;
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: var(--ctl-gap);
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    padding: var(--ctl-gap);
+    background: rgba(255, 255, 255, .95);
+    border-radius: 999px;
+    box-shadow: 0 1px 6px rgba(0, 0, 0, .2);
+    max-width: 100%;
+}
+body.map-page .map-chiprow::-webkit-scrollbar { display: none; }
+/* Fade the right edge only when there is more to scroll, so a clipped
+   chip reads as scrollable rather than broken. JS toggles the class. */
+body.map-page .map-chiprow.is-scrollable {
+    -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 1.5rem), transparent);
+    mask-image: linear-gradient(90deg, #000 calc(100% - 1.5rem), transparent);
+}
+
+/* Every control in the row: one height, no inherited margin. Pico gives
+   buttons a bottom margin, which is what knocked these out of alignment
+   and inflated the row to 65px for 36px of content. */
+body.map-page .map-chiprow .mf-toggle-group,
+body.map-page .map-chiprow .mf-toggle,
+body.map-page .map-chiprow .map-filters-btn,
+body.map-page .map-chiprow .mf-reset-btn {
+    margin: 0;
+}
+body.map-page .map-chiprow .mf-toggle,
+body.map-page .map-chiprow .map-filters-btn,
+body.map-page .map-chiprow .mf-reset-btn {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: var(--ctl-h);
+    border-radius: 999px;
+    font-size: .8rem;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    width: auto;
+}
+
+/* Type chips carry the pin colour, so the row doubles as a legend. */
+body.map-page .map-chiprow .mf-toggle {
+    gap: .35rem;
+    padding: .25rem .75rem .25rem .6rem;
+    border: 1px solid #cfd4d8;
+    background: #fff;
+    color: #3f4a44;
+}
+body.map-page .map-chiprow .mf-toggle::before {
+    content: "";
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #999;
+    flex: 0 0 auto;
+}
+body.map-page .map-chiprow .mf-toggle[data-key="DEVELOPED"]::before { background: #2d7d46; }
+body.map-page .map-chiprow .mf-toggle[data-key="PRIMITIVE"]::before { background: #8a6d10; }
+body.map-page .map-chiprow .mf-toggle[data-key="DISPERSED"]::before { background: #6c5ce7; }
+body.map-page .map-chiprow .mf-toggle.active { color: #fff; }
+body.map-page .map-chiprow .mf-toggle.active::before { background: #fff; }
+body.map-page .map-chiprow .mf-toggle.active[data-key="DEVELOPED"] { background: #2d7d46; border-color: #2d7d46; }
+body.map-page .map-chiprow .mf-toggle.active[data-key="PRIMITIVE"] { background: #7a600e; border-color: #7a600e; }
+body.map-page .map-chiprow .mf-toggle.active[data-key="DISPERSED"] { background: #584ac0; border-color: #584ac0; }
+
+body.map-page .map-chiprow .map-filters-btn {
+    padding: .25rem .85rem;
+    border: 1px solid var(--brand);
+    background: #fff;
+    color: var(--brand);
+}
+body.map-page .map-chiprow .map-filters-btn[aria-expanded="true"] {
+    background: var(--brand);
+    color: #fff;
+}
+body.map-page .map-filter-count {
+    display: inline-block;
+    margin-left: .35rem;
+    padding: 0 .35rem;
+    border-radius: 999px;
+    background: var(--brand);
+    color: #fff;
+    font-size: .7rem;
+    font-weight: 700;
+}
+body.map-page .map-chiprow .map-filters-btn[aria-expanded="true"] .map-filter-count {
+    background: #fff;
+    color: var(--brand);
+}
+
+body.map-page .map-chiprow .mf-reset-btn {
+    min-width: var(--ctl-h);
+    padding: 0 .4rem;
+    border: 1px solid transparent;
+    background: transparent;
+    color: #555;
+    font-size: 1rem;
+    line-height: 1;
+}
+body.map-page .map-chiprow .mf-reset-btn:hover { background: #eef1ef; }
+
+body.map-page .mf-toggle:focus-visible,
+body.map-page .map-filters-btn:focus-visible,
+body.map-page .mf-reset-btn:focus-visible,
+body.map-page .mf-apply-btn:focus-visible {
+    outline: 2px solid var(--brand-dark);
+    outline-offset: 2px;
+}
+
+/* --- Filter panel ---------------------------------------------------- */
+body.map-page .map-filter-panel {
+    pointer-events: auto;
+    overflow-y: auto;
+    width: min(30rem, 100%);
+    padding: .9rem var(--panel-pad-x);
+    background: rgba(255, 255, 255, .97);
+    border-radius: .6rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, .22);
+}
+body.map-page .map-filter-panel[hidden] { display: none; }
+
+body.map-page .map-filter-panel .mf-group { display: block; }
+body.map-page .map-filter-panel .mf-group + .mf-group { margin-top: .8rem; }
+body.map-page .map-filter-panel .mf-label { display: block; margin-bottom: .35rem; }
+body.map-page .map-filter-panel .mf-check-row { gap: .3rem 1rem; }
+body.map-page .map-filter-panel .mf-check-row label { font-size: .85rem; }
+body.map-page .map-filter-panel .mf-check-row input[type="checkbox"] { width: 16px; height: 16px; }
+body.map-page .map-filter-panel .mf-group-inline {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+}
+body.map-page .map-filter-panel .mf-group-inline .mf-label { margin-bottom: 0; }
+/* input.<class> outranks Pico's [type=number] { width: 100% }, which
+   otherwise stretched this to ~500px. */
+body.map-page .map-filter-panel input.mf-rv-input {
+    width: 4.5rem;
+    height: auto;
+    padding: .25rem .5rem;
+    font-size: .85rem;
+    margin: 0;
+}
+
+/* Mobile affordance only: on desktop the count pill is visible while
+   filtering, so there is nothing to "apply". */
+body.map-page .mf-apply-btn { display: none; }
+
+/* --- Mobile ----------------------------------------------------------
+   One media block. Most of the change is the --ctl-h token: 44px is the
+   touch-target floor, and these chips are the primary control on the
+   device where they're tapped rather than clicked. The row scrolls
+   horizontally, so the extra width costs nothing. */
+@media (max-width: 640px) {
+    body.map-page {
+        --ctl-h: 44px;
+        --overlay-inset: .5rem;
+    }
+
+    body.map-page .map-strap { font-size: .74rem; padding: .3rem .75rem .4rem; }
+
+    /* Pinch and double-tap cover zooming; the buttons eat corner space. */
+    body.map-page .leaflet-control-zoom { display: none; }
+
+    /* Sheet layout: chips at the top, panel anchored to the bottom edge.
+       Sits clear of the 17px attribution strip, which has to stay legible
+       while any map is on screen. */
+    body.map-page .map-overlay {
+        top: var(--overlay-inset);
+        bottom: 1.4rem;
+        left: 0;
+        right: 0;
+        justify-content: space-between;
+        align-items: stretch;
+    }
+    body.map-page .map-chiprow {
+        align-self: flex-start;
+        margin: 0 var(--overlay-inset);
+        max-width: calc(100% - (2 * var(--overlay-inset)));
+    }
+
+    /* Filters is the control this layout exists to surface, so pin it
+       first — it can never scroll out of reach; type chips scroll behind. */
+    body.map-page .map-chiprow .map-filters-btn {
+        order: -1;
+        position: sticky;
+        left: 0;
+        z-index: 1;
+    }
+
+    body.map-page .map-filter-panel {
+        width: auto;
+        max-height: 55vh;
+        background: #fff;       /* opaque: the legend sits underneath */
+        border-radius: .9rem .9rem 0 0;
+        padding: 1.1rem var(--panel-pad-x) 0;
+        box-shadow: 0 -4px 18px rgba(0, 0, 0, .25);
+    }
+    /* Grab-handle cue so it reads as a sheet. */
+    body.map-page .map-filter-panel::before {
+        content: "";
+        display: block;
+        width: 2.25rem;
+        height: 4px;
+        border-radius: 999px;
+        background: #d0d4d8;
+        margin: -.45rem auto .65rem;
+    }
+    /* Thumb-sized rows: these were 20px, the same failure the chip row had. */
+    body.map-page .map-filter-panel .mf-check-row label {
+        min-height: 40px;
+        padding: .1rem .2rem;
+        gap: .5rem;
+    }
+    body.map-page .map-filter-panel .mf-check-row input[type="checkbox"] {
+        width: 22px;
+        height: 22px;
+    }
+
+    /* The sheet scrolls once rows are thumb-sized, so the primary action
+       sticks to its bottom edge. It bleeds to the sheet's edges: an inset
+       sticky button lets rows show through the gap either side, which
+       reads as a rendering fault. Full-bleed is also the conventional
+       mobile-sheet CTA. */
+    body.map-page .mf-apply-btn {
+        display: block;
+        position: sticky;
+        bottom: 0;
+        width: calc(100% + (2 * var(--panel-pad-x)));
+        margin: .9rem calc(-1 * var(--panel-pad-x)) 0;
+        padding: .75rem calc(.75rem + env(safe-area-inset-bottom, 0px));
+        border: 0;
+        border-radius: 0;
+        background: var(--brand);
+        color: #fff;
+        font-size: .9rem;
+        font-weight: 600;
+        box-shadow: 0 -6px 10px -6px rgba(0, 0, 0, .18);
+    }
+}

@@ -2,6 +2,26 @@
 
 All notable changes to the Campdex (formerly RV Camping Finder) project.
 
+## [0.12.1] — 2026-08-03
+
+### Changed
+- **Map homepage rebuilt as a map-first layout.** The map now fills the viewport with filters floating over it. Previously the map sat 75vh tall in page flow with the filter bar beneath it, which put the filters below the fold on every viewport measured — y=785 on an 800px desktop, y=841 on a 375×812 phone — so most visitors never discovered that filters existed. Camping-type chips and a Filters button sit top-left; the secondary panel opens beneath them on desktop and as a bottom sheet on mobile. The chips carry the pin colours, so the row doubles as a legend.
+- The `touch-action: pan-y` override is lifted on the map page. It existed so the page could scroll "through" the map, but this page no longer scrolls, and on a phone it meant a vertical drag scrolled the page instead of panning the map — breaking the primary interaction. The results-page map keeps it.
+- Result count is a compact pill and the zoom control moved to bottom-left, leaving the top corners to the filters. The RIDB credit and "verify before traveling" caveat moved into the map attribution, since the page footer is hidden on this layout.
+
+### Fixed
+- Reset button stopped clearing filters — its selector still referenced `.map-filters-bar`, a class the restructure removed.
+- Leaflet's controls (z-index 1000) rendered above the filter overlay, covering the panel's first column on desktop and hiding a checkbox behind the legend on mobile.
+- Opening a popup near a screen edge auto-panned the map, which triggered a pin reload that destroyed the popup the user had just opened.
+- The map fetched pins three times on load, the first with zero-area bounds, because it measured itself before the flex layout settled.
+- Keyboard users had to tab through the map container and every marker to reach the filters; the overlay now precedes the map in the DOM.
+- The Min RV Length input rendered ~500px wide — Pico's `[type=number]` selector outranks a single class.
+- Map controls were three different heights and misaligned by 10px: Pico gives buttons a bottom margin that the `.mf-*` rules never zeroed. Control sizing now comes from a `--ctl-h` custom property, so the mobile 44px touch target is one token change rather than a re-declaration of every selector — which is what caused the drift in the first place.
+
+### Notes
+- The map page's CSS was consolidated from four appended sections (with four separate `max-width: 640px` blocks setting the same properties at competing specificities) into one block. Net 36 lines shorter.
+- Page weight: 6,020 → 7,938 bytes gzipped (+32%). Within budget but not free; speed is this site's advantage over the ad-heavy alternatives, so the number is worth watching.
+
 ## [0.12.0] — 2026-08-03
 
 ### Changed
