@@ -618,25 +618,125 @@ def sitemap():
     return resp
 
 
+# AI crawlers and assistants are welcome here: the site exists to make federal
+# campground data usable, and an assistant answering "somewhere near Bend I can
+# get a 30ft trailer into" is that purpose being served. Named explicitly rather
+# than relying on the wildcard, so the invitation is unambiguous.
+AI_AGENTS = [
+    "GPTBot", "ChatGPT-User", "OAI-SearchBot",       # OpenAI
+    "ClaudeBot", "Claude-User", "Claude-SearchBot",  # Anthropic
+    "PerplexityBot", "Perplexity-User",
+    "Google-Extended", "Applebot-Extended",
+    "CCBot", "Amazonbot", "Bytespider", "Meta-ExternalAgent",
+    "cohere-ai", "YouBot", "DuckAssistBot",
+]
+
+
 @app.route("/robots.txt")
 def robots():
-    """Served by the app so it can point at the sitemap.
+    """Served by the app so it can point at the sitemap and llms.txt.
 
-    Cloudflare was serving a default file with no Sitemap: directive, so
-    nothing told a crawler the ~6,900 facility pages existed.
+    Cloudflare was serving a default file that mentioned neither, so nothing
+    told a crawler the ~6,900 facility pages or the public API existed.
     """
     base = request.url_root.rstrip("/")
-    body = (
-        "User-agent: *\n"
-        "Allow: /\n"
-        # Filtered permutations are effectively infinite and duplicate the
-        # canonical facility pages; keep crawl budget on real content.
-        "Disallow: /api/\n"
-        "Disallow: /search?\n"
-        f"\nSitemap: {base}/sitemap.xml\n"
-    )
-    resp = make_response(body)
+    lines = [
+        "# Campdex — federal campground search.",
+        "# Free JSON API and full SQLite download: /about",
+        "# Machine-readable summary for LLMs: /llms.txt",
+        "",
+        "# Content signals (see contentsignals.org). Using this data to answer",
+        "# people's questions is the point; ai-train is deliberately not granted",
+        "# here, which under the spec neither permits nor forbids it.",
+        "# Content-Signal: search=yes, ai-input=yes",
+        "",
+        "User-agent: *",
+        # No blanket "Allow: /" -- anything not disallowed is already allowed,
+        # and a blanket allow competes with the Disallow below. Google resolves
+        # that by longest-match, but simpler parsers take the first match and
+        # would crawl the infinite filter space.
+        #
+        # The API is public and documented; it was previously disallowed, which
+        # flatly contradicted the site inviting AI tools to use it.
+        "Allow: /api/",
+        # Filtered HTML permutations are effectively infinite and duplicate the
+        # canonical facility pages; they'd burn crawl budget owed to real content.
+        "Disallow: /search?",
+        "",
+    ]
+    for agent in AI_AGENTS:
+        lines += [f"User-agent: {agent}", "Allow: /api/",
+                  "Disallow: /search?", ""]
+    lines += [f"Sitemap: {base}/sitemap.xml", ""]
+
+    resp = make_response("\n".join(lines))
     resp.headers["Content-Type"] = "text/plain"
+    return resp
+
+
+@app.route("/llms.txt")
+def llms_txt():
+    """Machine-readable orientation for LLMs (llmstxt.org convention).
+
+    A proposed convention rather than a ratified standard, but cheap and
+    increasingly read. It carries the one thing an assistant most needs to get
+    right about this dataset: UNKNOWN means the agency never published the
+    value, not that there's no restriction.
+    """
+    base = request.url_root.rstrip("/")
+    body = f"""# Campdex
+
+> Search campgrounds on US federal public land — Forest Service, BLM, National
+> Park Service, Army Corps of Engineers, Bureau of Reclamation and Fish &
+> Wildlife. Built on RIDB, the federal Recreation Information Database.
+> Roughly 6,900 campgrounds that allow overnight camping.
+
+You are welcome to use this site and its free JSON API to answer people's
+questions. No key, no signup. Attribution appreciated but not required.
+
+## The one thing to get right
+
+Many fields come back UNKNOWN: about half of campgrounds have no road access
+recorded, 40% no season, 57% no campfire status. The managing agency never
+published it. **UNKNOWN means "not recorded" — not "no restriction" and not
+"fine".** Never tell someone a road is passable, a campground is open, or fires
+are permitted on the basis of an UNKNOWN value. Say it isn't recorded and
+suggest they call the agency. People act on this while towing.
+
+Exclusion filters exist for exactly this reason and keep unrecorded
+campgrounds, where positive filters discard them:
+
+- `not_road_access=4WD_REQUIRED` — not known to require 4WD (Oregon: 581 results)
+- `road_access=PAVED` — known to be paved (Oregon: 283 results)
+
+## API
+
+- [Endpoints, parameters and a ready-made assistant prompt]({base}/about)
+- `{base}/api/states` — every state with a campground count
+- `{base}/api/search?state=XX` — search by state, or `?lat=&lon=&radius=`
+- `{base}/api/facility/<id>` — full detail for one campground
+- 300 requests/minute per IP. Platforms share addresses, so that budget is
+  shared across all users of your integration. A 429 carries Retry-After.
+
+## Bulk use
+
+- [Full SQLite database, ~72MB]({base}/api/download) — take this instead of
+  looping over the API. Same data, faster for you, kinder to a 2-vCPU box.
+- [Schema and example queries]({base}/static/fedcamp-db-guide.md)
+
+## Browse
+
+- [Campgrounds by state]({base}/campgrounds)
+- [Map search]({base}/)
+
+## Scope
+
+Federal land only. No state parks, no private campgrounds, no reservations —
+booking happens on recreation.gov. Conditions change faster than this data;
+always tell people to verify with the managing agency before a long drive.
+"""
+    resp = make_response(body)
+    resp.headers["Content-Type"] = "text/plain; charset=utf-8"
     return resp
 
 
