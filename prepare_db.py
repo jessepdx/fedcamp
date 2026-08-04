@@ -11,6 +11,11 @@ import sqlite3
 import time
 from datetime import datetime, timezone
 
+# db.py has no Flask dependency, so the pipeline can reuse its query
+# fragments. Importing them keeps the state cache in step with what search
+# actually returns, instead of reimplementing the rules and drifting apart.
+import db
+
 DB_PATH = "ridb.db"
 
 # Full state/territory name → 2-letter code
@@ -161,16 +166,25 @@ def main():
         )
     """)
 
+    # These counts are advertised next to the state picker, so they have to
+    # equal what selecting that state actually returns. Two things used to
+    # break that: joining every facility_addresses row counted a facility once
+    # per state it holds an address in (CA read 857 against 820 reachable,
+    # 406 phantom facilities nationwide), and the missing facility_name filter
+    # counted rows that search hides. Mirror search_by_state exactly — same
+    # preferred-address join, same name filter, same camping types.
     cur.execute("""
         INSERT INTO n_state_cache (state_code, facility_count)
-        SELECT fa.state_code, COUNT(DISTINCT r.facility_id)
-        FROM facility_addresses fa
-        JOIN n_facility_rollup r ON fa.facility_id = r.facility_id
-        WHERE r.camping_type IN ('DEVELOPED', 'PRIMITIVE', 'DISPERSED')
+        SELECT fa.state_code, COUNT(*)
+        FROM n_facility_rollup r
+        {addr_join}
+        WHERE r.facility_name IS NOT NULL AND r.facility_name <> ''
+          AND r.camping_type IN ({types})
           AND fa.state_code IS NOT NULL AND fa.state_code <> ''
         GROUP BY fa.state_code
         ORDER BY fa.state_code
-    """)
+    """.format(addr_join=db.PREFERRED_ADDRESS_JOIN,
+               types=",".join("'%s'" % t for t in db.DEFAULT_CAMPING_TYPES)))
 
     state_count = cur.execute("SELECT COUNT(*) FROM n_state_cache").fetchone()[0]
     total_fac = cur.execute("SELECT SUM(facility_count) FROM n_state_cache").fetchone()[0]

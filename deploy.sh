@@ -37,7 +37,8 @@ if [[ $WITH_DB -eq 1 ]]; then
 fi
 
 echo "==> Packaging app files..."
-tar czf /tmp/fedcamp.tar.gz app.py db.py stats.py templates/ static/
+tar czf /tmp/fedcamp.tar.gz app.py db.py stats.py rebuild_state_cache.py \
+    templates/ static/
 
 echo "==> Uploading app tarball..."
 $SCP /tmp/fedcamp.tar.gz "$HOST:~"
@@ -84,6 +85,17 @@ $SSH "$HOST" "sudo mkdir -p /var/www/fedcamp \
 $SSH "$HOST" "test \"\$(stat -c %i $REMOTE_DIR/ridb.db)\" = \"\$(stat -c %i /var/www/fedcamp/fedcamp.db)\"" \
     && echo "    link OK (same inode as live database)" \
     || { echo "ERROR: /var/www/fedcamp/fedcamp.db is not linked to the live database." >&2; exit 1; }
+
+# The state-picker counts are a promise: choosing a state must return that
+# many campgrounds. They're derived from the same rules search uses, so
+# rebuilding them here — while the service is stopped and from the code that
+# just shipped — keeps them from drifting out of step with it. Cheap (a ~50
+# row aggregate) and idempotent.
+echo "==> Rebuilding state cache..."
+$SSH "$HOST" "cd $REMOTE_DIR && ./venv/bin/python rebuild_state_cache.py" \
+    || { echo "ERROR: state cache rebuild failed — not starting the app." >&2
+         echo "Roll back: $SSH $HOST 'cd $REMOTE_DIR && tar xzf ~/fedcamp-rollback-$STAMP.tar.gz && sudo systemctl start fedcamp'" >&2
+         exit 1; }
 
 echo "==> Starting gunicorn..."
 $SSH "$HOST" "sudo systemctl start fedcamp"

@@ -2,6 +2,14 @@
 
 All notable changes to the Campdex (formerly RV Camping Finder) project.
 
+## [0.11.2] — 2026-08-03
+
+### Fixed
+- State-picker counts overstated every state with cross-border facilities — 406 phantom campgrounds nationwide (CA advertised 857 against 820 reachable, UT 717 against 601, ID 445 against 369). Two causes in the `n_state_cache` build in `prepare_db.py`: it joined *every* `facility_addresses` row, so a facility holding addresses in two states was counted in both while search assigns it exactly one preferred address; and it omitted the `facility_name IS NOT NULL AND <> ''` filter that search applies, counting rows the results page hides. The build now mirrors `search_by_state` exactly — same preferred-address join, same name filter, same camping types, all imported from `db.py` rather than reimplemented. Verified: the rebuilt cache matches the live search count for all 50 states, zero mismatches. National total 6,404 → 5,998.
+
+### Added
+- `rebuild_state_cache.py` regenerates `n_state_cache` in place from the facility data, so the fix reaches production without re-uploading the 77MB database. It is idempotent and refuses to write if the rebuild would produce no rows. `deploy.sh` now runs it on every deploy, while the service is stopped and from the code that just shipped, so the counts cannot drift out of step with the query that has to honour them.
+
 ## [0.11.1] — 2026-08-03
 
 ### Fixed
