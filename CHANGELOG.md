@@ -2,6 +2,16 @@
 
 All notable changes to the Campdex (formerly RV Camping Finder) project.
 
+## [0.16.0] — 2026-08-03
+
+### Changed
+- **API rate limit raised from 60 to 300 requests per minute.** The limit is per IP, but the API's documented use case is AI assistants, and those call from a platform's shared egress — every user of a ChatGPT custom GPT or a Claude integration lands on the same handful of addresses, so a few concurrent people would 429 each other. Measured cost says this was far too conservative: `/api/states` is 0.9ms and `/api/search` 23ms, so 300/min sustained is roughly 12% of one core. The limiter is there to stop accidental hammering, not to guard the data — the entire database is a public download, and bulk users should take that instead.
+- **Rewrote the AI assistant prompt on the About page.** The previous version described the three endpoints and nothing else. The new one leads with the thing that actually matters: `UNKNOWN` means "the agency never recorded this", not "no restriction", and an assistant that treats it as "fine" will tell someone a road is passable when nobody knows. It explains when to use exclusion filters versus positive ones (Oregon: 283 results versus 581), covers the RV-length `OR IS NULL` semantics, tells the assistant to link back to facility pages, to say this is federal land only rather than inventing state parks, and to advise verifying with the agency before a long drive.
+
+### Fixed
+- The API parameter table said `camping_type` defaults to `DEVELOPED`. That stopped being true when the default became all three types, so anyone following the docs would have silently searched a third of the data.
+- The parameter table was missing `style`, `hookup`, `reservable` and the `not_*` exclusion filters entirely — the exclusion filters being the most distinctive thing the API offers.
+
 ## [0.15.2] — 2026-08-03
 
 ### Fixed

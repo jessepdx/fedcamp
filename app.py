@@ -21,7 +21,18 @@ PST = timezone(timedelta(hours=-8))
 # Simple in-memory rate limiter for API endpoints
 _rate_lock = threading.Lock()
 _rate_buckets = {}  # ip -> [timestamps]
-API_RATE_LIMIT = 60   # requests per window
+# The limit is per IP, but the API's main consumer is AI assistants, and those
+# call from a platform's shared egress -- every user of a ChatGPT custom GPT or
+# a Claude integration lands on the same handful of addresses. At 60/min a few
+# concurrent people would 429 each other, which made the documented use case
+# barely usable.
+#
+# Cost says this can be far more generous: /api/states is 0.9ms and
+# /api/search is 23ms, so 300/min sustained is roughly 12% of one core. The
+# limiter exists to stop accidental hammering degrading the site, not to guard
+# the data -- the whole database is a public download, and bulk users should
+# take that instead of looping over the API.
+API_RATE_LIMIT = 300  # requests per window
 API_RATE_WINDOW = 60   # seconds
 
 

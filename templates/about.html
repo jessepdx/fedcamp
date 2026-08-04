@@ -108,13 +108,17 @@
             <tr><td><code>state</code></td><td>2-letter state code (required unless using lat/lon)</td></tr>
             <tr><td><code>lat</code>, <code>lon</code></td><td>Coordinates to search near (required unless using state)</td></tr>
             <tr><td><code>radius</code></td><td>Search radius in miles (default 100)</td></tr>
-            <tr><td><code>camping_type</code></td><td>DEVELOPED, PRIMITIVE, or DISPERSED (repeatable, default DEVELOPED)</td></tr>
+            <tr><td><code>camping_type</code></td><td>DEVELOPED, PRIMITIVE, or DISPERSED (repeatable; defaults to all three)</td></tr>
             <tr><td><code>agency</code></td><td>FS, BLM, NPS, USACE, BOR, FWS (repeatable)</td></tr>
             <tr><td><code>road_access</code></td><td>PAVED, GRAVEL, DIRT, HIGH_CLEARANCE, 4WD_REQUIRED (repeatable)</td></tr>
             <tr><td><code>seasonal_status</code></td><td>OPEN_YEAR_ROUND, SEASONAL_CLOSURE, WINTER_CLOSURE (repeatable)</td></tr>
             <tr><td><code>fire_status</code></td><td>CAMPFIRES_ALLOWED, RESTRICTIONS, NO_CAMPFIRES (repeatable)</td></tr>
             <tr><td><code>rv_length</code></td><td>Minimum RV length in feet</td></tr>
             <tr><td><code>tag</code></td><td>Amenity tag: FULL_HOOKUPS, ELECTRIC_HOOKUP, 50_AMP, WATER_HOOKUP, PULL_THROUGH, BIG_RIG_FRIENDLY, PAVED_ACCESS, DUMP_STATION, POTABLE_WATER, RESERVABLE (repeatable)</td></tr>
+            <tr><td><code>style</code></td><td>rv, tent, walkin, boatin, equestrian (repeatable)</td></tr>
+            <tr><td><code>hookup</code></td><td>electric, water, sewer (repeatable)</td></tr>
+            <tr><td><code>reservable</code></td><td><code>1</code> to return only reservable campgrounds</td></tr>
+            <tr><td><code>not_road_access</code><br><code>not_seasonal_status</code><br><code>not_fire_status</code></td><td><strong>Exclusion filters</strong> (repeatable). <code>not_road_access=4WD_REQUIRED</code> means "not known to be 4WD" &mdash; it <em>keeps</em> campgrounds whose road access was never recorded, whereas listing the other values would discard them. See the note below.</td></tr>
             <tr><td><code>limit</code></td><td>Max results (default 25, max 100)</td></tr>
             <tr><td><code>offset</code></td><td>Pagination offset</td></tr>
         </tbody>
@@ -127,19 +131,83 @@ GET /api/search?state=CO&amp;camping_type=DEVELOPED&amp;camping_type=PRIMITIVE&a
 GET /api/search?lat=45.5&amp;lon=-122.6&amp;radius=50&amp;agency=FS&amp;agency=BLM
 GET /api/facility/273354</code></pre>
 
+    <h4>Missing data is the thing to get right</h4>
+    <p>Roughly half of campgrounds have no road access recorded, 40% no season, and 57% no
+    campfire status &mdash; the managing agency simply never published it. The API returns
+    <code>UNKNOWN</code> for these, and <strong>that is not the same as "no problem"</strong>.
+    A campground with unrecorded road access may well need 4WD.</p>
+    <p>This is what the exclusion filters are for. <code>road_access=PAVED</code> returns only
+    campgrounds <em>known</em> to be paved and throws away everything unrecorded;
+    <code>not_road_access=4WD_REQUIRED</code> returns everything <em>not known</em> to require 4WD,
+    keeping the unknowns. For Oregon that is 283 results versus 581 &mdash; the difference between
+    a needlessly short list and an honest one.</p>
+
     <h4>Using with AI Chatbots</h4>
-    <p>You can connect this API to ChatGPT (custom GPTs), Claude, or any AI tool that supports HTTP actions.
-    Point your chatbot at <code>https://campdex.com/api/</code> and give it instructions like:</p>
+    <p>You can connect this API to ChatGPT (custom GPTs), Claude, or any AI tool that supports HTTP
+    actions. Point it at <code>https://campdex.com/api/</code> and use instructions like these &mdash;
+    the parts about unknown data matter most, since an assistant that treats <code>UNKNOWN</code> as
+    "fine" will send someone down a road their rig can't handle:</p>
     <blockquote>
-        <p><em>Use the Campdex API at campdex.com to help users find federal campgrounds.
-        Start by calling /api/states to see what's available, then use /api/search with the user's state or
-        coordinates and any filters they mention. Use /api/facility/&lt;id&gt; to get full details
-        when a user asks about a specific campground.</em></p>
+<pre style="overflow-x:auto;white-space:pre-wrap"><code>Use the Campdex API (https://campdex.com/api/) to help people find campgrounds
+on US federal public land &mdash; Forest Service, BLM, National Park Service, Army
+Corps, Bureau of Reclamation and Fish &amp; Wildlife. Data comes from RIDB, the
+federal Recreation Information Database.
+
+HOW TO SEARCH
+- /api/states lists every state with a campground count.
+- /api/search?state=XX or ?lat=&amp;lon=&amp;radius= returns matching campgrounds.
+  camping_type defaults to all three (DEVELOPED, PRIMITIVE, DISPERSED). Pass it
+  explicitly only if the user wants a subset &mdash; "dispersed" or "boondocking"
+  means camping_type=DISPERSED.
+- /api/facility/&lt;id&gt; returns full detail. Call it before answering questions
+  about a specific campground; search results are summaries.
+- Always link the user to https://campdex.com/facility/&lt;id&gt; so they can see
+  photos, directions and the agency's own description.
+
+MISSING DATA &mdash; THE MOST IMPORTANT RULE
+Many fields come back UNKNOWN because the agency never published them. UNKNOWN
+means "not recorded", NOT "no restriction" and NOT "fine". Never tell a user a
+road is passable, a campground is open, or fires are allowed on the basis of an
+UNKNOWN value. Say the data is not recorded and suggest they call the agency.
+
+Use the exclusion filters when a user rules something out, because they keep
+unrecorded campgrounds instead of discarding them:
+  not_road_access=4WD_REQUIRED&amp;not_road_access=HIGH_CLEARANCE  (no rough roads)
+  not_seasonal_status=PERMANENTLY_CLOSED                        (skip closed)
+  not_fire_status=NO_CAMPFIRES                                  (wants a fire)
+Use the positive filters (road_access=PAVED) only when the user explicitly wants
+campgrounds confirmed to have that property, and tell them it excludes any
+campground the agency didn't document.
+
+RIGS AND ACCESS
+- rv_length=35 returns campgrounds that fit a 35ft rig OR have no length
+  recorded. If length matters, say which of the two a result is.
+- style=rv|tent|walkin|boatin|equestrian, hookup=electric|water|sewer,
+  reservable=1 for reservable sites only.
+
+ANSWERING WELL
+- Lead with what the user needs to decide: road access, season, max RV length,
+  number of sites, managing agency.
+- Say how many matched, not just the first few.
+- This is federal land only &mdash; no state parks, no private campgrounds. Say so
+  rather than inventing them.
+- Always add that conditions change and they should verify with the agency
+  before a long drive. Closures and fire restrictions move faster than this data.
+
+LIMITS
+300 requests/minute per IP, shared across all users of your integration since
+platforms call from common addresses. A 429 carries a Retry-After header; back
+off and retry rather than failing the user's question. For bulk work, use the
+SQLite download at /api/download instead of looping over the API.</code></pre>
     </blockquote>
 
     <h4>Rate Limit</h4>
-    <p>The API is limited to <strong>60 requests per minute</strong> per IP address. If you exceed this, you'll get a
-    <code>429</code> response with a <code>Retry-After</code> header.</p>
+    <p>The API allows <strong>300 requests per minute</strong> per IP address. Exceeding it returns
+    <code>429</code> with a <code>Retry-After</code> header.</p>
+    <p>Note that AI platforms call from shared addresses, so every user of a custom GPT or
+    assistant integration draws on the same budget. For bulk work &mdash; analysis, building your own
+    index, anything looping over thousands of campgrounds &mdash; download the SQLite database below
+    instead. It's the same data, and it's faster for you than paginating the API.</p>
 
     <h4>Download the Database</h4>
     <p>Want the raw data? Download the full SQLite database and query it yourself.</p>
