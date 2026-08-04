@@ -2,6 +2,16 @@
 
 All notable changes to the Campdex (formerly RV Camping Finder) project.
 
+## [0.15.2] — 2026-08-03
+
+### Fixed
+- **Deploys served stale CSS and JavaScript for up to four hours.** Static assets carry `max-age=14400` and their URLs were unversioned, so a returning visitor got new HTML with the previous `style.css` and `map.js`. The result was real, confusing breakage that looked like layout bugs: an unstyled page heading, result cards that ignored the panel's densification, and a "Map" button wired to a handler the cached script didn't contain — so it appeared to do nothing. Asset URLs now carry `?v=<mtime>`, read once per process; gunicorn restarts on every deploy, so the version always matches what shipped.
+- The split view now holds down to 760px instead of 1024px. At 1024px an ordinary 900px-wide laptop window got the phone treatment — the results list swallowed the entire browser, hiding the map, the nav and the filters, on a screen with room for all three. Between 760 and 1024 the split still fits with a narrower panel.
+- On phones, the "List" button floated on top of the filter sheet's own "Show N campgrounds" button (both ending at the same y on a 375×812 screen), making taps in that zone ambiguous. It steps aside while the sheet is open.
+
+### Changed
+- Result cards now show "Road / Season / Campfires not recorded" pills, matching the facility pages. About 78% of Oregon's cards carry at least one, so a campground with no road data no longer scans the same as one with an easy road. The pills are muted and wrap into the existing pill row; median card height moved 131px → 133px.
+
 ## [0.15.1] — 2026-08-03
 
 ### Changed

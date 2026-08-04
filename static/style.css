@@ -1500,9 +1500,15 @@ body.map-page .view-toggle-btn {
     box-shadow: 0 2px 8px rgba(0, 0, 0, .3);
 }
 
-/* Mobile: the panel is a full-viewport layer above everything on the
-   page (nav included); its own header carries the way back to the map. */
-@media (max-width: 1023.98px) {
+/* Small screens only: the panel becomes a full-viewport layer and its own
+   header carries the way back to the map.
+
+   The floor for this is 760px, not 1024px. At 1024px an ordinary laptop
+   window of 900px got the phone treatment -- the list swallowed the whole
+   browser, hiding the map, the nav and the filters, on a screen with room
+   for all three. Between 760px and 1024px the split still fits with a
+   narrower panel, which is far less disorienting than a takeover. */
+@media (max-width: 759.98px) {
     body.map-page #map-panel {
         position: fixed;
         inset: 0;
@@ -1514,14 +1520,18 @@ body.map-page .view-toggle-btn {
     }
 }
 
-@media (min-width: 1024px) {
-    body.map-page .map-layout { grid-template-columns: 400px 1fr; }
+/* Split view from 760px up; the panel widens as there is room for it. */
+@media (min-width: 760px) {
+    body.map-page .map-layout { grid-template-columns: 320px 1fr; }
     body.map-page #map-panel {
         display: flex;
         border-right: 1px solid #e5e7eb;
     }
-    body.map-page #panel-close-btn { display: none; }  /* mobile-only control */
+    body.map-page #panel-close-btn { display: none; }  /* small-screen control */
     body.map-page .view-toggle-btn { display: none; }
+}
+@media (min-width: 1024px) {
+    body.map-page .map-layout { grid-template-columns: 400px 1fr; }
 }
 @media (min-width: 1440px) {
     body.map-page .map-layout { grid-template-columns: 420px 1fr; }
@@ -1591,4 +1601,15 @@ body.map-page .map-strap-h1 {
     margin-top: .75rem;
     font-size: .82rem;
     color: #6b7280;
+}
+
+/* The filter sheet fills the bottom of a phone screen — exactly where the
+   List toggle floats. The toggle was landing on top of the sheet's own
+   "Show N campgrounds" button (both ending at y=790 on a 375x812 screen),
+   so a tap in that zone was ambiguous. The sheet already has its own
+   dismiss action; the toggle steps aside while it's open. */
+@media (max-width: 640px) {
+    body.map-page:has(#map-filter-panel:not([hidden])) .view-toggle-btn {
+        display: none;
+    }
 }

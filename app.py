@@ -172,6 +172,31 @@ def inject_now():
     return {"now_pst": now, "current_month": now.month}
 
 
+_static_v_cache = {}
+
+
+@app.template_global()
+def static_v(filename):
+    """/static/<file>?v=<mtime> so a deploy can't serve stale assets.
+
+    Static files are served with max-age=14400 and the URLs were unversioned,
+    so for up to four hours after a deploy a returning visitor got new HTML
+    with the previous CSS and JS. That produced real, confusing breakage --
+    an unstyled heading, undensified cards, and a "Map" button wired to a
+    handler the cached script didn't have.
+
+    mtime is read once per file per process; gunicorn restarts on every
+    deploy, so the version always reflects what shipped.
+    """
+    if filename not in _static_v_cache:
+        try:
+            _static_v_cache[filename] = int(
+                os.stat(os.path.join(app.static_folder, filename)).st_mtime)
+        except OSError:
+            _static_v_cache[filename] = 0
+    return f"/static/{filename}?v={_static_v_cache[filename]}"
+
+
 @app.context_processor
 def inject_filter_options():
     """Expose the filter vocabularies to every template.

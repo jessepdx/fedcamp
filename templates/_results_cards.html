@@ -23,6 +23,21 @@
                         {{ r.fire_status | tag_display }}
                     </span>
                     {% endif %}
+                    {#- Gaps get named on the card too, so a campground with no
+                        road data doesn't scan the same as one with an easy road.
+                        The field name is required here: unlike the facility
+                        page these pills carry no label of their own, and a bare
+                        "Not recorded" would say nothing. Muted so they recede
+                        behind the pills that carry actual data. -#}
+                    {% if not r.road_access or r.road_access == 'UNKNOWN' %}
+                    <span class="condition-pill condition-pill-unrecorded">Road not recorded</span>
+                    {% endif %}
+                    {% if not r.seasonal_status or r.seasonal_status == 'UNKNOWN' %}
+                    <span class="condition-pill condition-pill-unrecorded">Season not recorded</span>
+                    {% endif %}
+                    {% if not r.fire_status or r.fire_status == 'UNKNOWN' %}
+                    <span class="condition-pill condition-pill-unrecorded">Campfires not recorded</span>
+                    {% endif %}
                 </div>
             </div>
 
