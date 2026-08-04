@@ -540,6 +540,140 @@ def search_pins_by_bounds(conn, south, north, west, east,
     return [dict(r) for r in rows]
 
 
+def _bounds_where(south, north, west, east, camping_types, agencies,
+                  road_access, styles, hookups, min_rv_length, excludes):
+    """Shared WHERE clause for the bbox list/count queries.
+
+    Every clause here is copied verbatim from search_pins_by_bounds so the
+    map pins, the results list, and the count pill always agree. Requires
+    n_facility_rollup aliased as "r" and n_facility_conditions as "c".
+    Returns (sql, params).
+    """
+    sql = """
+        WHERE r.coords_valid = 1
+          AND r.facility_name IS NOT NULL AND r.facility_name <> ''
+          AND r.latitude BETWEEN ? AND ?
+          AND r.longitude BETWEEN ? AND ?
+          AND r.camping_type IN ({})
+    """.format(','.join('?' * len(camping_types)))
+    params = [south, north, west, east] + list(camping_types)
+
+    if agencies:
+        sql += "  AND r.org_abbrev IN ({})\n".format(','.join('?' * len(agencies)))
+        params.extend(agencies)
+
+    if road_access:
+        sql += "  AND c.road_access IN ({})\n".format(','.join('?' * len(road_access)))
+        params.extend(road_access)
+
+    if styles:
+        for s in styles:
+            if s == 'rv':
+                sql += "  AND r.sites_accepting_rv > 0\n"
+            elif s == 'tent':
+                sql += "  AND r.sites_accepting_tent > 0\n"
+            elif s == 'walkin':
+                sql += "  AND (r.walk_in_sites > 0 OR r.hike_in_sites > 0)\n"
+            elif s == 'boatin':
+                sql += "  AND r.boat_in_sites > 0\n"
+            elif s == 'equestrian':
+                sql += "  AND r.equestrian_sites > 0\n"
+
+    if hookups:
+        for h in hookups:
+            if h == 'electric':
+                sql += "  AND r.has_electric_hookup = 1\n"
+            elif h == 'water':
+                sql += "  AND r.has_water_hookup = 1\n"
+            elif h == 'sewer':
+                sql += "  AND r.has_sewer_hookup = 1\n"
+
+    if min_rv_length:
+        sql += "  AND (r.max_rv_length >= ? OR r.max_rv_length IS NULL)\n"
+        params.append(min_rv_length)
+
+    # Exclusion ("not") filters — keep unknowns, see _exclude_sql
+    ex_sql, ex_params = _exclude_sql(excludes)
+    sql += ex_sql
+    params.extend(ex_params)
+
+    return sql, params
+
+
+def search_by_bounds(conn, south, north, west, east,
+                     camping_types=None, agencies=None, road_access=None,
+                     styles=None, hookups=None, min_rv_length=None,
+                     excludes=None, limit=25, offset=0):
+    """Card-shaped results for the map's viewport list.
+
+    Same column list as search_by_state, filtered by the same WHERE clause
+    as search_pins_by_bounds (via _bounds_where) so the list matches the
+    pins exactly. Ordered by total_campsites DESC with facility_id as a
+    tiebreak: without it OFFSET pagination is unstable and rows silently
+    duplicate/drop between pages.
+    """
+    if not camping_types:
+        camping_types = list(DEFAULT_CAMPING_TYPES)
+
+    where_sql, params = _bounds_where(
+        south, north, west, east, camping_types, agencies,
+        road_access, styles, hookups, min_rv_length, excludes)
+
+    sql = """
+        SELECT
+            r.facility_id, r.facility_name, r.org_abbrev, r.camping_type,
+            r.latitude, r.longitude, r.total_campsites,
+            r.rv_type_sites, r.sites_accepting_rv,
+            r.has_full_hookup, r.has_electric_hookup,
+            r.has_water_hookup, r.has_sewer_hookup, r.max_amps,
+            r.max_rv_length, r.pullthrough_sites, r.backin_sites,
+            r.surface_predominant, r.reservable, r.full_hookup_sites,
+            r.electric_hookup_sites, r.camping_type_confidence,
+            c.road_access, c.driveway_surface, c.seasonal_status,
+            c.fire_status, c.elevation_ft, c.boondock_accessibility,
+            fa.city, fa.state_code,
+            p.photo_url
+        FROM n_facility_rollup r
+        JOIN n_facility_conditions c ON r.facility_id = c.facility_id
+        {addr_join}
+        LEFT JOIN n_facility_photo p ON r.facility_id = p.facility_id
+    """.format(addr_join=PREFERRED_ADDRESS_JOIN) + where_sql + """
+        ORDER BY r.total_campsites DESC, r.facility_id
+        LIMIT ? OFFSET ?
+    """
+    params.extend([limit, offset])
+
+    rows = conn.execute(sql, params).fetchall()
+    results = [dict(r) for r in rows]
+    _attach_top_tags(conn, results)
+    return results
+
+
+def get_bounds_count(conn, south, north, west, east,
+                     camping_types=None, agencies=None, road_access=None,
+                     styles=None, hookups=None, min_rv_length=None,
+                     excludes=None):
+    """Unpaginated total for a bbox search.
+
+    WHERE clause is identical to search_pins_by_bounds (via _bounds_where),
+    so the map count pill, the panel count, and pagination never disagree.
+    """
+    if not camping_types:
+        camping_types = list(DEFAULT_CAMPING_TYPES)
+
+    where_sql, params = _bounds_where(
+        south, north, west, east, camping_types, agencies,
+        road_access, styles, hookups, min_rv_length, excludes)
+
+    sql = """
+        SELECT COUNT(*)
+        FROM n_facility_rollup r
+        JOIN n_facility_conditions c ON r.facility_id = c.facility_id
+    """ + where_sql
+
+    return conn.execute(sql, params).fetchone()[0]
+
+
 def get_search_count(conn, state_codes=None, lat=None, lon=None,
                      radius_miles=100, camping_types=None,
                      tag_filters=None, agencies=None,

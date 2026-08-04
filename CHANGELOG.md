@@ -2,6 +2,25 @@
 
 All notable changes to the Campdex (formerly RV Camping Finder) project.
 
+## [0.13.0] — 2026-08-03
+
+### Added
+- **The map and the results list are one screen.** On desktop the homepage is now a split view — a results panel beside the map, both driven by the map's viewport and one shared set of filters. Previously the map and `/search` were separate worlds with no shared state, which is the single biggest thing recreation.gov does badly and every product in this category (AllTrails, The Dyrt, Zillow) solves the same way. Below 1024px it's a map with a List toggle; the map stays mounted so centre, zoom and open popups survive the switch, and the list is fetched lazily — a phone showing the map never pays for it.
+- **"Search this area".** Panning no longer refetches silently on every movement. The button appears once the view has actually moved and the user decides when to reload, so a deliberate pan costs nothing.
+- **Shareable URLs.** Map centre, zoom, and every active filter live in the query string (`?ll=44.06,-121.32&z=11&ct=DEVELOPED&ag=FS`), written with `replaceState` so panning doesn't fill the back button. Pasting a URL reproduces the exact view, filters, and list. Unrecognised values degrade silently to defaults.
+- **Hover-linking.** Hovering a result highlights its pin; hovering a pin highlights and scrolls to its card. Pins inside a cluster deliberately do nothing rather than spiderfying, which would be noise.
+- `GET /search` accepts a bounding box (`south`/`north`/`west`/`east`) plus `style` and `hookup`, and returns `X-Total-Count` with the unpaginated total. `db.search_by_bounds` and `db.get_bounds_count` share one WHERE clause with the pins query, so the map count, the panel count, and pagination cannot disagree.
+
+### Changed
+- `/search?view=map` is retired and 302s to `/` — the split view supersedes it. `initResultsMap` removed.
+- The map's JavaScript moved out of a `<script>` block in `map.html` into `static/map.js`. 357 lines of behaviour lived inside the template, so markup and behaviour could not be edited independently.
+- Panel cards are densified by CSS scope, not a separate template: photos, tag rows and link rows are hidden, the condition pills and stats row stay. Conditions are the differentiator, so they lead.
+
+### Fixed
+- `search_by_bounds` orders by `total_campsites DESC, facility_id`. The existing queries order on `total_campsites` alone, which is unstable across `OFFSET` pages and can silently duplicate or drop rows between them; the new query does not inherit that.
+- Resuming a deferred pin reload inside Leaflet's `popupclose` re-held forever, because Leaflet still reports the popup open mid-teardown. The resume is now deferred a tick. The previous 300ms debounce had been masking it.
+- Condition pills overflowed the results panel by up to 160px, clipping "Seasonal Closure — Likely Open" mid-word: the base card row is `title | pills` with `flex-shrink: 0` on the pills, which cannot fit at a 420px panel. Panel cards stack the title above the pills.
+
 ## [0.12.1] — 2026-08-03
 
 ### Changed

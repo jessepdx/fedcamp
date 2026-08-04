@@ -1,16 +1,59 @@
 /*
  * map.js — Campdex map homepage.
  *
- * Extracted verbatim from the inline <script> in templates/map.html so that
- * markup and behaviour live in separate files. No behavioural change in this
- * commit; the code below is byte-identical to what was inline.
+ * Split view: the map drives a results panel (desktop: beside the map;
+ * mobile: a full-screen layer toggled by #view-toggle-btn). Viewport and
+ * filter state round-trips through the URL so a copied link reproduces
+ * the view.
  */
 (function() {
     try {
 
+    // ---------------------------------------------------------------
+    // URL state. Grammar on /:
+    //   ?ll=<lat>,<lon>&z=<zoom>&ct=<csv>&ag=<csv>&rd=<csv>&st=<csv>
+    //    &hk=<csv>&rv=<int>&v=list
+    // Parsed BEFORE the map is created so the first pin fetch already
+    // uses the restored viewport. Garbage values degrade silently to
+    // defaults (CSV values that match no control are simply dropped).
+    // Written with replaceState ONLY — panning must not spam history.
+    // ---------------------------------------------------------------
+    var urlState = (function() {
+        var out = { center: null, zoom: null, list: false };
+        var q = new URLSearchParams(window.location.search);
+        var ll = (q.get('ll') || '').split(',');
+        if (ll.length === 2) {
+            var lat = parseFloat(ll[0]), lon = parseFloat(ll[1]);
+            if (isFinite(lat) && isFinite(lon) && Math.abs(lat) <= 90 && Math.abs(lon) <= 180)
+                out.center = [lat, lon];
+        }
+        var z = parseInt(q.get('z'), 10);
+        if (z >= 3 && z <= 18) out.zoom = z;
+        out.list = q.get('v') === 'list';
+        function csv(key) { return (q.get(key) || '').split(',').filter(Boolean); }
+        // Restore control state through the DOM: setting the controls and
+        // then reading them back means unknown values can't get into the
+        // filter object.
+        csv('ct').forEach(function(v) {
+            var b = document.querySelector('#mf-type-group .mf-toggle[data-key="' + CSS.escape(v) + '"]');
+            if (b) { b.classList.add('active'); b.setAttribute('aria-pressed', 'true'); }
+        });
+        [['ag', 'mf-agency'], ['rd', 'mf-road'], ['st', 'mf-style'], ['hk', 'mf-hookups']].forEach(function(pair) {
+            csv(pair[0]).forEach(function(v) {
+                var cb = document.querySelector('#' + pair[1] + ' input[value="' + CSS.escape(v) + '"]');
+                if (cb) cb.checked = true;
+            });
+        });
+        var rv = parseInt(q.get('rv'), 10);
+        if (rv > 0) document.getElementById('mf-rv-input').value = rv;
+        return out;
+    })();
+
+    if (urlState.list) document.body.classList.add('panel-open');
+
     var map = L.map('state-map', {
-        center: [44.0, -120.5],
-        zoom: 7,
+        center: urlState.center || [44.0, -120.5],
+        zoom: urlState.zoom || 7,
         minZoom: 3,
         maxZoom: 18,
         preferCanvas: true,
@@ -55,7 +98,25 @@
     legend.addTo(map);
 
     // ---------------------------------------------------------------
-    // Filters (bar below map)
+    // Split-view elements
+    // ---------------------------------------------------------------
+    var resultsList = document.getElementById('results-list');
+    var panelEmpty = document.getElementById('panel-empty');
+    var panelCount = document.getElementById('panel-count');
+    var viewToggleBtn = document.getElementById('view-toggle-btn');
+    var viewToggleCount = document.getElementById('view-toggle-count');
+    var searchAreaBtn = document.getElementById('search-area-btn');
+    var desktopMql = window.matchMedia('(min-width: 1024px)');
+
+    viewToggleBtn.removeAttribute('hidden');
+    if (urlState.list) viewToggleBtn.setAttribute('aria-expanded', 'true');
+
+    function panelVisible() {
+        return desktopMql.matches || document.body.classList.contains('panel-open');
+    }
+
+    // ---------------------------------------------------------------
+    // Filters (chip row + panel floating over the map)
     // ---------------------------------------------------------------
     var filters = {
         camping_types: [],
@@ -66,7 +127,7 @@
         min_rv_length: null
     };
 
-    function readFiltersAndReload() {
+    function readFilters() {
         filters.camping_types = [];
         document.querySelectorAll('#mf-type-group .mf-toggle.active').forEach(function(b) {
             filters.camping_types.push(b.dataset.key);
@@ -81,7 +142,15 @@
         document.querySelectorAll('#mf-hookups input:checked').forEach(function(c) { filters.hookups.push(c.value); });
         var val = parseInt(document.getElementById('mf-rv-input').value, 10);
         filters.min_rv_length = val > 0 ? val : null;
-        loadPins();
+    }
+    readFilters();   // pick up state restored from the URL
+
+    // Filter changes apply immediately: pins + panel + URL, and any
+    // pending "Search this area" prompt is superseded by the reload.
+    function readFiltersAndReload() {
+        readFilters();
+        requestRefresh();
+        writeUrl();
     }
 
     // Camping type toggles
@@ -121,6 +190,28 @@
     };
 
     // ---------------------------------------------------------------
+    // URL writing. replaceState only — the back button must not walk
+    // back through every pan and filter tweak.
+    // ---------------------------------------------------------------
+    function writeUrl() {
+        var c = map.getCenter();
+        // Built by hand so commas stay literal; every value is URL-safe
+        // (letters, digits, comma, minus, period, underscore).
+        var parts = [
+            'll=' + c.lat.toFixed(4) + ',' + c.lng.toFixed(4),
+            'z=' + map.getZoom()
+        ];
+        if (filters.camping_types.length) parts.push('ct=' + filters.camping_types.join(','));
+        if (filters.agencies.length) parts.push('ag=' + filters.agencies.join(','));
+        if (filters.road_access.length) parts.push('rd=' + filters.road_access.join(','));
+        if (filters.styles.length) parts.push('st=' + filters.styles.join(','));
+        if (filters.hookups.length) parts.push('hk=' + filters.hookups.join(','));
+        if (filters.min_rv_length) parts.push('rv=' + filters.min_rv_length);
+        if (document.body.classList.contains('panel-open')) parts.push('v=list');
+        history.replaceState(null, '', window.location.pathname + '?' + parts.join('&'));
+    }
+
+    // ---------------------------------------------------------------
     // Pin layer and loading
     // ---------------------------------------------------------------
     // Cluster markers instead of dropping every pin into the DOM. A
@@ -144,8 +235,9 @@
             });
         }
     }).addTo(map);
-    var loadDebounce;
     var currentRequest = null;
+    var markersById = {};     // facility_id -> marker, rebuilt on every pin load
+    var loadedBounds = null;  // bounds of the last pin fetch
 
     function campingColor(type, seasonal) {
         if (seasonal === 'PERMANENTLY_CLOSED' || seasonal === 'TEMPORARILY_CLOSED')
@@ -164,7 +256,7 @@
                 + '<circle cx="12" cy="12" r="4" fill="#fff" fill-opacity="0.9"/></svg>';
             pinIconCache[color] = L.divIcon({
                 html: svg,
-                className: '',
+                className: 'campdex-pin',   // hook for the hover highlight
                 iconSize: [20, 30],
                 iconAnchor: [10, 30],
                 popupAnchor: [0, -30]
@@ -180,7 +272,9 @@
         return d.innerHTML;
     }
 
-    function buildQuery() {
+    // rvParam differs per endpoint: /api/pins takes min_rv_length,
+    // /search takes rv_length.
+    function buildQuery(rvParam) {
         var b = map.getBounds();
         var params = 'south=' + b.getSouth().toFixed(4)
             + '&north=' + b.getNorth().toFixed(4)
@@ -191,14 +285,15 @@
         filters.road_access.forEach(function(v) { params += '&road_access=' + v; });
         filters.styles.forEach(function(v) { params += '&style=' + v; });
         filters.hookups.forEach(function(v) { params += '&hookup=' + v; });
-        if (filters.min_rv_length) params += '&min_rv_length=' + filters.min_rv_length;
+        if (filters.min_rv_length) params += '&' + rvParam + '=' + filters.min_rv_length;
         return params;
     }
 
     function loadPins() {
         if (currentRequest) { currentRequest.abort(); currentRequest = null; }
 
-        var query = buildQuery();
+        var query = buildQuery('min_rv_length');
+        loadedBounds = map.getBounds();
         status.update('Loading…');
 
         var controller = new AbortController();
@@ -208,7 +303,9 @@
             .then(function(r) { return r.json(); })
             .then(function(pins) {
                 currentRequest = null;
+                clearMarkerActive();       // the marker it points at is going away
                 pinLayer.clearLayers();
+                markersById = {};
                 var markers = [];
                 pins.forEach(function(p) {
                     var marker = L.marker([p.latitude, p.longitude], {
@@ -216,6 +313,7 @@
                         bubblingMouseEvents: false
                     });
                     markers.push(marker);
+                    markersById[p.facility_id] = marker;
 
                     var tgt = ('ontouchstart' in window) ? '' : ' target="_blank" rel="noopener"';
                     var html = '<strong><a href="/facility/' + p.facility_id + '"' + tgt + '>'
@@ -235,12 +333,19 @@
                         autoPanPaddingBottomRight: L.point(16, 48)
                     });
                     marker.bindTooltip(escapeHtml(p.facility_name));
+                    // Pin -> card hover link. setCardActive no-ops when the
+                    // facility isn't in the loaded pages (never fetches).
+                    marker.on('mouseover', function() { setCardActive(p.facility_id); });
+                    marker.on('mouseout', function() { clearCardActive(); });
                 });
                 // One bulk add is far cheaper than addTo() per marker.
                 pinLayer.addLayers(markers);
                 var n = pins.length.toLocaleString();
                 status.update('<strong>' + n + '</strong> campground' + (pins.length === 1 ? '' : 's') + ' in view');
                 document.getElementById('mf-apply-n').textContent = n;
+                // Until the panel has fetched (it's lazy on mobile), the pin
+                // count is the best number for the List button.
+                viewToggleCount.textContent = n;
             })
             .catch(function(err) {
                 if (err.name !== 'AbortError') {
@@ -249,6 +354,104 @@
                 }
             });
     }
+
+    // ---------------------------------------------------------------
+    // Results panel, driven by the same bbox + filters as the pins.
+    // htmx fetches the cards partial; the count comes from the
+    // X-Total-Count header on every /search response.
+    // ---------------------------------------------------------------
+    var panelTotal = 0;
+    var panelStale = true;   // mobile fetches lazily: only when the list is shown
+
+    function loadPanel() {
+        panelStale = false;
+        htmx.ajax('GET', '/search?' + buildQuery('rv_length'), {target: '#results-list', swap: 'innerHTML'});
+    }
+
+    function renderPanelCount() {
+        var shown = resultsList.querySelectorAll('.result-card').length;
+        if (shown === 0) {
+            panelEmpty.removeAttribute('hidden');
+            panelCount.textContent = '0 in view';
+        } else {
+            panelEmpty.setAttribute('hidden', '');
+            panelCount.textContent = shown < panelTotal
+                ? panelTotal.toLocaleString() + ' in view — showing ' + shown.toLocaleString()
+                : shown.toLocaleString() + ' in view';
+        }
+        viewToggleCount.textContent = panelTotal.toLocaleString();
+    }
+
+    // Only /search responses carry X-Total-Count, so the header's presence
+    // is the filter — this also catches the Load More requests htmx issues
+    // from inside the swapped-in partial.
+    document.body.addEventListener('htmx:afterRequest', function(e) {
+        var xhr = e.detail && e.detail.xhr;
+        if (!xhr) return;
+        var t = xhr.getResponseHeader('X-Total-Count');
+        if (t !== null) panelTotal = parseInt(t, 10) || 0;
+    });
+    // Counting happens after settle, when the new cards are in the DOM
+    // (htmx:afterRequest can fire before the swap lands).
+    document.body.addEventListener('htmx:afterSettle', function(e) {
+        if (e.target === resultsList || resultsList.contains(e.target)) renderPanelCount();
+    });
+    document.body.addEventListener('htmx:responseError', function() {
+        panelCount.textContent = 'Couldn’t load results';
+    });
+
+    // ---------------------------------------------------------------
+    // Hover-linking: card <-> pin.
+    // ---------------------------------------------------------------
+    var activeMarker = null;
+    var activeCard = null;
+
+    function setMarkerActive(marker) {
+        if (marker === activeMarker) return;
+        clearMarkerActive();
+        if (!marker) return;
+        // Pin swallowed by a cluster: no-op. Spiderfying on hover would
+        // rearrange the map under the cursor.
+        if (pinLayer.getVisibleParent(marker) !== marker) return;
+        activeMarker = marker;
+        marker.setZIndexOffset(1000);
+        if (marker._icon) L.DomUtil.addClass(marker._icon, 'campdex-pin--active');
+    }
+    function clearMarkerActive() {
+        if (!activeMarker) return;
+        activeMarker.setZIndexOffset(0);
+        if (activeMarker._icon) L.DomUtil.removeClass(activeMarker._icon, 'campdex-pin--active');
+        activeMarker = null;
+    }
+    function setCardActive(fid) {
+        clearCardActive();
+        var card = resultsList.querySelector('.result-card[data-fid="' + fid + '"]');
+        if (!card) return;   // not in the loaded pages — do not fetch
+        activeCard = card;
+        card.classList.add('is-active');
+        card.scrollIntoView({block: 'nearest'});
+    }
+    function clearCardActive() {
+        if (!activeCard) return;
+        activeCard.classList.remove('is-active');
+        activeCard = null;
+    }
+
+    function cardFromEvent(e) {
+        return e.target.closest ? e.target.closest('.result-card[data-fid]') : null;
+    }
+    function onCardEnter(e) {
+        var card = cardFromEvent(e);
+        if (card) setMarkerActive(markersById[card.dataset.fid]);
+    }
+    function onCardLeave(e) {
+        var card = cardFromEvent(e);
+        if (card && !card.contains(e.relatedTarget)) clearMarkerActive();
+    }
+    resultsList.addEventListener('mouseover', onCardEnter);
+    resultsList.addEventListener('mouseout', onCardLeave);
+    resultsList.addEventListener('focusin', onCardEnter);
+    resultsList.addEventListener('focusout', onCardLeave);
 
     // ---------------------------------------------------------------
     // Filter panel (the map fills the viewport, so filters float over it)
@@ -274,6 +477,8 @@
     // Keep map gestures from firing while interacting with the overlay.
     L.DomEvent.disableClickPropagation(document.querySelector('.map-overlay'));
     L.DomEvent.disableScrollPropagation(filterPanel);
+    L.DomEvent.disableClickPropagation(searchAreaBtn);
+    L.DomEvent.disableClickPropagation(viewToggleBtn);
 
     // A count on the button so active filters are visible while the panel
     // is closed -- otherwise a filtered map looks identical to an unfiltered
@@ -301,40 +506,72 @@
     window.addEventListener('resize', updateChipFade);
     updateChipFade();
 
-    // The map is sized by flexbox now, so tell Leaflet once layout settles.
+    // The map is sized by grid/flexbox now, so tell Leaflet when layout moves.
     window.addEventListener('resize', function() { map.invalidateSize(); });
 
-    // Debounced load on map move. If a popup is open, hold the reload:
-    // opening a popup near the screen edge auto-pans the map, and the
-    // moveend reload would clearLayers() and destroy the popup the user
-    // just opened. Reload once the popup closes instead.
-    var reloadHeldByPopup = false;
+    // ---------------------------------------------------------------
+    // Refresh orchestration + "Search this area".
+    //
+    // Panning no longer refetches. Once the view has moved meaningfully
+    // away from the last-fetched bounds the button appears; clicking it
+    // refetches pins + panel and updates the URL.
+    //
+    // Popup hold: a refresh while a popup is open would clearLayers() and
+    // destroy the popup the user just opened (popups auto-pan the map, so
+    // this is easy to hit). Any refresh requested while a popup is open —
+    // including a button-triggered one — is held and runs on popupclose.
+    // ---------------------------------------------------------------
+    var refreshHeldByPopup = false;
     function popupIsOpen() {
         return !!(map._popup && map._popup.isOpen());
     }
-    // The popup check runs inside the timeout, not just when scheduling:
-    // a popup opened during the 300ms debounce window must also hold the
-    // reload, or it gets destroyed the moment the timer fires.
-    function scheduleLoad() {
-        clearTimeout(loadDebounce);
-        loadDebounce = setTimeout(function() {
-            if (popupIsOpen()) { reloadHeldByPopup = true; return; }
-            loadPins();
-        }, 300);
+    function requestRefresh() {
+        if (popupIsOpen()) { refreshHeldByPopup = true; return; }
+        doRefresh();
     }
+    function doRefresh() {
+        searchAreaBtn.setAttribute('hidden', '');
+        loadPins();
+        if (panelVisible()) loadPanel();
+        else panelStale = true;   // fetch when the list is actually shown
+    }
+
+    // "Moved" means any edge shifted by more than ~0.25% of the visible
+    // span — effectively any real pan or zoom, while ignoring sub-pixel
+    // jitter from invalidateSize().
+    function boundsMoved() {
+        if (!loadedBounds) return false;
+        var b = map.getBounds();
+        var latTol = (b.getNorth() - b.getSouth()) * 0.0025;
+        var lonTol = (b.getEast() - b.getWest()) * 0.0025;
+        return Math.abs(b.getNorth() - loadedBounds.getNorth()) > latTol
+            || Math.abs(b.getSouth() - loadedBounds.getSouth()) > latTol
+            || Math.abs(b.getEast() - loadedBounds.getEast()) > lonTol
+            || Math.abs(b.getWest() - loadedBounds.getWest()) > lonTol;
+    }
+
     map.on('moveend', function() {
-        clearTimeout(loadDebounce);
-        if (popupIsOpen()) {
-            reloadHeldByPopup = true;
-            return;
-        }
-        scheduleLoad();
+        writeUrl();   // replaceState: the URL mirrors the viewport, no history entries
+        if (boundsMoved()) searchAreaBtn.removeAttribute('hidden');
+        else searchAreaBtn.setAttribute('hidden', '');
     });
+
+    searchAreaBtn.addEventListener('click', function() {
+        searchAreaBtn.setAttribute('hidden', '');
+        requestRefresh();
+        writeUrl();
+    });
+
     map.on('popupclose', function() {
         L.DomUtil.removeClass(map.getContainer(), 'popup-open');
-        if (reloadHeldByPopup) {
-            reloadHeldByPopup = false;
-            scheduleLoad();
+        if (refreshHeldByPopup) {
+            refreshHeldByPopup = false;
+            // Deferred a tick: during the popupclose event Leaflet hasn't
+            // finished tearing the popup down, so popupIsOpen() can still
+            // report true and the refresh would re-hold itself forever.
+            // (The old moveend debounce re-checked inside its 300ms timer
+            // for the same reason.)
+            setTimeout(requestRefresh, 0);
         }
     });
     // Leaflet stacks controls above the popup pane, so a popup near a
@@ -345,14 +582,39 @@
     });
 
     // ---------------------------------------------------------------
-    // Initial load — default to Oregon region (no auto-geolocation prompt).
+    // Mobile list toggle. The map stays mounted underneath the panel so
+    // centre/zoom/popups survive the round trip; Leaflet just needs an
+    // invalidateSize() when the layout changes around it.
+    // ---------------------------------------------------------------
+    viewToggleBtn.addEventListener('click', function() {
+        var open = document.body.classList.toggle('panel-open');
+        viewToggleBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        map.invalidateSize();
+        if (open) loadPanel();   // always refetch: the list is never stale
+        writeUrl();
+    });
+    document.getElementById('panel-close-btn').addEventListener('click', function() {
+        document.body.classList.remove('panel-open');
+        viewToggleBtn.setAttribute('aria-expanded', 'false');
+        map.invalidateSize();
+        writeUrl();
+    });
+    var onBreakpoint = function() {
+        map.invalidateSize();
+        if (panelVisible() && panelStale) loadPanel();
+    };
+    if (desktopMql.addEventListener) desktopMql.addEventListener('change', onBreakpoint);
+    else desktopMql.addListener(onBreakpoint);   // older Safari
+
+    // ---------------------------------------------------------------
+    // Initial load — the one automatic fetch (no auto-geolocation prompt;
+    // default view is the Oregon region unless the URL restored one).
     // Wait for layout to settle before reading bounds: loading immediately
     // fired a request with zero-area bounds, then two more on resize.
     // ---------------------------------------------------------------
     setTimeout(function() {
         map.invalidateSize();
-        clearTimeout(loadDebounce);   // drop any moveend queued by the resize
-        loadPins();
+        doRefresh();
         updateChipFade();
     }, 0);
 

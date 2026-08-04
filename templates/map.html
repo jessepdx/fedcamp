@@ -56,7 +56,18 @@
     hookups and RV length. <a href="/search-form">Advanced search</a>
 </p>
 
-<div class="map-shell">
+<div class="map-layout">
+  <aside id="map-panel" aria-label="Campground results">
+    <div id="panel-header">
+      <span id="panel-count" aria-live="polite"></span>
+      <button type="button" id="panel-close-btn" aria-label="Show map">Map</button>
+    </div>
+    <div id="panel-empty" hidden>
+      <p>No campgrounds in view. Zoom out or clear filters.</p>
+    </div>
+    <div id="results-list"></div>
+  </aside>
+  <div class="map-shell">
     <!-- Filters float over the map. Previously they sat in page flow below a
          75vh map, which put them off-screen on every viewport we measured, so
          most visitors never learned filters existed. The overlay comes BEFORE
@@ -129,7 +140,13 @@
         </div>
     </div>
 
+    <button type="button" id="search-area-btn" class="search-area-btn" hidden>Search this area</button>
+    <button type="button" id="view-toggle-btn" class="view-toggle-btn"
+            aria-controls="map-panel" aria-expanded="false" hidden>
+      List <span id="view-toggle-count"></span>
+    </button>
     <div id="state-map"></div>
+  </div>
 </div>
 
 <noscript>

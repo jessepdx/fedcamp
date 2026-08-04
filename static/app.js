@@ -56,64 +56,6 @@ document.addEventListener('keydown', function(e) {
     else if (e.key === 'ArrowRight') lbNext(e);
 });
 
-function initResultsMap(facilities) {
-    var mapEl = document.getElementById('results-map');
-    if (!mapEl || !facilities.length) return;
-
-    var map = L.map('results-map');
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors',
-        maxZoom: 18
-    }).addTo(map);
-
-    var bounds = [];
-
-    facilities.forEach(function(f) {
-        if (!f.latitude || !f.longitude) return;
-
-        var lat = f.latitude;
-        var lng = f.longitude;
-        bounds.push([lat, lng]);
-
-        var color = getCampingTypeColor(f.camping_type);
-
-        var marker = L.circleMarker([lat, lng], {
-            radius: 8,
-            fillColor: color,
-            color: '#fff',
-            weight: 2,
-            fillOpacity: 0.85
-        }).addTo(map);
-
-        var popup = '<strong><a href="/facility/' + f.facility_id + '">' +
-                    escapeHtml(f.facility_name || 'Unnamed') + '</a></strong><br>';
-        if (f.camping_type) {
-            popup += f.camping_type.replace(/_/g, ' ') + '<br>';
-        }
-        if (f.total_campsites) {
-            popup += f.total_campsites + ' sites';
-        }
-        if (f.distance_miles !== undefined && f.distance_miles !== null) {
-            popup += ' &middot; ' + f.distance_miles.toFixed(1) + ' mi';
-        }
-
-        marker.bindPopup(popup);
-    });
-
-    if (bounds.length > 0) {
-        map.fitBounds(bounds, { padding: [30, 30] });
-    }
-}
-
-function getCampingTypeColor(type) {
-    var colors = {
-        'DEVELOPED': '#2d7d46',
-        'PRIMITIVE': '#8a6d10',
-        'DISPERSED': '#6c5ce7'
-    };
-    return colors[type] || '#5f6e6f';
-}
-
 function escapeHtml(text) {
     var div = document.createElement('div');
     div.textContent = text;

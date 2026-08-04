@@ -11,7 +11,8 @@ import time
 import threading
 from datetime import datetime, timezone, timedelta
 from urllib.parse import urlencode
-from flask import Flask, render_template, request, g, jsonify, send_file
+from flask import (Flask, render_template, request, g, jsonify, send_file,
+                   redirect, make_response)
 import db
 import stats
 
@@ -210,20 +211,34 @@ def search():
     lat = request.args.get("lat", type=float)
     lon = request.args.get("lon", type=float)
     radius = request.args.get("radius", 100, type=float)
+    south = request.args.get("south", type=float)
+    north = request.args.get("north", type=float)
+    west = request.args.get("west", type=float)
+    east = request.args.get("east", type=float)
     ct = request.args.getlist("camping_type")
     tags = request.args.getlist("tag")
     agencies = request.args.getlist("agency")
     road_access = request.args.getlist("road_access")
     seasonal = request.args.getlist("seasonal_status")
     fire = request.args.getlist("fire_status")
+    styles = request.args.getlist("style")
+    hookups = request.args.getlist("hookup")
     rv_length = request.args.get("rv_length", type=int)
     page = request.args.get("page", 1, type=int)
     view = request.args.get("view", "list")
+
+    # The map view is the home page now; a state/point search can't be
+    # translated into a map centre, so just go home.
+    if view == "map":
+        return redirect("/", code=302)
 
     if not ct:
         ct = list(db.DEFAULT_CAMPING_TYPES)
 
     offset = (page - 1) * 25
+
+    # Bbox mode activates only when all four bounds are present
+    bbox_active = None not in (south, north, west, east)
 
     filter_kwargs = dict(
         camping_types=ct, tag_filters=tags, agencies=agencies,
@@ -234,7 +249,22 @@ def search():
         excludes=_parse_excludes(),
     )
 
-    if lat is not None and lon is not None:
+    # Precedence: bbox > lat/lon > state
+    if bbox_active:
+        bounds_kwargs = dict(
+            camping_types=ct, agencies=agencies or None,
+            road_access=road_access or None,
+            styles=styles or None, hookups=hookups or None,
+            min_rv_length=rv_length,
+            excludes=_parse_excludes(),
+        )
+        results = db.search_by_bounds(
+            g.conn, south, north, west, east,
+            limit=25, offset=offset, **bounds_kwargs)
+        total = db.get_bounds_count(
+            g.conn, south, north, west, east, **bounds_kwargs)
+        search_desc = "In map area"
+    elif lat is not None and lon is not None:
         results = db.search_by_location(
             g.conn, lat, lon, radius,
             limit=25, offset=offset, **filter_kwargs)
@@ -282,6 +312,9 @@ def search():
         rv_length=rv_length,
         search_desc=search_desc,
         view=view,
+        south=south, north=north, west=west, east=east,
+        selected_styles=styles,
+        selected_hookups=hookups,
         amenity_filters=AMENITY_FILTERS,
         camping_type_options=CAMPING_TYPES,
         agency_options=AGENCIES,
@@ -292,9 +325,13 @@ def search():
 
     # htmx partial
     if request.headers.get("HX-Request"):
-        return render_template("_results_cards.html", **ctx)
-
-    return render_template("results.html", **ctx)
+        resp = make_response(render_template("_results_cards.html", **ctx))
+    else:
+        resp = make_response(render_template("results.html", **ctx))
+    # True unpaginated total on every /search response, so the front-end
+    # can read the count without parsing HTML.
+    resp.headers["X-Total-Count"] = str(total)
+    return resp
 
 
 @app.route("/facility/<facility_id>")

@@ -1306,3 +1306,207 @@ body.map-page .mf-apply-btn { display: none; }
         box-shadow: 0 -6px 10px -6px rgba(0, 0, 0, .18);
     }
 }
+
+/* --- Split view: results panel beside the map ------------------------
+   Still part of the MAP PAGE block. Desktop (>=1024px) is a two-column
+   grid: panel | map. Below that the panel becomes a full-viewport layer
+   toggled by body.panel-open; the map stays mounted underneath so its
+   state survives the switch. */
+body.map-page .map-layout {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: 1fr;
+}
+body.map-page .map-layout > .map-shell { min-width: 0; min-height: 0; }
+
+body.map-page #map-panel {
+    display: none;              /* mobile default: map first */
+    flex-direction: column;
+    min-height: 0;
+    min-width: 0;
+    background: #fff;
+    overscroll-behavior: contain;
+}
+body.map-page #panel-header {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .5rem;
+    padding: .4rem .9rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+body.map-page #panel-count {
+    font-size: .85rem;
+    color: #4b5563;
+}
+body.map-page #panel-close-btn {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: var(--ctl-h);
+    margin: 0;
+    padding: 0 1rem;
+    width: auto;
+    border: 1px solid var(--brand);
+    border-radius: 999px;
+    background: #fff;
+    color: var(--brand);
+    font-size: .8rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+body.map-page #panel-empty {
+    padding: 1.25rem 1rem;
+    font-size: .9rem;
+    color: #4b5563;
+}
+body.map-page #panel-empty p { margin: 0; }
+body.map-page #results-list {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+/* Panel-scoped card densification: same partial as the results page, no
+   template fork. Photos, tags and links go; the condition pills and the
+   stats row stay -- the conditions data is the whole point. Target is
+   ~96-110px per card. */
+body.map-page #map-panel .card-photo,
+body.map-page #map-panel .card-tags,
+body.map-page #map-panel .card-links { display: none; }
+body.map-page #map-panel .result-card {
+    margin: 0;
+    padding: .5rem .8rem;
+    border: 0;
+    border-left: 3px solid transparent;   /* reserved for .is-active */
+    border-bottom: 1px solid #eef0f2;
+    border-radius: 0;
+    box-shadow: none;
+    background: #fff;
+}
+/* Title above pills, not beside it. The base row is `title | pills` with
+   .condition-pills { flex-shrink: 0 }, which at a 420px panel pushed pills
+   past the edge by up to 160px and clipped "Seasonal Closure — Likely Open"
+   mid-word. Stacking is the treatment the narrow-viewport rule already uses,
+   and it lets the pills wrap across the full panel width. */
+body.map-page #map-panel .card-header-row {
+    gap: .35rem;
+    flex-direction: column;
+    align-items: flex-start;
+}
+body.map-page #map-panel .card-title { font-size: .9rem; line-height: 1.25; margin-bottom: .1rem; }
+body.map-page #map-panel .card-meta { font-size: .76rem; margin-bottom: .15rem; gap: .35rem; }
+body.map-page #map-panel .card-stats { gap: .25rem; margin-bottom: 0; }
+body.map-page #map-panel .card-stats span { font-size: .72rem; padding: .05rem .4rem; }
+body.map-page #map-panel .condition-pill { font-size: .68rem; padding: .12rem .4rem; }
+
+/* Hover-link highlight. Not colour alone: the left border and background
+   shift together (WCAG 1.4.1); text colours are unchanged on the pale
+   green, so contrast stays AA. */
+body.map-page #map-panel .result-card.is-active {
+    background: #e7f2ea;
+    border-left-color: var(--brand-dark);
+}
+
+/* Active pin. Leaflet positions the icon element with an inline
+   translate3d transform, so the scale goes on the inner svg, anchored to
+   the pin tip. The .leaflet-marker-icon qualifier keeps parity with the
+   `background: none !important` rule earlier in the file. */
+.leaflet-marker-icon.campdex-pin svg { transition: transform .1s ease; }
+.leaflet-marker-icon.campdex-pin--active svg {
+    transform: scale(1.25);
+    transform-origin: 50% 100%;
+    filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .45));
+}
+
+/* Floating buttons over the map. Sizing comes from the --ctl-h token,
+   like every other overlay control. The [hidden] rules must outrank the
+   display rules below, or JS can never hide the buttons. */
+body.map-page .search-area-btn[hidden],
+body.map-page .view-toggle-btn[hidden] { display: none; }
+
+body.map-page .search-area-btn {
+    position: absolute;
+    /* Below the chip row: overlay inset + row height (control + padding). */
+    top: calc(var(--overlay-inset) * 2 + var(--ctl-h) + (2 * var(--ctl-gap)) + .35rem);
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 500;
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--ctl-h);
+    margin: 0;
+    padding: 0 1.1rem;
+    width: auto;
+    border: 0;
+    border-radius: 999px;
+    background: var(--brand-dark);
+    color: #fff;
+    font-size: .8rem;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, .3);
+}
+/* Popups can open under the button's position; fade it like the status
+   pill and legend rather than letting it cover them. */
+body.map-page .map-shell:has(.leaflet-container.popup-open) .search-area-btn {
+    opacity: 0;
+    pointer-events: none;
+}
+
+body.map-page .view-toggle-btn {
+    position: absolute;
+    /* Clear of the 17px attribution strip, like the mobile overlay. */
+    bottom: calc(1.4rem + var(--overlay-inset));
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    min-height: var(--ctl-h);
+    margin: 0;
+    padding: 0 1.2rem;
+    width: auto;
+    border: 0;
+    border-radius: 999px;
+    background: #1f2937;
+    color: #fff;
+    font-size: .85rem;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, .3);
+}
+
+/* Mobile: the panel is a full-viewport layer above everything on the
+   page (nav included); its own header carries the way back to the map. */
+@media (max-width: 1023.98px) {
+    body.map-page #map-panel {
+        position: fixed;
+        inset: 0;
+        z-index: 2000;
+    }
+    body.map-page.panel-open #map-panel { display: flex; }
+    body.map-page #panel-header {
+        padding-top: max(.4rem, env(safe-area-inset-top, 0px));
+    }
+}
+
+@media (min-width: 1024px) {
+    body.map-page .map-layout { grid-template-columns: 400px 1fr; }
+    body.map-page #map-panel {
+        display: flex;
+        border-right: 1px solid #e5e7eb;
+    }
+    body.map-page #panel-close-btn { display: none; }  /* mobile-only control */
+    body.map-page .view-toggle-btn { display: none; }
+}
+@media (min-width: 1440px) {
+    body.map-page .map-layout { grid-template-columns: 420px 1fr; }
+}

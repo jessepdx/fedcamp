@@ -22,9 +22,6 @@
         <input type="hidden" name="lon" value="{{ lon }}">
         <input type="hidden" name="radius" value="{{ radius }}">
         {% endif %}
-        {% if view == 'map' %}
-        <input type="hidden" name="view" value="map">
-        {% endif %}
 
         <label><strong>Camping Type</strong></label>
         <fieldset class="filter-fieldset">
@@ -85,20 +82,9 @@
             &#9776; Filters
         </button>
         <a href="/" role="button" class="outline">New Search</a>
-        {% if results and view == 'list' %}
-        <a href="{{ request.url }}&view=map" role="button" class="outline secondary">Map View</a>
-        {% elif results and view == 'map' %}
-        <a href="{{ request.url | replace('&view=map', '') }}" role="button" class="outline secondary">List View</a>
-        {% endif %}
+        <a href="/">Map</a>
     </div>
 </div>
-
-{% if view == 'map' and results %}
-<div id="results-map" class="results-map"></div>
-<script>
-    var facilities = {{ results | tojson }};
-</script>
-{% endif %}
 
 {% if not results %}
 <article>
@@ -110,7 +96,6 @@
         {%- if clear_params.append('lon=' ~ lon) %}{% endif -%}
         {%- if clear_params.append('radius=' ~ radius) %}{% endif -%}
     {%- endif -%}
-    {%- if view == 'map' %}{% if clear_params.append('view=map') %}{% endif %}{% endif -%}
     <p><a href="/search?{{ clear_params | join('&') }}" role="button" class="outline">Clear all filters</a></p>
 </article>
 {% else %}
@@ -119,13 +104,5 @@
     {% include "_results_cards.html" %}
 </div>
 
-{% endif %}
-{% endblock %}
-
-{% block scripts %}
-{% if view == 'map' and results %}
-<script>
-    initResultsMap(facilities);
-</script>
 {% endif %}
 {% endblock %}
