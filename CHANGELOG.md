@@ -10,7 +10,7 @@ All notable changes to the Campdex (formerly RV Camping Finder) project.
 
 ### Added
 - `robots.txt` now names 17 AI crawlers and assistants explicitly — OpenAI, Anthropic, Perplexity, Google-Extended, Applebot-Extended, Common Crawl and others — each granted the site and the API. Relying on the wildcard would have worked, but naming them makes the invitation unambiguous.
-- Content signals declaring `search=yes, ai-input=yes`. `ai-train` is deliberately left unstated, which under the spec neither grants nor withholds it — a decision worth making consciously rather than by omission.
+- Content signals declaring `search=yes, ai-input=yes, ai-train=yes` — all three granted. The underlying data is public federal information, the entire database is already a free download, and the site's purpose is getting campground facts in front of people; an assistant that has learned this data is that purpose being served.
 - **`/llms.txt`** (llmstxt.org convention) — a machine-readable orientation for language models: what the site covers, how to call the API, the rate limit, the bulk download, and prominently the one thing an assistant must not get wrong, that `UNKNOWN` means "the agency never recorded this" rather than "no restriction". Linked from `robots.txt`.
 
 ## [0.16.0] — 2026-08-03
