@@ -916,3 +916,35 @@ a.leaflet-control-zoom-out {
     cursor: default;
     vertical-align: middle;
 }
+
+/* --- Map marker clusters --------------------------------------------
+   Overrides MarkerCluster.Default.css, whose green/yellow/red ramp reads
+   as a severity scale here (this site already uses red for "excluded"
+   and closures). One brand green at three sizes instead: bigger circle
+   = more campgrounds, no implied judgement.
+
+   Styling goes on the marker element itself rather than an inner wrapper:
+   Leaflet sizes the marker inline, and a nested div with width:100% does
+   not resolve against it. */
+.leaflet-marker-icon.campdex-cluster {
+    /* !important because Pico styles [role="button"], which every Leaflet
+       marker carries -- without it the clusters render as Pico buttons:
+       grey rounded squares. Same reason the touch-action rule above needs
+       it. */
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    border-radius: 50% !important;
+    background: rgba(45, 125, 70, .85) !important;
+    border: 2px solid #fff !important;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, .35) !important;
+    color: #fff !important;
+    font-weight: 700;
+    font-size: .8rem;
+    line-height: 1;
+    text-align: center;
+}
+.leaflet-marker-icon.campdex-cluster-md { font-size: .85rem; background: rgba(37, 106, 59, .9) !important; }
+.leaflet-marker-icon.campdex-cluster-lg { font-size: .9rem;  background: rgba(31, 92, 51, .95) !important; }
+.leaflet-marker-icon.campdex-cluster:hover { background: rgba(31, 92, 51, 1) !important; }

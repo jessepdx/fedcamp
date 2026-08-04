@@ -478,13 +478,15 @@ def search_pins_by_bounds(conn, south, north, west, east,
     if not camping_types:
         camping_types = list(DEFAULT_CAMPING_TYPES)
 
+    # Only what the map renders. The hookup flags and road_access rode along in
+    # every pin and were used by nothing -- the map's hookup and road filters
+    # are applied server-side from query params, not from pin fields.
     sql = """
         SELECT
             r.facility_id, r.facility_name, r.latitude, r.longitude,
             r.camping_type, r.total_campsites, r.org_abbrev,
             r.max_rv_length,
-            r.has_electric_hookup, r.has_water_hookup, r.has_sewer_hookup,
-            c.road_access, c.seasonal_status
+            c.seasonal_status
         FROM n_facility_rollup r
         JOIN n_facility_conditions c ON r.facility_id = c.facility_id
         WHERE r.coords_valid = 1

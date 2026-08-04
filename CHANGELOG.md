@@ -2,6 +2,14 @@
 
 All notable changes to the Campdex (formerly RV Camping Finder) project.
 
+## [0.12.0] — 2026-08-03
+
+### Changed
+- **Map pins are clustered.** A zoomed-out view returned 6,213 campgrounds and dropped every one into the DOM as an individual `divIcon` marker — `preferCanvas` does nothing for divIcons — which is what made the map crawl on phones and rendered the Pacific Northwest as overlapping pin soup. Leaflet.markercluster (34KB, loaded only on the map page, SRI-pinned) now groups them: an Oregon-wide view renders 993 campgrounds as 93 DOM nodes, and zoomed in, 458 as 82. Clusters break apart as you zoom and disappear entirely below zoom 11, so nothing is hidden — only aggregated. Markers are added in one bulk `addLayers` call rather than one at a time.
+- Cluster styling is one brand green at three sizes rather than the library's green/yellow/red ramp, which would read as a severity scale on a site that already uses red for closures and exclusions. Bigger circle means more campgrounds, not worse.
+- `/api/pins` no longer returns `has_electric_hookup`, `has_water_hookup`, `has_sewer_hookup` or `road_access`. They rode along in every pin and were used by nothing — the map's hookup and road filters are applied server-side from query params. The continental-US payload drops from 2,146,765 to 1,540,963 bytes.
+- Caddy now serves responses with `zstd`/`gzip`, excluding `/api/download` (already-compact binary; compressing 77MB per request would burn CPU for nothing). Combined with the field trim, the continental-US pin payload goes from ~2.1MB to ~180KB — about 12x.
+
 ## [0.11.2] — 2026-08-03
 
 ### Fixed

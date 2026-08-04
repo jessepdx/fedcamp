@@ -2,6 +2,8 @@
 {% block title %}Campdex — Federal Campground Search{% endblock %}
 
 {% block head %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" integrity="sha384-pmjIAcz2bAn0xukfxADbZIb3t8oRT9Sv0rvO+BR5Csr6Dhqq+nZs59P0pPKQJkEV" crossorigin="anonymous">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" integrity="sha384-wgw+aLYNQ7dlhK47ZPK7FRACiq7ROZwgFNg0m04avm4CaXS+Z9Y7nMu8yNjBKYC+" crossorigin="anonymous">
 <style>
     #state-map {
         height: 75vh;
@@ -113,6 +115,7 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js" integrity="sha384-eXVCORTRlv4FUUgS/xmOyr66XBVraen8ATNLMESp92FKXLAMiKkerixTiBvXriZr" crossorigin="anonymous"></script>
 <script>
 (function() {
     try {
@@ -219,7 +222,27 @@
     // ---------------------------------------------------------------
     // Pin layer and loading
     // ---------------------------------------------------------------
-    var pinLayer = L.layerGroup().addTo(map);
+    // Cluster markers instead of dropping every pin into the DOM. A
+    // zoomed-out view returns 6,000+ campgrounds, and that many divIcon
+    // markers is what made the map crawl on phones (preferCanvas does
+    // nothing for divIcons). Clusters break apart as you zoom, and below
+    // disableClusteringAtZoom every pin is drawn individually.
+    var pinLayer = L.markerClusterGroup({
+        chunkedLoading: true,          // yield to the UI while adding markers
+        showCoverageOnHover: false,    // the convex hull is noise at this density
+        maxClusterRadius: 55,
+        disableClusteringAtZoom: 11,
+        spiderfyOnMaxZoom: true,
+        iconCreateFunction: function(cluster) {
+            var n = cluster.getChildCount();
+            var size = n < 10 ? 'sm' : (n < 100 ? 'md' : 'lg');
+            return L.divIcon({
+                html: '<div><span>' + n + '</span></div>',
+                className: 'campdex-cluster campdex-cluster-' + size,
+                iconSize: L.point(40, 40)
+            });
+        }
+    }).addTo(map);
     var loadDebounce;
     var currentRequest = null;
 
@@ -285,11 +308,13 @@
             .then(function(pins) {
                 currentRequest = null;
                 pinLayer.clearLayers();
+                var markers = [];
                 pins.forEach(function(p) {
                     var marker = L.marker([p.latitude, p.longitude], {
                         icon: pinIcon(campingColor(p.camping_type, p.seasonal_status)),
                         bubblingMouseEvents: false
-                    }).addTo(pinLayer);
+                    });
+                    markers.push(marker);
 
                     var tgt = ('ontouchstart' in window) ? '' : ' target="_blank" rel="noopener"';
                     var html = '<strong><a href="/facility/' + p.facility_id + '"' + tgt + '>'
@@ -304,6 +329,8 @@
                     marker.bindPopup(html);
                     marker.bindTooltip(escapeHtml(p.facility_name));
                 });
+                // One bulk add is far cheaper than addTo() per marker.
+                pinLayer.addLayers(markers);
                 status.update('<strong>' + pins.length + ' campgrounds</strong><small>in view</small>');
             })
             .catch(function(err) {
