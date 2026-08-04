@@ -2,6 +2,11 @@
 
 All notable changes to the RV Camping Finder project.
 
+## [0.10.7] — 2026-08-03
+
+### Changed
+- `purge_for_deploy.py` now runs `ANALYZE` before `VACUUM`, so the shipped database carries query planner statistics. Without `sqlite_stat1` the planner guesses, and it was guessing wrong: the facility-page photos query picked `idx_media_type` and scanned all ~35K image rows (34.7ms) instead of `idx_campsites_facility` → `idx_media_preview` (0.006ms) — a ~5,800× difference on a page users hit constantly. `VACUUM` preserves `sqlite_stat1`, so the order matters. Found while evaluating (and rejecting) a migration to DuckDB.
+
 ## [0.10.6] — 2026-08-03
 
 ### Fixed

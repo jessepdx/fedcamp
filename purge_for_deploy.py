@@ -102,6 +102,17 @@ def main():
         cur.execute(f"DROP TABLE IF EXISTS {t}")
     dst_conn.commit()
 
+    # Build query planner statistics. Without sqlite_stat1 the planner guesses,
+    # and it guesses wrong: the facility-page photos query was picking
+    # idx_media_type and scanning all ~35K image rows (34.7ms) instead of
+    # idx_campsites_facility -> idx_media_preview (0.006ms). VACUUM preserves
+    # sqlite_stat1, so this has to run before it, not after.
+    print("ANALYZE...")
+    t0 = time.time()
+    cur.execute("ANALYZE")
+    dst_conn.commit()
+    print(f"  done in {time.time() - t0:.1f}s")
+
     print("VACUUM...")
     t0 = time.time()
     cur.execute("VACUUM")
