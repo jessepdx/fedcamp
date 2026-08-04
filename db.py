@@ -11,6 +11,14 @@ import sqlite3
 
 DB_PATH = "ridb.db"
 
+# Camping types searched when the caller specifies none.
+#
+# This used to be DEVELOPED-only for the search functions while map pins
+# defaulted to all three, so the map showed 604 Oregon campgrounds and
+# searching Oregon showed 237 -- against a dropdown advertising 604.
+# One constant so the four call sites can't drift apart again.
+DEFAULT_CAMPING_TYPES = ["DEVELOPED", "PRIMITIVE", "DISPERSED"]
+
 # ------------------------------------------------------------------
 # Preferred-address join fragment
 # ------------------------------------------------------------------
@@ -110,7 +118,7 @@ def search_by_state(conn, state_codes, camping_types=None,
     if isinstance(state_codes, str):
         state_codes = [state_codes]
     if not camping_types:
-        camping_types = ["DEVELOPED"]
+        camping_types = list(DEFAULT_CAMPING_TYPES)
 
     sql = """
         SELECT
@@ -199,7 +207,7 @@ def search_by_location(conn, lat, lon, radius_miles=100,
                        min_rv_length=None, excludes=None,
                        limit=25, offset=0):
     if not camping_types:
-        camping_types = ["DEVELOPED"]
+        camping_types = list(DEFAULT_CAMPING_TYPES)
 
     # Bounding box
     lat_delta = radius_miles / 69.0
@@ -468,7 +476,7 @@ def search_pins_by_bounds(conn, south, north, west, east,
                           hookups=None, min_rv_length=None, excludes=None):
     """Lightweight bounding-box query for map pins. No LIMIT — bbox is the constraint."""
     if not camping_types:
-        camping_types = ["DEVELOPED", "PRIMITIVE", "DISPERSED"]
+        camping_types = list(DEFAULT_CAMPING_TYPES)
 
     sql = """
         SELECT
@@ -539,7 +547,7 @@ def get_search_count(conn, state_codes=None, lat=None, lon=None,
     if isinstance(state_codes, str):
         state_codes = [state_codes]
     if not camping_types:
-        camping_types = ["DEVELOPED"]
+        camping_types = list(DEFAULT_CAMPING_TYPES)
 
     if state_codes:
         sql = """

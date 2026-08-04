@@ -2,6 +2,14 @@
 
 All notable changes to the Campdex (formerly RV Camping Finder) project.
 
+## [0.11.1] — 2026-08-03
+
+### Fixed
+- Picking Oregon in the search form returned 237 campgrounds while the dropdown beside it advertised 604. The camping-type default was set in four places and three of them disagreed: `search_by_state`, `search_by_location` and `get_search_count` defaulted to `DEVELOPED` only, `search_pins_by_bounds` defaulted to all three types, the Advanced Search form pre-checked only `DEVELOPED`, and `n_state_cache` — which feeds the dropdown — counts all three. So the map already showed all 604 while search showed 237 of them. All four now derive from a single `db.DEFAULT_CAMPING_TYPES` constant, and the form pre-checks whatever that constant actually contains rather than hardcoding a guess. Oregon: 237 + 201 + 166 = 604.
+
+### Known Issues
+- The remaining dropdown gap is unrelated and still open: `n_state_cache` counts a facility once per state it holds an address in, so CA advertises 857 against 820 reachable. That needs `prepare_db.py` and a database regeneration.
+
 ## [0.11.0] — 2026-08-03
 
 ### Added

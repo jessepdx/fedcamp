@@ -195,6 +195,7 @@ def search_form():
     states = db.get_states(g.conn)
     return render_template("index.html",
                            states=states,
+                           default_camping_types=db.DEFAULT_CAMPING_TYPES,
                            amenity_filters=AMENITY_FILTERS,
                            camping_types=CAMPING_TYPES,
                            agencies=AGENCIES,
@@ -220,7 +221,7 @@ def search():
     view = request.args.get("view", "list")
 
     if not ct:
-        ct = ["DEVELOPED"]
+        ct = list(db.DEFAULT_CAMPING_TYPES)
 
     offset = (page - 1) * 25
 
@@ -358,7 +359,7 @@ def api_search():
     offset = request.args.get("offset", 0, type=int)
 
     if not ct:
-        ct = ["DEVELOPED"]
+        ct = list(db.DEFAULT_CAMPING_TYPES)
 
     filter_kwargs = dict(
         camping_types=ct, tag_filters=tags, agencies=agencies,

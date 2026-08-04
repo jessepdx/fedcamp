@@ -63,7 +63,7 @@
             {% for val, label in camping_types %}
             <label>
                 <input type="checkbox" name="camping_type" value="{{ val }}"
-                       {{ 'checked' if val == 'DEVELOPED' else '' }}>
+                       {{ 'checked' if val in default_camping_types else '' }}>
                 {{ label }}
             </label>
             {% endfor %}
